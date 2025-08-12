@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>LAUDOS DE IPI</title>
+  <style>
+    body { font-family: sans-serif; background: #f9f9f9; margin: 20px; text-transform: uppercase; }
+    input, button { padding: 5px; margin: 5px; }
+    #paciente { width: 500px; }
+    #obs { width: 600px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    td:nth-child(2) { min-width: 200px; }
+    td:nth-child(7) { min-width: 250px; }
+    th:nth-child(1), td:nth-child(1) { min-width: 120px; }
+    th:nth-child(3), td:nth-child(3) { min-width: 130px; }
+    th:nth-child(4), td:nth-child(4) { min-width: 130px; }
+    th:nth-child(5), td:nth-child(5) { min-width: 120px; }
+    th:nth-child(6), td:nth-child(6) { min-width: 130px; }
+    th:nth-child(8), td:nth-child(8) { min-width: 100px; }
+    th:nth-child(9), td:nth-child(9) { min-width: 50px; text-align: center; }
+    .highlight { background: yellow; }
+    .hidden { display: none; }
+    #msg { color: red; font-weight: bold; }
+    .diretoria-highlight { background-color: #dff0d8; }
+  </style>
+</head>
+<body>
+  <h1>LAUDOS DE IPI</h1>
+  <form id="form">
+    <input id="prontuario" placeholder="PRONTUÁRIO" maxlength="7" autofocus>
+    <input id="paciente" placeholder="PACIENTE">
+    <input type="date" id="data_email">
+    <input id="medico" placeholder="MÉDICO">
+    <input id="obs" placeholder="OBS">
+  </form>
+
+  <div>
+    <button onclick="novoRegistro()">Novo</button>
+    <button onclick="limparLista()">Limpar</button>
+    <button onclick="salvarArquivo()">Salvar</button>
+    <button onclick="importarArquivo()">Importar</button>
+    <button onclick="gerarRelatorio()">Relatório</button>
+    <input id="pesquisar" placeholder="Pesquisar..." oninput="pesquisarTabela()">
+    <button onclick="document.getElementById('pesquisar').value=''; pesquisarTabela()">X</button>
+  </div>
+
+  <div id="msg" class="hidden">Não encontrado</div>
+
+  <table id="tabela">
+    <thead>
+      <tr>
+        <th>PRONTUÁRIO</th>
+        <th>PACIENTE</th>
+        <th>DATA EMAIL</th>
+        <th>DATA LIMITE</th>
+        <th>MÉDICO</th>
+        <th>DIRETORIA</th>
+        <th>OBS</th>
+        <th>STATUS</th>
+        <th>✔</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <input type="file" id="fileInput" class="hidden" accept=".txt" onchange="handleFile(event)">
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+    // Configuração do Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDQOGFiqafMZh0ha6XW62P1DpIKJE8TBYc",
+      authDomain: "agenda-online-7b71c.firebaseapp.com",
+      projectId: "agenda-online-7b71c",
+      storageBucket: "agenda-online-7b71c.firebasestorage.app",
+      messagingSenderId: "28125733214",
+      appId: "1:28125733214:web:162d1cce5d14f55c24afcf"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const form = document.getElementById('form');
+    const tabela = document.querySelector('#tabela tbody');
+    const msg = document.getElementById('msg');
+    const prontuarioInput = document.getElementById('prontuario');
+
+    let dados = [];
+
+    async function carregarFirebase() {
+      const docRef = doc(db, "laudosDB", "dados");
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        dados = docSnap.data().lista || [];
+      } else {
+        dados = [];
+      }
+      atualizarTabela();
+    }
+
+    async function salvarFirebase() {
+      await setDoc(doc(db, "laudosDB", "dados"), { lista: dados });
+    }
+
+    function calcularDataLimite(dataEmail) {
+      let data = new Date(dataEmail);
+      let adicionados = 0;
+      while (adicionados < 15) {
+        data.setDate(data.getDate() + 1);
+        if (data.getDay() !== 0 && data.getDay() !== 6) adicionados++;
+      }
+      return data.toISOString().split('T')[0];
+    }
+
+    function atualizarTabela() {
+      tabela.innerHTML = '';
+      dados.forEach((item, i) => {
+        let linha = tabela.insertRow();
+        ['prontuario','paciente','data_email','data_limite','medico','diretoria','obs'].forEach((campo) => {
+          let celula = linha.insertCell();
+          celula.contentEditable = campo !== 'data_limite';
+          celula.innerText = item[campo] || '';
+          celula.oninput = () => {
+            item[campo] = celula.innerText.trim();
+            if (campo === 'data_email') {
+              const regexData = /^\d{4}-\d{2}-\d{2}$/;
+              if (regexData.test(item.data_email)) {
+                item.data_limite = calcularDataLimite(item.data_email);
+              }
+              atualizarTabela();
+            } else {
+              salvarFirebase();
+            }
+          };
+        });
+
+        let statusCell = linha.insertCell();
+        statusCell.innerText = item.checkbox ? 'OK' : 'PENDENTE';
+
+        let checkCell = linha.insertCell();
+        let checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = item.checkbox;
+        checkbox.onchange = () => {
+          item.checkbox = checkbox.checked;
+          if (checkbox.checked) {
+            item.diretoria = new Date().toISOString().split('T')[0];
+            linha.cells[5].innerText = item.diretoria;
+            linha.cells[5].classList.add('diretoria-highlight');
+          } else {
+            item.diretoria = '';
+            linha.cells[5].innerText = '';
+            linha.cells[5].classList.remove('diretoria-highlight');
+          }
+          salvarFirebase();
+          atualizarTabela();
+        };
+        checkCell.appendChild(checkbox);
+
+        if (item.diretoria) {
+          linha.cells[5].classList.add('diretoria-highlight');
+        }
+      });
+    }
+
+    function novoRegistro() {
+      let prontuario = prontuarioInput.value;
+      let paciente = document.getElementById('paciente').value;
+      let data_email = document.getElementById('data_email').value;
+      let medico = document.getElementById('medico').value;
+      let obs = document.getElementById('obs').value;
+      if (!prontuario || !paciente || !data_email || !medico) {
+        alert('Preencha todos os campos obrigatórios.');
+        return;
+      }
+      let data_limite = calcularDataLimite(data_email);
+
+      dados.push({ prontuario, paciente, data_email, data_limite, medico, diretoria: '', obs, checkbox: false });
+      salvarFirebase();
+      atualizarTabela();
+      form.reset();
+      prontuarioInput.focus();
+    }
+
+    function limparLista() {
+      if (confirm('Deseja apagar todos os dados?')) {
+        salvarArquivo();
+        dados = [];
+        salvarFirebase();
+        atualizarTabela();
+      }
+    }
+
+    function salvarArquivo() {
+      let blob = new Blob([JSON.stringify(dados)], { type: 'text/plain' });
+      let a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'laudos.txt';
+      a.click();
+    }
+
+    function importarArquivo() {
+      document.getElementById('fileInput').click();
+    }
+
+    function handleFile(e) {
+      let file = e.target.files[0];
+      if (!file) return;
+      let reader = new FileReader();
+      reader.onload = () => {
+        dados = JSON.parse(reader.result);
+        salvarFirebase();
+        atualizarTabela();
+      };
+      reader.readAsText(file);
+    }
+
+    function gerarRelatorio() {
+      let total = dados.length;
+      let porMedico = {};
+      dados.forEach(d => {
+        porMedico[d.medico] = (porMedico[d.medico] || 0) + 1;
+      });
+      let relatorio = `<table border="1" cellspacing="0" cellpadding="5">
+        <thead><tr><th>PRONTUÁRIO</th><th>PACIENTE</th><th>DATA EMAIL</th><th>DATA LIMITE</th><th>MÉDICO</th><th>DIRETORIA</th><th>OBS</th><th>STATUS</th></tr></thead><tbody>`;
+      dados.forEach(d => {
+        relatorio += `<tr><td>${d.prontuario}</td><td>${d.paciente}</td><td>${d.data_email}</td><td>${d.data_limite}</td><td>${d.medico}</td><td>${d.diretoria}</td><td>${d.obs}</td><td>${d.checkbox ? 'OK' : 'PENDENTE'}</td></tr>`;
+      });
+      relatorio += `</tbody></table><br><strong>TOTAL: ${total}</strong><br>`;
+      for (let m in porMedico) relatorio += `<strong>${m}: ${porMedico[m]}</strong><br>`;
+
+      let novaJanela = window.open('', '_blank');
+      novaJanela.document.write(relatorio);
+      novaJanela.document.write('<br><button onclick="window.print()">Imprimir</button>');
+    }
+
+    function pesquisarTabela() {
+      let termo = document.getElementById('pesquisar').value.toUpperCase();
+      let encontrado = false;
+      Array.from(tabela.rows).forEach(row => {
+        let match = false;
+        row.querySelectorAll('td').forEach(td => {
+          if (td.innerText.toUpperCase().includes(termo) && termo.length >= 3) {
+            td.classList.add('highlight');
+            match = true;
+            encontrado = true;
+          } else {
+            td.classList.remove('highlight');
+          }
+        });
+        if (!match) row.classList.remove('highlight');
+      });
+      if (!encontrado && termo.length >= 3) {
+        msg.classList.remove('hidden');
+        setTimeout(() => msg.classList.add('hidden'), 2000);
+      }
+    }
+
+    form.addEventListener('keydown', (e) => {
+      if ((e.key === 'Enter' || e.key === 'Tab') && e.target.tagName === 'INPUT') {
+        let inputs = Array.from(form.querySelectorAll('input'));
+        let index = inputs.indexOf(e.target);
+        e.preventDefault();
+        if (inputs[index].id === 'obs') {
+          novoRegistro();
+        } else if (index + 1 < inputs.length) {
+          inputs[index + 1].focus();
+        }
+      }
+    });
+
+    prontuarioInput.focus();
+    carregarFirebase();
+    setInterval(salvarFirebase, 5000);
+  </script>
+</body>
+</html>
