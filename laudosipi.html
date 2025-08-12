@@ -71,7 +71,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-    // Configuração do Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyDQOGFiqafMZh0ha6XW62P1DpIKJE8TBYc",
       authDomain: "agenda-online-7b71c.firebaseapp.com",
@@ -88,6 +87,11 @@
     const tabela = document.querySelector('#tabela tbody');
     const msg = document.getElementById('msg');
     const prontuarioInput = document.getElementById('prontuario');
+
+    // Referências dos botões para esconder depois
+    const btnSalvar = document.querySelector("button[onclick='salvarArquivo()']");
+    const btnImportar = document.querySelector("button[onclick='importarArquivo()']");
+    // botão Relatório não será escondido
 
     let dados = [];
 
@@ -188,10 +192,12 @@
 
     function limparLista() {
       if (confirm('Deseja apagar todos os dados?')) {
-        salvarArquivo();
         dados = [];
         salvarFirebase();
         atualizarTabela();
+        if (btnSalvar) btnSalvar.style.display = 'none';
+        if (btnImportar) btnImportar.style.display = 'none';
+        // botão Relatório permanece visível
       }
     }
 
@@ -220,43 +226,72 @@
     }
 
     function gerarRelatorio() {
-      let total = dados.length;
-      let porMedico = {};
-      dados.forEach(d => {
-        porMedico[d.medico] = (porMedico[d.medico] || 0) + 1;
-      });
-      let relatorio = `<table border="1" cellspacing="0" cellpadding="5">
-        <thead><tr><th>PRONTUÁRIO</th><th>PACIENTE</th><th>DATA EMAIL</th><th>DATA LIMITE</th><th>MÉDICO</th><th>DIRETORIA</th><th>OBS</th><th>STATUS</th></tr></thead><tbody>`;
-      dados.forEach(d => {
-        relatorio += `<tr><td>${d.prontuario}</td><td>${d.paciente}</td><td>${d.data_email}</td><td>${d.data_limite}</td><td>${d.medico}</td><td>${d.diretoria}</td><td>${d.obs}</td><td>${d.checkbox ? 'OK' : 'PENDENTE'}</td></tr>`;
-      });
-      relatorio += `</tbody></table><br><strong>TOTAL: ${total}</strong><br>`;
-      for (let m in porMedico) relatorio += `<strong>${m}: ${porMedico[m]}</strong><br>`;
+      // Filtra dados removendo os que possuem "não se aplica" em obs (case insensitive)
+      const dadosFiltrados = dados.filter(d => !/não se aplica/i.test(d.obs || ''));
 
-      let novaJanela = window.open('', '_blank');
-      novaJanela.document.write(relatorio);
-      novaJanela.document.write('<br><button onclick="window.print()">Imprimir</button>');
+      if (dadosFiltrados.length === 0) {
+        alert('Nenhum dado válido para relatório.');
+        return;
+      }
+
+      let conteudo = 'PRONTUÁRIO\tPACIENTE\tDATA EMAIL\tDATA LIMITE\tMÉDICO\tDIRETORIA\tOBS\tSTATUS\n';
+      dadosFiltrados.forEach(d => {
+        conteudo += [
+          d.prontuario,
+          d.paciente,
+          d.data_email,
+          d.data_limite,
+          d.medico,
+          d.diretoria,
+          d.obs,
+          d.checkbox ? 'OK' : 'PENDENTE'
+        ].join('\t') + '\n';
+      });
+      conteudo += '\nTOTAL DE LANÇAMENTOS: ' + dadosFiltrados.length;
+
+      const blob = new Blob([conteudo], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'relatorio_laudos.txt';
+      a.click();
     }
 
     function pesquisarTabela() {
       let termo = document.getElementById('pesquisar').value.toUpperCase();
+
+      if (termo.length < 4) {
+        // Mostrar todas as linhas e remover highlights
+        Array.from(tabela.rows).forEach(row => {
+          row.style.display = '';
+          row.querySelectorAll('td').forEach(td => td.classList.remove('highlight'));
+        });
+        msg.classList.add('hidden');
+        return;
+      }
+
       let encontrado = false;
       Array.from(tabela.rows).forEach(row => {
-        let match = false;
-        row.querySelectorAll('td').forEach(td => {
-          if (td.innerText.toUpperCase().includes(termo) && termo.length >= 3) {
-            td.classList.add('highlight');
-            match = true;
-            encontrado = true;
-          } else {
-            td.classList.remove('highlight');
-          }
-        });
-        if (!match) row.classList.remove('highlight');
+        let textoPaciente = row.cells[1].innerText.toUpperCase();
+        if (textoPaciente.includes(termo)) {
+          row.style.display = '';
+          row.querySelectorAll('td').forEach(td => {
+            if (td.innerText.toUpperCase().includes(termo)) {
+              td.classList.add('highlight');
+            } else {
+              td.classList.remove('highlight');
+            }
+          });
+          encontrado = true;
+        } else {
+          row.style.display = 'none';
+        }
       });
-      if (!encontrado && termo.length >= 3) {
+
+      if (!encontrado) {
         msg.classList.remove('hidden');
         setTimeout(() => msg.classList.add('hidden'), 2000);
+      } else {
+        msg.classList.add('hidden');
       }
     }
 
