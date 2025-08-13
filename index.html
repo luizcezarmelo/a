@@ -129,15 +129,75 @@
     .commitment:nth-child(even).checked {
       background-color: #aed6f1;
     }
+
+    /* === PASSO 4: CSS da tela de login e esconder conteúdo inicialmente === */
+    #main-container {
+      display: none; /* Esconde a agenda por padrão até logar */
+    }
+    #login-container {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    #login-box {
+      background: #ffffff;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      text-align: center;
+      width: min(90%, 360px);
+    }
+    #login-box h2 {
+      margin: 0 0 10px 0;
+    }
+    #login-box input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      margin-bottom: 12px;
+      font-size: 16px;
+    }
+    #login-box button {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    #loginError {
+      min-height: 20px;
+      margin-top: 8px;
+      color: red;
+    }
   </style>
 
-  <!-- Adiciona os Scripts do Firebase (versão de compatibilidade, mais fácil de usar aqui) -->
+  <!-- Scripts do Firebase (compat) -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 </head>
 <body>
-  <!-- SEU HTML ORIGINAL VEM AQUI - NENHUMA MUDANÇA NECESSÁRIA -->
-  <div class="container">
+
+  <!-- === PASSO 3: Tela de Login === -->
+  <div id="login-container">
+    <div id="login-box">
+      <h2>Acessar Agenda</h2>
+      <input type="password" id="passwordInput" placeholder="Senha" />
+      <button id="loginBtn">Entrar</button>
+      <div id="loginError"></div>
+    </div>
+  </div>
+
+  <!-- Envolvemos o conteúdo original dentro de #main-container -->
+  <div id="main-container" class="container">
     <div class="left-panel">
       <h1>Agenda do Fofo</h1>
       <div class="calendar-section">
@@ -152,9 +212,9 @@
         <button id="novoBtn">Novo</button>
         <button id="copiarBtn">Copiar</button>
         <button id="colarBtn">Colar</button>
-       <a href="https://luizcezarmelo.github.io/minha-agenda/laudosipi.html" target="_blank" style="text-decoration: none">
-  <button type="button">Laudos de IPI</button>
-</a>
+        <a href="https://luizcezarmelo.github.io/minha-agenda/laudosipi.html" target="_blank" style="text-decoration: none">
+          <button type="button">Laudos de IPI</button>
+        </a>
       </div>
       <div id="agenda"></div>
     </div>
@@ -173,15 +233,13 @@
         <button onclick="limparBusca()">❌</button>
       </div>
       <div id="searchResults" class="search-results"></div>
+
       <h3>📝 Lembretes:</h3>
-      <textarea
-        id="notasFixas"
-        rows="20"
-        style="width: 100%; resize: vertical"
-      ></textarea>
+      <textarea id="notasFixas" rows="20" style="width: 100%; resize: vertical"></textarea>
     </div>
   </div>
 
+  <!-- === PASSO 5: Script com lógica de login + seu código original intacto === -->
   <script>
     // ✅ SUA CONFIGURAÇÃO DO FIREBASE JÁ ESTÁ INCLUÍDA AQUI
     const firebaseConfig = {
@@ -199,7 +257,50 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // Elementos principais e variáveis globais
+    // ---- LÓGICA DE LOGIN (novo) ----
+    const loginContainer = document.getElementById('login-container');
+    const mainContainer  = document.getElementById('main-container');
+    const passwordInput  = document.getElementById('passwordInput');
+    const loginBtn       = document.getElementById('loginBtn');
+    const loginError     = document.getElementById('loginError');
+
+    async function hashString(str) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(str);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function tentarLogin() {
+      const senhaDigitada = passwordInput.value;
+      if (!senhaDigitada) {
+        loginError.textContent = 'Por favor, digite a senha.';
+        return;
+      }
+      loginError.textContent = '';
+
+      const hashDigitado = await hashString(senhaDigitada);
+      const snapshot = await database.ref('senha/hash').once('value');
+      const hashSalvo = snapshot.val();
+
+      if (hashDigitado === hashSalvo) {
+        // Login ok: mostra a agenda e inicia listeners
+        loginContainer.style.display = 'none';
+        mainContainer.style.display = 'flex';
+        iniciarAgenda();
+      } else {
+        loginError.textContent = 'Senha incorreta.';
+      }
+    }
+
+    loginBtn.addEventListener('click', tentarLogin);
+    passwordInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') tentarLogin();
+    });
+    // ---- FIM LÓGICA DE LOGIN ----
+
+    // Elementos principais e variáveis globais (SEU CÓDIGO ORIGINAL)
     const agendaEl = document.getElementById("agenda");
     const searchEl = document.getElementById("search");
     const searchResultsEl = document.getElementById("searchResults");
@@ -216,37 +317,61 @@
     const maxCompromissos = 20;
     let bufferCopiados = [];
 
-    /* Configuração inicial */
-    dataInput.value = new Date().toISOString().split("T")[0];
-    window.addEventListener("load", () => {
+    // Agora inicializamos tudo APÓS o login
+    function iniciarAgenda() {
+      // Configuração inicial
+      dataInput.value = new Date().toISOString().split("T")[0];
       carregarAgenda();
       carregarNotasFixas(); // Carrega as notas fixas ao iniciar
-    });
 
-    /* Listeners de interface */
-    dataInput.addEventListener("change", carregarAgenda);
-    novoBtn.addEventListener("click", adicionarCompromisso);
-    copiarBtn.addEventListener("click", copiarCompromissos);
-    colarBtn.addEventListener("click", colarCompromissos);
-    // Removi exportarBtn (já não existe) e coloquei o botão Laudos de IPI com link
-    hojeBtn.addEventListener("click", () => {
-      const hoje = new Date().toISOString().split("T")[0];
-      dataInput.value = hoje;
-      carregarAgenda();
-    });
-    prevDayBtn.addEventListener("click", () => {
-      const d = new Date(dataInput.value);
-      d.setDate(d.getDate() - 1);
-      dataInput.value = d.toISOString().split("T")[0];
-      carregarAgenda();
-    });
-    nextDayBtn.addEventListener("click", () => {
-      const d = new Date(dataInput.value);
-      d.setDate(d.getDate() + 1);
-      dataInput.value = d.toISOString().split("T")[0];
-      carregarAgenda();
-    });
-    searchEl.addEventListener("input", pesquisarCompromisso);
+      /* Listeners de interface */
+      dataInput.addEventListener("change", carregarAgenda);
+      novoBtn.addEventListener("click", adicionarCompromisso);
+      copiarBtn.addEventListener("click", copiarCompromissos);
+      colarBtn.addEventListener("click", colarCompromissos);
+
+      hojeBtn.addEventListener("click", () => {
+        const hoje = new Date().toISOString().split("T")[0];
+        dataInput.value = hoje;
+        carregarAgenda();
+      });
+      prevDayBtn.addEventListener("click", () => {
+        const d = new Date(dataInput.value);
+        d.setDate(d.getDate() - 1);
+        dataInput.value = d.toISOString().split("T")[0];
+        carregarAgenda();
+      });
+      nextDayBtn.addEventListener("click", () => {
+        const d = new Date(dataInput.value);
+        d.setDate(d.getDate() + 1);
+        dataInput.value = d.toISOString().split("T")[0];
+        carregarAgenda();
+      });
+      searchEl.addEventListener("input", pesquisarCompromisso);
+
+      // Salvar notas fixas no Firebase
+      notasFixasEl.addEventListener("input", () => {
+        database.ref("notasFixas").set(notasFixasEl.value);
+      });
+
+      /* Converte para maiúsculas */
+      document.addEventListener("input", (e) => {
+        if (e.target.matches("input[type='text'], textarea")) {
+          const pos = e.target.selectionStart;
+          e.target.value = e.target.value.toUpperCase();
+          e.target.setSelectionRange(pos, pos);
+        }
+      });
+
+      // Validador de CPF (mantido)
+      document.getElementById("cpf").addEventListener("input", () => {
+        const raw = document.getElementById("cpf").value.replace(/\D/g, "");
+        const status = document.getElementById("cpfStatus");
+        const valido = validarCPF(raw);
+        status.textContent = valido ? "CPF válido" : "CPF inválido";
+        status.className = valido ? "valid" : "invalid";
+      });
+    }
 
     /* Salvamento com delay */
     let debounceTimer;
@@ -272,256 +397,4 @@
       let dadosSalvos = snapshot.val() || [];
 
       while (dadosSalvos.length < 15)
-        dadosSalvos.push({ texto: "", hora: "", tachado: false, selecionado: false });
-
-      dadosSalvos.forEach((item) => compromissos.appendChild(criarCampoCompromisso(item)));
-      section.appendChild(compromissos);
-      agendaEl.appendChild(section);
-    }
-
-    /* Salvamento da agenda */
-    function salvarAgenda() {
-      const data = dataInput.value;
-      const section = document.querySelector(".date-section");
-      if (!section) return;
-
-      const textos = [];
-      section.querySelectorAll(".commitment").forEach((div) => {
-        const input = div.querySelector('input[type="text"]');
-        const checkbox = div.querySelector('input[type=checkbox]');
-        textos.push({
-          texto: input.value,
-          hora: "", // O campo hora não é usado, mantive a estrutura
-          tachado: input.classList.contains("done"),
-          selecionado: checkbox.checked,
-        });
-      });
-      // Salva os dados no Firebase no "caminho" agenda/ANO-MES-DIA
-      database.ref("agenda/" + data).set(textos);
-    }
-
-    /* Cria um campo de compromisso (lógica interna não muda) */
-    function criarCampoCompromisso(item = { texto: "", hora: "", tachado: false, selecionado: false }) {
-      const div = document.createElement("div");
-      div.className = "commitment";
-
-      const checkbox = document.createElement("input");
-      checkbox.type = "checkbox";
-      checkbox.checked = item.selecionado;
-      checkbox.addEventListener("change", () => {
-        div.classList.toggle("checked", checkbox.checked);
-        salvarAgenda();
-      });
-      if (item.selecionado) {
-        div.classList.add("checked");
-      }
-
-      const input = document.createElement("input");
-      input.type = "text";
-      input.value = item.texto;
-      if (item.tachado) input.classList.add("done");
-
-      input.addEventListener("input", salvarComDelay);
-      input.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-          const allInputs = [...document.querySelectorAll(".commitment input[type=text]")];
-          const idx = allInputs.indexOf(input);
-          const next = allInputs[idx + 1];
-          if (next) next.focus();
-        }
-      });
-
-      const okBtn = document.createElement("button");
-      okBtn.textContent = "OK";
-      okBtn.onclick = () => {
-        input.classList.toggle("done");
-        salvarAgenda();
-      };
-
-      const delBtn = document.createElement("button");
-      delBtn.textContent = "Excluir";
-      delBtn.onclick = () => {
-        input.value = "";
-        input.classList.remove("done");
-        salvarAgenda();
-      };
-
-      div.appendChild(checkbox);
-      div.appendChild(input);
-      div.appendChild(okBtn);
-      div.appendChild(delBtn);
-      return div;
-    }
-
-    /* Adiciona um novo campo de compromisso */
-    function adicionarCompromisso() {
-      const compromissos = document.querySelector(".commitments");
-      if (compromissos.children.length < maxCompromissos) {
-        compromissos.appendChild(criarCampoCompromisso());
-      }
-    }
-
-    /* Pesquisa por compromissos no Firebase */
-    async function pesquisarCompromisso() {
-      const termo = searchEl.value.trim().toLowerCase();
-      searchResultsEl.innerHTML = "";
-      if (termo.length < 3) return;
-
-      const resultados = [];
-      // Pega todos os dados da agenda de uma vez do Firebase
-      const snapshot = await database.ref("agenda").once("value");
-      const todasAsAgendas = snapshot.val();
-
-      if (todasAsAgendas) {
-        for (const data in todasAsAgendas) {
-          const dadosDoDia = todasAsAgendas[data] || [];
-          dadosDoDia.forEach((item, index) => {
-            if (item.texto && item.texto.toLowerCase().includes(termo)) {
-              resultados.push({ data, index, item });
-            }
-          });
-        }
-      }
-
-      if (resultados.length > 0) {
-        resultados.forEach(({ data, index, item }) => {
-          const divResultado = document.createElement("div");
-          divResultado.textContent = `Dia: ${data} - ${item.texto}`;
-          divResultado.onclick = () => {
-            dataInput.value = data;
-            carregarAgenda().then(() => {
-              // Espera carregar a agenda antes de destacar
-              const compromisso = agendaEl.querySelectorAll(".commitment")[index];
-              if (compromisso) {
-                compromisso.scrollIntoView({ behavior: "smooth", block: "center" });
-                compromisso.classList.add("destaque");
-                setTimeout(() => compromisso.classList.remove("destaque"), 2000);
-              }
-            });
-          };
-          searchResultsEl.appendChild(divResultado);
-        });
-      } else {
-        searchResultsEl.textContent = "Nenhum compromisso encontrado.";
-      }
-    }
-
-    /* Limpa busca */
-    function limparBusca() {
-      searchEl.value = "";
-      searchResultsEl.innerHTML = "";
-    }
-
-    /* Funções de Copiar/Colar (lógica interna não muda) */
-    function copiarCompromissos() {
-      bufferCopiados = [];
-      const section = document.querySelector(".date-section");
-      if (!section) return;
-
-      const compromissos = section.querySelectorAll(".commitment");
-      compromissos.forEach((div) => {
-        const input = div.querySelector('input[type="text"]');
-        if (!input.classList.contains("done")) {
-          bufferCopiados.push(input.value);
-          input.classList.add("done");
-        }
-      });
-      salvarAgenda();
-    }
-
-    function colarCompromissos() {
-      if (!bufferCopiados.length) return;
-      const compromissosDiv = document.querySelector(".commitments");
-      if (!compromissosDiv) return;
-
-      let idxBuffer = 0;
-
-      function encontrarOuAdicionarCampoVazio() {
-        const vazio = [...compromissosDiv.children].find(
-          (div) => !div.querySelector("input[type=text]").value
-        );
-        if (vazio) return vazio;
-        if (compromissosDiv.children.length < maxCompromissos) {
-          const novo = criarCampoCompromisso();
-          compromissosDiv.appendChild(novo);
-          return novo;
-        }
-        return null;
-      }
-
-      while (idxBuffer < bufferCopiados.length) {
-        const campo = encontrarOuAdicionarCampoVazio();
-        if (!campo) break;
-        const input = campo.querySelector("input[type=text]");
-        const checkbox = campo.querySelector('input[type="checkbox"]');
-        input.value = bufferCopiados[idxBuffer++];
-        input.classList.remove("done");
-        checkbox.checked = false;
-        campo.classList.remove("checked");
-      }
-      salvarAgenda();
-    }
-
-    /* Funções de CPF (não mudam) */
-    function validarCPF(cpf) {
-      if (!cpf || cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
-      let soma = 0,
-        resto;
-      for (let i = 1; i <= 9; i++) soma += parseInt(cpf[i - 1]) * (11 - i);
-      resto = (soma * 10) % 11;
-      if (resto === 10 || resto === 11) resto = 0;
-      if (resto !== parseInt(cpf[9])) return false;
-      soma = 0;
-      for (let i = 1; i <= 10; i++) soma += parseInt(cpf[i - 1]) * (12 - i);
-      resto = (soma * 10) % 11;
-      if (resto === 10 || resto === 11) resto = 0;
-      return resto === parseInt(cpf[10]);
-    }
-
-    document.getElementById("cpf").addEventListener("input", () => {
-      const raw = document.getElementById("cpf").value.replace(/\D/g, "");
-      const status = document.getElementById("cpfStatus");
-      const valido = validarCPF(raw);
-      status.textContent = valido ? "CPF válido" : "CPF inválido";
-      status.className = valido ? "valid" : "invalid";
-    });
-
-    function copiarCPF() {
-      let raw = document.getElementById("cpf").value.replace(/\D/g, "");
-      if (validarCPF(raw)) {
-        let formatado = raw.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
-        navigator.clipboard.writeText(formatado);
-      }
-    }
-
-    function limparCPF() {
-      document.getElementById("cpf").value = "";
-      document.getElementById("cpfStatus").textContent = "";
-      document.getElementById("cpfStatus").className = "";
-    }
-
-    /* Funções das Notas Fixas com Firebase */
-    async function carregarNotasFixas() {
-      const snapshot = await database.ref("notasFixas").once("value");
-      notasFixasEl.value = snapshot.val() || "";
-    }
-
-    notasFixasEl.addEventListener("input", () => {
-      database.ref("notasFixas").set(notasFixasEl.value);
-    });
-
-    /* Converte para maiúsculas */
-    document.addEventListener("input", (e) => {
-      if (e.target.matches("input[type='text'], textarea")) {
-        const pos = e.target.selectionStart;
-        e.target.value = e.target.value.toUpperCase();
-        e.target.setSelectionRange(pos, pos);
-      }
-    });
-  </script>
-</body>
-</html>
-
-
-
-
+        dadosSalvos.push({ texto: "", hora: "", tachado: false, selecionado: f
