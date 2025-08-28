@@ -1,0 +1,597 @@
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Agenda do Fofo</title>
+  <style>
+    * { box-sizing: border-box; }
+    :root{
+      --b: #0f172a;      /* slate-900 */
+      --fg:#0b1324;      /* text */
+      --muted:#6b7280;   /* gray-500 */
+      --bd:#e5e7eb;      /* gray-200 */
+      --pri:#2563eb;     /* blue-600 */
+      --pri-2:#1e40af;   /* blue-800 */
+      --ok:#16a34a;      /* green-600 */
+      --warn:#ea580c;    /* orange-600 */
+      --bg:#ffffff;
+    }
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue','Noto Sans',Arial,sans-serif;background:var(--bg);color:var(--fg)}
+    .container{display:flex;flex-direction:column}
+    @media(min-width:900px){.container{flex-direction:row;min-height:100vh}}
+    .left-panel,.right-panel{padding:20px}
+    .left-panel{flex:2;border-right:1px solid var(--bd)}
+    .right-panel{flex:1}
+    h1{margin:0 0 10px 0}
+    .calendar-section{margin:12px 0;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .day-nav{display:flex;gap:8px;align-items:center;margin:0 0 12px 0}
+    button{cursor:pointer;border:1px solid var(--bd);background:#f8fafc;border-radius:8px;padding:8px 12px}
+    button:hover{background:#eef2ff}
+    .actions{display:flex;gap:10px;margin:10px 0;flex-wrap:wrap}
+    .search-area{display:flex;gap:6px;align-items:center;margin:8px 0;flex-wrap:wrap}
+    .search-area input{flex:1;min-width:160px;padding:8px;border:1px solid var(--bd);border-radius:6px}
+    .search-results{border:1px solid var(--bd);border-radius:8px;max-height:220px;overflow:auto}
+    .search-results div{padding:8px 10px;border-bottom:1px solid var(--bd);cursor:pointer}
+    .search-results div:last-child{border-bottom:none}
+    .search-results div:hover{background:#f1f5f9}
+    .commitment{display:grid;grid-template-columns:92px 1fr auto auto;gap:6px;align-items:center;padding:8px;border:1px solid var(--bd);border-radius:10px;margin-bottom:8px}
+    .commitment input[type="time"]{padding:6px;border:1px solid var(--bd);border-radius:6px;width:100%}
+    .commitment input[type="text"]{padding:8px;border:1px solid var(--bd);border-radius:6px;width:100%}
+    .commitment .ok{border-color:#c7f0cf;background:#ecfdf5}
+    .commitment .del{border-color:#ffd7d7;background:#fff1f2}
+    .done{text-decoration:line-through;color:#6b7280}
+    .checked{background:#e7f0ff}
+    .destaque{outline:3px solid #fde68a;background:#fffbeb}
+    .muted{color:var(--muted);font-size:.9rem}
+    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .tag{display:inline-flex;align-items:center;gap:6px;background:#eef2ff;border:1px solid var(--bd);border-radius:999px;padding:6px 10px;font-size:.85rem}
+    .pill{background:#ecfeff;border:1px solid #bae6fd;border-radius:999px;padding:2px 8px;font-size:.75rem}
+    .panel{border:1px solid var(--bd);border-radius:12px;padding:12px}
+    /* LOGIN */
+    #login-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#f3f4f6;z-index:1000}
+    #login-card{background:#fff;border:1px solid var(--bd);border-radius:16px;padding:22px;box-shadow:0 10px 30px rgba(0,0,0,.08);min-width:320px;max-width:92vw}
+    #login-card h2{margin:0 0 10px 0}
+    #login-card input{width:100%;padding:10px;border:1px solid var(--bd);border-radius:8px}
+    #login-card .msg{min-height:18px;font-size:.9rem}
+    #toggle-pass{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:transparent;border:none;font-size:1rem;cursor:pointer}
+    .relogio{font-variant-numeric:tabular-nums}
+  </style>
+</head>
+<body>
+  <!-- LOGIN -->
+  <div id="login-screen">
+    <div id="login-card">
+      <h2 id="login-title">Acesso Restrito</h2>
+      <p class="muted" id="login-sub">Entre com a senha para continuar.</p>
+      <div style="position:relative;margin:8px 0 6px 0">
+        <input type="password" id="password-input" placeholder="Digite a senha" />
+        <button id="toggle-pass" title="Mostrar/ocultar">👁️</button>
+      </div>
+      <div class="row">
+        <button id="login-btn">Entrar</button>
+        <button id="define-btn" style="display:none">Definir senha</button>
+      </div>
+      <div class="msg" id="login-error" style="color:#dc2626;"></div>
+      <div class="muted" style="margin-top:8px">Dica: Enter confirma.</div>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div class="container" id="app" style="display:none">
+    <div class="left-panel">
+      <div class="row" style="justify-content:space-between">
+        <h1>Agenda do Fofo</h1>
+        <span class="pill relogio" id="clock">--:--</span>
+      </div>
+
+      <div class="calendar-section">
+        <input type="date" id="dataSelecionada" />
+        <button id="hojeBtn" title="Hoje">📅 Hoje</button>
+        <span class="tag">Auto-salvo <span id="autosaveState">a cada 5s</span></span>
+      </div>
+
+      <div class="day-nav">
+        <button id="prevDayBtn">◀ Anterior</button>
+        <button id="nextDayBtn">Próximo ▶</button>
+      </div>
+
+      <div class="actions">
+        <button id="novoBtn">Novo compromisso</button>
+        <button id="exportarBtn">Exportar TXT</button>
+      </div>
+
+      <div id="agenda"></div>
+    </div>
+
+    <div class="right-panel">
+      <div class="panel" style="margin-bottom:12px">
+        <h2 style="margin:0 0 8px 0">Validador de CPF</h2>
+        <div class="row">
+          <input type="text" id="cpf" placeholder="Digite o CPF" />
+          <button id="cpfClear">❌</button>
+          <button id="cpfCopy">Copiar</button>
+        </div>
+        <p id="cpfStatus" class="muted"></p>
+      </div>
+
+      <div class="panel" style="margin-bottom:12px">
+        <h3 style="margin:0 0 8px 0">🔍 Pesquisa global</h3>
+        <div class="search-area">
+          <input type="text" id="search" placeholder="Pesquisar (min 3 letras)..." />
+          <button id="limparBuscaBtn">Limpar</button>
+        </div>
+        <div id="searchResults" class="search-results"></div>
+      </div>
+
+      <div class="panel">
+        <h3 style="margin:0 0 8px 0">📝 Lembretes Fixos</h3>
+        <textarea id="notasFixas" rows="12" style="width:100%;padding:8px;border:1px solid var(--bd);border-radius:8px;"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase + App (ESM) -->
+  <script type="module">
+    /************* Firebase (SDK modular via CDN) *************/
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import {
+      getDatabase, ref, child, get, set, update, onValue
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+
+    // === SUA CONFIGURAÇÃO (fornecida por você) ===
+    const firebaseConfig = {
+      apiKey: "AIzaSyBiikcagIm1p7wJG6DsHijkvdy1fpDBn8Y",
+      authDomain: "bd-teste-c931c.firebaseapp.com",
+      databaseURL: "https://bd-teste-c931c-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "bd-teste-c931c",
+      storageBucket: "bd-teste-c931c.firebasestorage.app",
+      messagingSenderId: "270308100761",
+      appId: "1:270308100761:web:ae34fde6d5ae86b67b0608"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db  = getDatabase(app);
+
+    /************* Login com senha *************/
+    const PASSWORD_NODE = 'appPassword';
+    const els = {
+      loginScreen: document.getElementById('login-screen'),
+      loginTitle:  document.getElementById('login-title'),
+      loginSub:    document.getElementById('login-sub'),
+      passInput:   document.getElementById('password-input'),
+      togglePass:  document.getElementById('toggle-pass'),
+      loginBtn:    document.getElementById('login-btn'),
+      defineBtn:   document.getElementById('define-btn'),
+      loginErr:    document.getElementById('login-error'),
+      app:         document.getElementById('app'),
+    };
+
+    let currentPassword = null;
+
+    async function loadPassword() {
+      try {
+        const snap = await get(child(ref(db), PASSWORD_NODE));
+        currentPassword = snap.exists() ? snap.val() : null;
+        if (currentPassword) {
+          els.loginTitle.textContent = 'Acesso Restrito';
+          els.loginSub.textContent = 'Entre com a senha para continuar.';
+          els.loginBtn.style.display = '';
+          els.defineBtn.style.display = 'none';
+        } else {
+          els.loginTitle.textContent = 'Configurar Senha';
+          els.loginSub.textContent = 'Defina uma senha para habilitar o acesso.';
+          els.loginBtn.style.display = 'none';
+          els.defineBtn.style.display = '';
+        }
+        els.loginScreen.style.display = 'flex';
+      } catch (e) {
+        els.loginErr.textContent = 'Erro ao conectar ao banco. Verifique a internet.';
+      }
+    }
+
+    function showApp() {
+      els.loginScreen.style.display = 'none';
+      els.app.style.display = 'flex';
+      initApp(); // carrega a agenda etc.
+    }
+
+    async function setPassword() {
+      const p = els.passInput.value.trim();
+      if (!p) { els.loginErr.textContent = 'A senha não pode ser vazia.'; return; }
+      await set(ref(db, PASSWORD_NODE), p);
+      els.passInput.value = '';
+      await loadPassword();
+      els.loginErr.textContent = 'Senha definida! Entre com ela para acessar.';
+    }
+
+    function checkPassword() {
+      const p = els.passInput.value;
+      if (p && currentPassword && p === currentPassword) {
+        showApp();
+      } else {
+        els.loginErr.textContent = 'Senha incorreta.';
+        els.passInput.select();
+      }
+    }
+
+    els.togglePass.addEventListener('click', ()=>{
+      els.passInput.type = els.passInput.type === 'password' ? 'text' : 'password';
+    });
+    els.passInput.addEventListener('keydown', e=>{
+      if (e.key === 'Enter') {
+        if (currentPassword) checkPassword();
+        else setPassword();
+      }
+    });
+    els.loginBtn.addEventListener('click', checkPassword);
+    els.defineBtn.addEventListener('click', setPassword);
+    loadPassword();
+
+    /************* App (Agenda) *************/
+    const ui = {
+      agendaEl: document.getElementById('agenda'),
+      dataInput: document.getElementById('dataSelecionada'),
+      novoBtn: document.getElementById('novoBtn'),
+      exportarBtn: document.getElementById('exportarBtn'),
+      hojeBtn: document.getElementById('hojeBtn'),
+      prevDayBtn: document.getElementById('prevDayBtn'),
+      nextDayBtn: document.getElementById('nextDayBtn'),
+      notasFixas: document.getElementById('notasFixas'),
+      search: document.getElementById('search'),
+      limparBuscaBtn: document.getElementById('limparBuscaBtn'),
+      searchResults: document.getElementById('searchResults'),
+      autosaveState: document.getElementById('autosaveState'),
+      clock: document.getElementById('clock'),
+      cpf: document.getElementById('cpf'),
+      cpfStatus: document.getElementById('cpfStatus'),
+      cpfClear: document.getElementById('cpfClear'),
+      cpfCopy: document.getElementById('cpfCopy'),
+    };
+
+    const maxCompromissos = 20;
+    let diaAtual = null;
+    let dadosDia = []; // [{hora:'',texto:'',feito:false, avisadoEm?:ts}]
+    let dirty = false;
+    let lastSave = 0;
+
+    function hojeISO(){
+      const d = new Date();
+      d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); // normaliza para input date
+      return d.toISOString().slice(0,10);
+    }
+
+    function setClock(){
+      const d = new Date();
+      const hh = String(d.getHours()).padStart(2,'0');
+      const mm = String(d.getMinutes()).padStart(2,'0');
+      ui.clock.textContent = `${hh}:${mm}`;
+    }
+    setInterval(setClock, 1000); setClock();
+
+    function compromissoVazio(){ return {hora:'', texto:'', feito:false}; }
+
+    async function carregarNotasFixas(){
+      const snap = await get(child(ref(db),'notasFixas'));
+      ui.notasFixas.value = snap.exists() ? (snap.val()||'') : '';
+    }
+
+    function salvarNotasFixasDebounced(){
+      if (salvarNotasFixasDebounced.t) clearTimeout(salvarNotasFixasDebounced.t);
+      salvarNotasFixasDebounced.t = setTimeout(()=>{
+        set(ref(db,'notasFixas'), ui.notasFixas.value).catch(()=>{});
+      }, 600);
+    }
+
+    async function carregarAgenda(dia){
+      diaAtual = dia;
+      ui.agendaEl.innerHTML = '';
+      const snap = await get(child(ref(db), `agenda/${dia}`));
+      dadosDia = snap.exists() ? (snap.val()||[]) : [];
+      while (dadosDia.length < 15) dadosDia.push(compromissoVazio());
+      renderAgenda();
+      dirty = false;
+    }
+
+    function renderAgenda(){
+      ui.agendaEl.innerHTML = '';
+      dadosDia.forEach((item, idx)=>{
+        ui.agendaEl.appendChild(criarLinhaCompromisso(item, idx));
+      });
+    }
+
+    function marcarDirty(){ dirty = true; }
+
+    async function salvarAgenda(force=false){
+      const now = Date.now();
+      if (!force && !dirty && now - lastSave < 1000) return; // evita flood
+      lastSave = now;
+      try{
+        await set(ref(db, `agenda/${diaAtual}`), dadosDia);
+        ui.autosaveState.textContent = `OK (${new Date().toLocaleTimeString()})`;
+        dirty = false;
+      }catch(e){
+        ui.autosaveState.textContent = 'erro ao salvar';
+      }
+    }
+
+    // Auto-salvamento a cada 5s
+    setInterval(()=>salvarAgenda(false), 5000);
+
+    function criarLinhaCompromisso(item, idx){
+      const div = document.createElement('div');
+      div.className = 'commitment';
+      const it = item; // alias
+
+      const hora = document.createElement('input');
+      hora.type = 'time';
+      hora.value = it.hora || '';
+      hora.addEventListener('change', ()=>{
+        it.hora = hora.value;
+        marcarDirty();
+      });
+
+      const txt = document.createElement('input');
+      txt.type = 'text';
+      txt.value = it.texto || '';
+      if (it.feito) txt.classList.add('done');
+      txt.addEventListener('input', ()=>{ it.texto = txt.value; marcarDirty(); });
+
+      // Enter pula para o próximo (e cria novo se for o último e houver espaço)
+      txt.addEventListener('keydown', (e)=>{
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const inputs = [...document.querySelectorAll('.commitment input[type="text"]')];
+          const idxTxt = inputs.indexOf(txt);
+          const next = inputs[idxTxt+1];
+          if (next) {
+            next.focus();
+          } else {
+            // último: cria novo se houver espaço
+            if (dadosDia.length < maxCompromissos) {
+              dadosDia.push(compromissoVazio());
+              marcarDirty();
+              renderAgenda();
+              // focar no novo
+              const novos = [...document.querySelectorAll('.commitment input[type="text"]')];
+              const ultimo = novos[novos.length-1];
+              ultimo && ultimo.focus();
+            }
+          }
+        }
+      });
+
+      const ok = document.createElement('button');
+      ok.className = 'ok';
+      ok.title = 'Concluir';
+      ok.textContent = '✔';
+      ok.addEventListener('click', ()=>{
+        it.feito = !it.feito;
+        txt.classList.toggle('done', it.feito);
+        marcarDirty();
+      });
+
+      const del = document.createElement('button');
+      del.className = 'del';
+      del.title = 'Excluir';
+      del.textContent = '🗑';
+      del.addEventListener('click', ()=>{
+        dadosDia.splice(idx,1);
+        marcarDirty();
+        renderAgenda();
+      });
+
+      div.append(hora, txt, ok, del);
+      return div;
+    }
+
+    function adicionarCompromisso(){
+      if (dadosDia.length >= maxCompromissos) return;
+      dadosDia.push(compromissoVazio());
+      marcarDirty();
+      renderAgenda();
+      const inputs = [...document.querySelectorAll('.commitment input[type="text"]')];
+      inputs[inputs.length-1]?.focus();
+    }
+
+    async function exportarTXT(){
+      let out = `Agenda de ${diaAtual}\n\n`;
+      dadosDia.forEach((c,i)=>{
+        if (c.texto) out += `${i+1}. ${c.hora?c.hora+' - ':''}${c.texto}${c.feito?' (✔ concluído)':''}\n`;
+      });
+      const blob = new Blob([out], {type:'text/plain;charset=utf-8'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `agenda_${diaAtual}.txt`;
+      a.click();
+    }
+
+    /************* Pesquisa Global *************/
+    let searchTimer=null;
+    ui.search.addEventListener('input', ()=>{
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(pesquisarGlobal, 400);
+    });
+    ui.limparBuscaBtn.addEventListener('click', ()=>{
+      ui.search.value = '';
+      ui.searchResults.innerHTML = '';
+    });
+
+    async function pesquisarGlobal(){
+      const termo = ui.search.value.trim().toUpperCase();
+      ui.searchResults.innerHTML = '';
+      if (termo.length < 3) return;
+
+      // Busca todo o nó 'agenda' (para bases muito grandes, ideal paginar/filtrar no backend)
+      const snap = await get(child(ref(db), 'agenda'));
+      if (!snap.exists()) { ui.searchResults.innerHTML = '<div>Nenhum resultado.</div>'; return; }
+
+      const dados = snap.val();
+      const results = [];
+      for (const data in dados) {
+        const lista = dados[data] || [];
+        lista.forEach((c, idx)=>{
+          const texto = (c?.texto||'').toUpperCase();
+          if (texto.includes(termo)) {
+            results.push({data, idx, hora: c.hora||'', texto: c.texto||''});
+          }
+        });
+      }
+      if (!results.length) {
+        ui.searchResults.innerHTML = '<div>Nenhum resultado.</div>';
+        return;
+      }
+      results.sort((a,b)=> a.data.localeCompare(b.data));
+      for (const r of results) {
+        const div = document.createElement('div');
+        div.textContent = `${r.data} — ${r.hora} ${r.texto}`;
+        div.addEventListener('click', async ()=>{
+          ui.dataInput.value = r.data;
+          await carregarAgenda(r.data);
+          // destacar a linha correspondente (se existir)
+          const linha = ui.agendaEl.children[r.idx];
+          if (linha) {
+            linha.scrollIntoView({behavior:'smooth', block:'center'});
+            linha.classList.add('destaque');
+            setTimeout(()=>linha.classList.remove('destaque'), 2000);
+          }
+        });
+        ui.searchResults.appendChild(div);
+      }
+    }
+
+    /************* Alarmes *************/
+    function pedirPermissaoNotif(){
+      if (!("Notification" in window)) return;
+      if (Notification.permission === "default") {
+        Notification.requestPermission().catch(()=>{});
+      }
+    }
+
+    function notificar(msg){
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification("Agenda do Fofo", { body: msg });
+      } else {
+        alert(msg);
+      }
+    }
+
+    async function checarAlarmes(){
+      const hoje = hojeISO();
+      const now = new Date();
+      if (ui.dataInput.value !== hoje) {
+        // mesmo que a tela esteja em outro dia, alarme considera apenas HOJE
+        const snap = await get(child(ref(db), `agenda/${hoje}`));
+        if (!snap.exists()) return;
+        const lista = snap.val() || [];
+        let houveAlteracao = false;
+        for (let i=0;i<lista.length;i++){
+          const c = lista[i];
+          if (!c || !c.hora || !c.texto) continue;
+          const [h,m] = (c.hora||'').split(':').map(x=>parseInt(x,10));
+          if (Number.isNaN(h) || Number.isNaN(m)) continue;
+          const comp = new Date();
+          comp.setHours(h,m,0,0);
+          const jaAvisado = !!c.avisadoEm;
+          if (!jaAvisado && comp.getTime() <= now.getTime()) {
+            notificar(`Lembrete (${c.hora}): ${c.texto}`);
+            c.avisadoEm = Date.now();
+            lista[i] = c;
+            houveAlteracao = true;
+          }
+        }
+        if (houveAlteracao) await set(ref(db, `agenda/${hoje}`), lista);
+        return;
+      }
+
+      // Se a tela está no HOJE, use o cache local dadosDia
+      let mudou = false;
+      for (let i=0;i<dadosDia.length;i++){
+        const c = dadosDia[i];
+        if (!c || !c.hora || !c.texto) continue;
+        const [h,m] = c.hora.split(':').map(x=>parseInt(x,10));
+        if (Number.isNaN(h) || Number.isNaN(m)) continue;
+        const comp = new Date();
+        comp.setHours(h,m,0,0);
+        const jaAvisado = !!c.avisadoEm;
+        if (!jaAvisado && comp.getTime() <= Date.now()) {
+          notificar(`Lembrete (${c.hora}): ${c.texto}`);
+          c.avisadoEm = Date.now();
+          mudou = true;
+        }
+      }
+      if (mudou) salvarAgenda(true);
+    }
+
+    setInterval(checarAlarmes, 30000); // checa a cada 30s
+    pedirPermissaoNotif();
+
+    /************* CPF *************/
+    function validarCPF(cpf){
+      cpf = (cpf||'').replace(/\D/g,'');
+      if (cpf.length!==11 || /^(\d)\1{10}$/.test(cpf)) return false;
+      let soma=0, resto;
+      for(let i=1;i<=9;i++) soma += parseInt(cpf[i-1])*(11-i);
+      resto = (soma*10)%11; if(resto===10||resto===11) resto=0;
+      if (resto !== parseInt(cpf[9])) return false;
+      soma=0;
+      for(let i=1;i<=10;i++) soma += parseInt(cpf[i-1])*(12-i);
+      resto = (soma*10)%11; if(resto===10||resto===11) resto=0;
+      return resto === parseInt(cpf[10]);
+    }
+
+    ui.cpf.addEventListener('input', ()=>{
+      const raw = ui.cpf.value.replace(/\D/g,'');
+      if (validarCPF(raw)) { ui.cpfStatus.textContent = 'CPF válido'; ui.cpfStatus.style.color = '#2563eb'; }
+      else { ui.cpfStatus.textContent = 'CPF inválido'; ui.cpfStatus.style.color = '#dc2626'; }
+    });
+    ui.cpfClear.addEventListener('click', ()=>{
+      ui.cpf.value=''; ui.cpfStatus.textContent='';
+    });
+    ui.cpfCopy.addEventListener('click', ()=>{
+      const raw = ui.cpf.value.replace(/\D/g,'');
+      if (validarCPF(raw)) {
+        const f = raw.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+        navigator.clipboard.writeText(f);
+      }
+    });
+
+    /************* Eventos de UI *************/
+    function initApp(){
+      // data inicial = hoje
+      ui.dataInput.value = hojeISO();
+      carregarAgenda(ui.dataInput.value);
+      carregarNotasFixas();
+
+      ui.novoBtn.addEventListener('click', adicionarCompromisso);
+      ui.exportarBtn.addEventListener('click', exportarTXT);
+      ui.hojeBtn.addEventListener('click', ()=>{
+        ui.dataInput.value = hojeISO();
+        carregarAgenda(ui.dataInput.value);
+      });
+      ui.prevDayBtn.addEventListener('click', ()=>{
+        const d = new Date(ui.dataInput.value);
+        d.setDate(d.getDate()-1);
+        ui.dataInput.value = d.toISOString().slice(0,10);
+        carregarAgenda(ui.dataInput.value);
+      });
+      ui.nextDayBtn.addEventListener('click', ()=>{
+        const d = new Date(ui.dataInput.value);
+        d.setDate(d.getDate()+1);
+        ui.dataInput.value = d.toISOString().slice(0,10);
+        carregarAgenda(ui.dataInput.value);
+      });
+      ui.dataInput.addEventListener('change', ()=>carregarAgenda(ui.dataInput.value));
+
+      ui.notasFixas.addEventListener('input', salvarNotasFixasDebounced);
+
+      // Salva antes de sair
+      window.addEventListener('beforeunload', ()=>{ if (dirty) navigator.sendBeacon?.(db?.app?.options?.databaseURL||'/', new Blob()); });
+
+      // Salva imediato quando a aba volta ao foco (se ficou sujo)
+      window.addEventListener('focus', ()=> salvarAgenda(false));
+    }
+  </script>
+</body>
+</html>
