@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controle de Despesas</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'); 
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
         :root {
             --bg-color: #f8f9fa;
@@ -19,7 +19,6 @@
             --c6-color: #2b2b2b;
             --success-color: #28a745;
             --danger-color: #dc3545;
-
             --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
             --shadow-md: 0 3px 6px rgba(0, 0, 0, 0.07);
             --border-radius: 6px;
@@ -453,37 +452,27 @@
     </div>
     <div id="status"></div>
     <script type="module">
-        import {
-            initializeApp
-        } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import {
-            getDatabase,
-            ref,
-            set,
-            onValue
-        } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-        // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDQOGFiqafMZh0ha6XW62P1DpIKJE8TBYc",
+            authDomain: "agenda-online-7b71c.firebaseapp.com",
+            databaseURL: "https://agenda-online-7b71c-default-rtdb.firebaseio.com",
+            projectId: "agenda-online-7b71c",
+            storageBucket: "agenda-online-7b71c.firebasestorage.app",
+            messagingSenderId: "28125733214",
+            appId: "1:28125733214:web:162d1cce5d14f55c24afcf"
+        };
 
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyDQOGFiqafMZh0ha6XW62P1DpIKJE8TBYc",
-  authDomain: "agenda-online-7b71c.firebaseapp.com",
-  databaseURL: "https://agenda-online-7b71c-default-rtdb.firebaseio.com",
-  projectId: "agenda-online-7b71c",
-  storageBucket: "agenda-online-7b71c.firebasestorage.app",
-  messagingSenderId: "28125733214",
-  appId: "1:28125733214:web:162d1cce5d14f55c24afcf"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
+
         let current_date = new Date();
         let debounceTimer;
+
         const ui = {
             loginOverlay: document.getElementById('login-overlay'),
             loginTitle: document.getElementById('login-title'),
@@ -508,6 +497,7 @@ const app = initializeApp(firebaseConfig);
             totalGeral: document.getElementById('totalGeral'),
             status: document.getElementById('status')
         };
+
         document.addEventListener('DOMContentLoaded', initLogin);
 
         function initLogin() {
@@ -571,6 +561,7 @@ const app = initializeApp(firebaseConfig);
             current_date.setMonth(current_date.getMonth() + 1);
             updateMonthDisplay();
             loadData();
+
             ui.prevMonthBtn.addEventListener('click', () => changeMonth(-1));
             ui.nextMonthBtn.addEventListener('click', () => changeMonth(1));
             ui.todayBtn.addEventListener('click', () => {
@@ -580,10 +571,12 @@ const app = initializeApp(firebaseConfig);
                 updateMonthDisplay();
                 loadData();
             });
+
             ui.saveDataBtn.addEventListener('click', saveDataAsTxt);
             ui.restoreDataBtn.addEventListener('click', () => ui.restoreFileInput.click());
             ui.restoreFileInput.addEventListener('change', restoreDataFromFile);
             ui.clearAllBtn.addEventListener('click', clearAllData);
+
             setupTableListeners(ui.fixedExpensesTable, 'fixed');
             setupTableListeners(ui.nubankTable, 'nubank');
             setupTableListeners(ui.c6Table, 'c6');
@@ -623,6 +616,7 @@ const app = initializeApp(firebaseConfig);
             }
             const file = event.target.files[0];
             if (!file) return;
+
             const reader = new FileReader();
             reader.onload = (e) => {
                 try {
@@ -698,8 +692,10 @@ const app = initializeApp(firebaseConfig);
             const prevMonthDate = new Date(current_date);
             prevMonthDate.setMonth(prevMonthDate.getMonth() - 1);
             const prevMonthKey = getMonthYearKey(prevMonthDate);
+
             const currentMonthRef = ref(database, 'expenses/' + monthKey);
             const prevMonthRef = ref(database, 'expenses/' + prevMonthKey);
+
             onValue(currentMonthRef, (currentSnapshot) => {
                 const currentData = currentSnapshot.val() || {
                     fixed: [],
@@ -720,9 +716,11 @@ const app = initializeApp(firebaseConfig);
                         nubank: combineData(currentData.nubank, continuingNubank),
                         c6: combineData(currentData.c6, continuingC6)
                     };
+
                     populateTable(ui.fixedExpensesTable, combinedData.fixed);
                     populateTable(ui.nubankTable, combinedData.nubank);
                     populateTable(ui.c6Table, combinedData.c6);
+
                     [ui.fixedExpensesTable, ui.nubankTable, ui.c6Table].forEach(ensureEmptyRow);
                     updateAllTotals();
                     set(currentMonthRef, combinedData);
@@ -738,12 +736,14 @@ const app = initializeApp(firebaseConfig);
             if (!currentData || currentData.length === 0) {
                 return prevData;
             }
+
             const prevMap = new Map();
             prevData.forEach(item => {
                 const description = item[0] || '';
                 const installment = item[2] || '';
                 prevMap.set(description + installment, item);
             });
+
             currentData.forEach(item => {
                 const description = item[0] || '';
                 const installment = item[2] || '';
@@ -752,6 +752,7 @@ const app = initializeApp(firebaseConfig);
                     prevMap.delete(key);
                 }
             });
+
             return [...currentData, ...Array.from(prevMap.values())];
         }
 
@@ -869,6 +870,7 @@ const app = initializeApp(firebaseConfig);
                     }
                 }
             });
+
             tbody.addEventListener('input', (e) => {
                 if (e.target.hasAttribute('contenteditable')) {
                     updateTotals(type);
@@ -876,12 +878,13 @@ const app = initializeApp(firebaseConfig);
                     ensureEmptyRow(tbody);
                 }
             });
+
             tbody.addEventListener('change', (e) => {
                 if (e.target.type === 'checkbox') {
                     saveData();
                 }
             });
-            
+
             // MODIFICADO PARA O NOVO COMPORTAMENTO DO ENTER
             tbody.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' && e.target.tagName === 'TD' && !e.shiftKey) {
@@ -924,6 +927,7 @@ const app = initializeApp(firebaseConfig);
                     card: 'C6 Bank'
                 }))
             ];
+
             const installmentsWithData = allInstallmentsRaw.map(({
                 data,
                 card
@@ -933,14 +937,18 @@ const app = initializeApp(firebaseConfig);
                 const installmentText = data[2] || "";
                 const parts = installmentText.match(/(\d+)\/(\d+)/);
                 if (!parts || !description || !valueText) return null;
+
                 const currentPart = parseInt(parts[1], 10);
                 const totalParts = parseInt(parts[2], 10);
                 const remaining = totalParts - currentPart;
                 if (remaining < 0) return null;
+
                 const dueDate = new Date(current_date);
                 dueDate.setMonth(dueDate.getMonth() + remaining);
                 dueDate.setDate(1);
+
                 const value = parseCurrency(valueText);
+
                 return {
                     description,
                     card,
@@ -949,7 +957,9 @@ const app = initializeApp(firebaseConfig);
                     dueDate
                 };
             }).filter(item => item !== null);
+
             installmentsWithData.sort((a, b) => a.dueDate - b.dueDate);
+
             let totalInstallmentsValue = 0;
             installmentsWithData.forEach(item => {
                 totalInstallmentsValue += item.value;
@@ -957,6 +967,7 @@ const app = initializeApp(firebaseConfig);
                     month: 'long'
                 });
                 const endYear = item.dueDate.getFullYear();
+
                 const row = ui.installmentsSummaryTable.insertRow();
                 row.insertCell().textContent = item.description;
                 row.insertCell().textContent = item.card;
@@ -968,6 +979,7 @@ const app = initializeApp(firebaseConfig);
                 row.insertCell().textContent = item.installmentText;
                 row.insertCell().textContent = `${endMonth.charAt(0).toUpperCase() + endMonth.slice(1)}/${endYear}`;
             });
+
             document.getElementById('installmentsTotal').textContent = formatCurrency(totalInstallmentsValue);
         }
 
@@ -996,13 +1008,14 @@ const app = initializeApp(firebaseConfig);
             const fixedTotal = calculateColumnTotal(ui.fixedExpensesTable, 1);
             const nubankTotal = calculateColumnTotal(ui.nubankTable, 1);
             const c6Total = calculateColumnTotal(ui.c6Table, 1);
+
             ui.fixedTotal.textContent = formatCurrency(fixedTotal);
             ui.nubankTotal.textContent = formatCurrency(nubankTotal);
             ui.c6Total.textContent = formatCurrency(c6Total);
             ui.totalGeral.textContent = formatCurrency(fixedTotal + nubankTotal + c6Total);
+
             updateInstallmentSummary();
         }
     </script>
 </body>
 </html>
-
