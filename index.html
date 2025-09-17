@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,16 +19,19 @@
             align-items: center;
             z-index: 1000;
         }
+
         #login-form {
             background-color: #fff;
             padding: 30px;
             border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             text-align: center;
         }
+
         #login-form h2 {
             margin-top: 0;
         }
+
         #login-form input {
             padding: 10px;
             margin: 10px 0;
@@ -35,9 +39,11 @@
             border: 1px solid #ccc;
             border-radius: 4px;
         }
+
         #password-container {
             position: relative;
         }
+
         #password-container button {
             position: absolute;
             right: 5px;
@@ -48,6 +54,7 @@
             cursor: pointer;
             font-size: 1.2rem;
         }
+
         #login-button {
             background-color: #007bff;
             color: white;
@@ -58,45 +65,56 @@
             font-size: 1rem;
             width: 100%;
         }
+
         #login-button:hover {
             background-color: #0056b3;
         }
+
         #error-message {
             color: red;
             margin-top: 10px;
             font-size: 0.9rem;
             display: none;
         }
+
         /* Seu CSS original vem aqui - Nenhuma mudança necessária */
         * {
             box-sizing: border-box;
         }
+
         body {
             margin: 0;
             font-family: Arial, sans-serif;
             background-color: #fff;
             color: #000;
         }
+
         .container {
             display: flex;
             flex-direction: column;
         }
+
         @media (min-width: 768px) {
             .container {
                 flex-direction: row;
                 min-height: 100vh;
             }
         }
-        .left-panel, .right-panel {
+
+        .left-panel,
+        .right-panel {
             padding: 20px;
         }
+
         .left-panel {
             flex: 2;
             border-right: 1px solid #ccc;
         }
+
         .right-panel {
             flex: 1;
         }
+
         .calendar-section {
             margin: 20px 0;
             display: flex;
@@ -104,28 +122,33 @@
             gap: 8px;
             flex-wrap: wrap;
         }
+
         .calendar-section button {
             padding: 5px 10px;
             font-size: 14px;
             cursor: pointer;
         }
+
         .day-nav {
             display: flex;
             gap: 8px;
             align-items: center;
             margin: -10px 0 10px 0;
         }
+
         .day-nav button {
             padding: 2px 8px;
             font-size: 16px;
             cursor: pointer;
         }
+
         .actions {
             display: flex;
             gap: 10px;
             margin-bottom: 10px;
             flex-wrap: wrap;
         }
+
         .search-area {
             display: flex;
             gap: 5px;
@@ -133,11 +156,13 @@
             align-items: center;
             flex-wrap: wrap;
         }
+
         .search-area input {
             flex: 1;
             padding: 5px;
             min-width: 120px;
         }
+
         .search-results {
             background-color: #fff;
             border: 1px solid transparent;
@@ -145,16 +170,20 @@
             max-height: 150px;
             overflow-y: auto;
         }
+
         .search-results div {
             cursor: pointer;
             padding: 4px;
         }
+
         .search-results div:hover {
             background-color: #eee;
         }
+
         .destaque {
             background: yellow;
         }
+
         .commitment {
             display: flex;
             align-items: center;
@@ -162,31 +191,39 @@
             flex-wrap: wrap;
             padding: 5px;
         }
+
         .commitment input[type="text"] {
             flex: 1;
             padding: 5px;
             margin-right: 5px;
             min-width: 120px;
         }
+
         .commitment button {
             margin-left: 3px;
         }
+
         .done {
             text-decoration: line-through;
             color: gray;
         }
+
         #cpfStatus.valid {
             color: blue;
         }
+
         #cpfStatus.invalid {
             color: red;
         }
+
         .commitment.checked {
             background-color: #d1e7ff;
         }
+
         .commitment:nth-child(even) {
             background-color: #f2f2f2;
         }
+
         .commitment:nth-child(even).checked {
             background-color: #aed6f1;
         }
@@ -194,6 +231,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 </head>
+
 <body>
     <div id="login-screen">
         <div id="login-form">
@@ -210,12 +248,11 @@
             </div>
         </div>
     </div>
-
     <div class="container" id="main-content" style="display: none;">
         <div class="left-panel">
             <h2>Agenda de compromissos</h2>
             <div style="margin-bottom: 15px;">
-                 <button onclick="window.open('https://luizcezarmelo.github.io/a/despesas.html', '_blank')">Despesas</button>
+                <button onclick="window.open('https://luizcezarmelo.github.io/a/despesas.html', '_blank')">Despesas</button>
             </div>
             <div class="calendar-section">
                 <input type="date" id="dataSelecionada">
@@ -241,14 +278,12 @@
             </div>
             <p id="cpfStatus"></p>
             <button onclick="copiarCPF()">Copiar</button>
-
             <h3>🔍 Pesquisa</h3>
             <div class="search-area">
                 <input type="text" id="search" placeholder="Pesquisar...">
                 <button onclick="limparBusca()">❌</button>
             </div>
             <div id="searchResults" class="search-results"></div>
-
             <h3>⏰ Alarmes</h3>
             <div id="alarmes" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px;">
                 <div>
@@ -274,523 +309,509 @@
             <textarea id="notasFixas" rows="15" style="width: 100%; resize: vertical;"></textarea>
         </div>
     </div>
-
     <script>
-    // --- LÓGICA DE LOGIN INSERIDA AQUI ---
-    const PASSWORD_NODE = 'appPassword'; // Nome do nó no Firebase para armazenar a senha
-
-    const mainContent = document.getElementById('main-content');
-    const loginScreen = document.getElementById('login-screen');
-    const passwordInput = document.getElementById('password-input');
-    const errorMessage = document.getElementById('error-message');
-    const togglePasswordBtn = document.getElementById('toggle-password');
-    const setupMessage = document.getElementById('setup-message');
-    const loginTitle = document.getElementById('login-title');
-
-    // Inicializa o Firebase (manter a sua configuração)
-    const firebaseConfig = {
-        apiKey: "AIzaSyDQOGFiqafMZh0ha6XW62P1DpIKJE8TBYc",
-        authDomain: "agenda-online-7b71c.firebaseapp.com",
-        databaseURL: "https://agenda-online-7b71c-default-rtdb.firebaseio.com",
-        projectId: "agenda-online-7b71c",
-        storageBucket: "agenda-online-7b71c.appspot.com",
-        messagingSenderId: "28125733214",
-        appId: "1:28125733214:web:162d1cce5d14f55c24afcf"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-    let correctPassword = null;
-
-    // Função para verificar a senha no Firebase
-    async function loadPassword() {
-        const snapshot = await database.ref(PASSWORD_NODE).once('value');
-        correctPassword = snapshot.val();
-        if (correctPassword) {
-            setupMessage.style.display = 'none';
-            loginTitle.textContent = 'Acesso Restrito';
-        } else {
-            setupMessage.style.display = 'block';
-            loginTitle.textContent = 'Configurar Senha';
-            document.getElementById('login-button').style.display = 'none';
-            passwordInput.placeholder = 'Defina uma senha';
-        }
-        loginScreen.style.display = 'flex';
-    }
-
-    // Função para definir a senha pela primeira vez
-    function setPassword() {
-        const newPassword = passwordInput.value;
-        if (newPassword && newPassword.trim() !== '') {
-            database.ref(PASSWORD_NODE).set(newPassword).then(() => {
-                alert('Senha definida com sucesso!');
-                loadPassword(); // Recarrega para mostrar a tela de login
-                passwordInput.value = '';
-                document.getElementById('login-button').style.display = 'block';
-                passwordInput.placeholder = 'Digite a senha';
-            }).catch(error => {
-                console.error("Erro ao salvar a senha:", error);
-                alert("Ocorreu um erro. Tente novamente.");
-            });
-        } else {
-            alert('A senha não pode ser vazia.');
-        }
-    }
-
-    // Função para verificar a senha digitada
-    function checkPassword() {
-        const enteredPassword = passwordInput.value;
-        if (enteredPassword === correctPassword) {
-            showMainContent();
-        } else {
-            errorMessage.style.display = 'block';
-            passwordInput.value = ''; // Limpa o campo da senha
-        }
-    }
-
-    // Função para mostrar o conteúdo principal
-    function showMainContent() {
-        loginScreen.style.display = 'none';
-        mainContent.style.display = 'flex';
-        carregarAgenda();
-        carregarNotasFixas();
-        loadAlarms();
-    }
-
-    // Função para alternar a visibilidade da senha
-    function togglePasswordVisibility() {
-        if (passwordInput.type === 'password') {
-            passwordInput.type = 'text';
-            togglePasswordBtn.textContent = '🙈';
-        } else {
-            passwordInput.type = 'password';
-            togglePasswordBtn.textContent = '👁️';
-        }
-    }
-
-    // Função para permitir o login com a tecla Enter
-    function handleKeyPress(event) {
-        if (event.key === 'Enter') {
+        // --- LÓGICA DE LOGIN INSERIDA AQUI ---
+        const PASSWORD_NODE = 'appPassword'; // Nome do nó no Firebase para armazenar a senha
+        const mainContent = document.getElementById('main-content');
+        const loginScreen = document.getElementById('login-screen');
+        const passwordInput = document.getElementById('password-input');
+        const errorMessage = document.getElementById('error-message');
+        const togglePasswordBtn = document.getElementById('toggle-password');
+        const setupMessage = document.getElementById('setup-message');
+        const loginTitle = document.getElementById('login-title');
+        // Inicializa o Firebase (manter a sua configuração)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDQOGFiqafMZh0ha6XW62P1DpIKJE8TBYc",
+            authDomain: "agenda-online-7b71c.firebaseapp.com",
+            databaseURL: "https://agenda-online-7b71c-default-rtdb.firebaseio.com",
+            projectId: "agenda-online-7b71c",
+            storageBucket: "agenda-online-7b71c.appspot.com",
+            messagingSenderId: "28125733214",
+            appId: "1:28125733214:web:162d1cce5d14f55c24afcf"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        let correctPassword = null;
+        // Função para verificar a senha no Firebase
+        async function loadPassword() {
+            const snapshot = await database.ref(PASSWORD_NODE).once('value');
+            correctPassword = snapshot.val();
             if (correctPassword) {
-                checkPassword();
+                setupMessage.style.display = 'none';
+                loginTitle.textContent = 'Acesso Restrito';
             } else {
-                setPassword();
+                setupMessage.style.display = 'block';
+                loginTitle.textContent = 'Configurar Senha';
+                document.getElementById('login-button').style.display = 'none';
+                passwordInput.placeholder = 'Defina uma senha';
             }
+            loginScreen.style.display = 'flex';
         }
-    }
-
-    // Inicia o processo de login
-    window.addEventListener('load', () => {
-        loadPassword();
-    });
-    // --- FIM DA LÓGICA DE LOGIN ---
-
-    // Elementos principais e variáveis globais
-    const agendaEl = document.getElementById('agenda');
-    const searchEl = document.getElementById('search');
-    const searchResultsEl = document.getElementById('searchResults');
-    const dataInput = document.getElementById('dataSelecionada');
-    const novoBtn = document.getElementById('novoBtn');
-    const copiarBtn = document.getElementById('copiarBtn');
-    const colarBtn = document.getElementById('colarBtn');
-    const exportarBtn = document.getElementById('exportarBtn');
-    const hojeBtn = document.getElementById('hojeBtn');
-    const prevDayBtn = document.getElementById('prevDayBtn');
-    const nextDayBtn = document.getElementById('nextDayBtn');
-    const notasFixasEl = document.getElementById('notasFixas');
-    const maxCompromissos = 20;
-    let bufferCopiados = [];
-
-    /* Configuração inicial */
-    dataInput.value = new Date().toISOString().split('T')[0];
-
-    /* Listeners de interface */
-    dataInput.addEventListener('change', carregarAgenda);
-    novoBtn.addEventListener('click', adicionarCompromisso);
-    copiarBtn.addEventListener('click', copiarCompromissos);
-    colarBtn.addEventListener('click', colarCompromissos);
-    exportarBtn.addEventListener('click', () => exportarParaTXT(dataInput.value));
-    hojeBtn.addEventListener('click', () => {
-        const hoje = new Date().toISOString().split('T')[0];
-        dataInput.value = hoje;
-        carregarAgenda();
-    });
-    prevDayBtn.addEventListener('click', () => {
-        const d = new Date(dataInput.value);
-        d.setDate(d.getDate() - 1);
-        dataInput.value = d.toISOString().split('T')[0];
-        carregarAgenda();
-    });
-    nextDayBtn.addEventListener('click', () => {
-        const d = new Date(dataInput.value);
-        d.setDate(d.getDate() + 1);
-        dataInput.value = d.toISOString().split('T')[0];
-        carregarAgenda();
-    });
-    searchEl.addEventListener('input', pesquisarCompromisso);
-
-    /* Salvamento com delay */
-    let debounceTimer;
-    function salvarComDelay() {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => salvarAgenda(), 1000);
-    }
-
-    /* Carregar agenda do dia selecionado */
-    async function carregarAgenda() {
-        const data = dataInput.value;
-        agendaEl.innerHTML = ''; // Limpa a agenda atual
-        const section = document.createElement('div');
-        section.className = 'date-section';
-        section.dataset.data = data;
-        const compromissos = document.createElement('div');
-        compromissos.className = 'commitments';
-        // Busca os dados do Firebase
-        const snapshot = await database.ref('agenda/' + data).once('value');
-        let dadosSalvos = snapshot.val() || [];
-        while (dadosSalvos.length < 15) dadosSalvos.push({ texto: '', hora: '', tachado: false, selecionado: false });
-        dadosSalvos.forEach(item => compromissos.appendChild(criarCampoCompromisso(item)));
-        section.appendChild(compromissos);
-        agendaEl.appendChild(section);
-    }
-
-    /* Salvamento da agenda */
-    function salvarAgenda() {
-        const data = dataInput.value;
-        const section = document.querySelector('.date-section');
-        if (!section) return;
-        const textos = [];
-        section.querySelectorAll('.commitment').forEach(div => {
-            const input = div.querySelector('input[type=text]');
-            const checkbox = div.querySelector('input[type=checkbox]');
-            textos.push({
-                texto: input.value,
-                hora: '',
-                tachado: input.classList.contains('done'),
-                selecionado: checkbox.checked
-            });
-        });
-        database.ref('agenda/' + data).set(textos);
-    }
-
-    /* Cria um campo de compromisso */
-    function criarCampoCompromisso(item = { texto: '', hora: '', tachado: false, selecionado: false }) {
-        const div = document.createElement('div');
-        div.className = 'commitment';
-
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.checked = item.selecionado;
-        checkbox.addEventListener('change', () => {
-            div.classList.toggle('checked', checkbox.checked);
-            salvarAgenda();
-        });
-        if (item.selecionado) {
-            div.classList.add('checked');
-        }
-
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.value = item.texto;
-        if (item.tachado) input.classList.add('done');
-        input.addEventListener('input', salvarComDelay);
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                const allInputs = [...document.querySelectorAll('.commitment input[type=text]')];
-                const idx = allInputs.indexOf(input);
-                const next = allInputs[idx + 1];
-                if (next) next.focus();
-            }
-        });
-
-        const okBtn = document.createElement('button');
-        okBtn.textContent = 'OK';
-        okBtn.onclick = () => {
-            input.classList.toggle('done');
-            salvarAgenda();
-        };
-        const delBtn = document.createElement('button');
-        delBtn.textContent = 'Excluir';
-        delBtn.onclick = () => {
-            input.value = '';
-            input.classList.remove('done');
-            salvarAgenda();
-        };
-
-        div.appendChild(checkbox);
-        div.appendChild(input);
-        div.appendChild(okBtn);
-        div.appendChild(delBtn);
-
-        return div;
-    }
-
-    /* Adiciona um novo campo de compromisso */
-    function adicionarCompromisso() {
-        const compromissos = document.querySelector('.commitments');
-        if (compromissos.children.length < maxCompromissos) {
-            compromissos.appendChild(criarCampoCompromisso());
-        }
-    }
-
-    /* Pesquisa por compromissos no Firebase */
-    async function pesquisarCompromisso() {
-        const termo = searchEl.value.trim().toLowerCase();
-        searchResultsEl.innerHTML = '';
-        if (termo.length < 3) return;
-
-        const resultados = [];
-        const snapshot = await database.ref('agenda').once('value');
-        const todasAsAgendas = snapshot.val();
-        if (todasAsAgendas) {
-            for (const data in todasAsAgendas) {
-                const dadosDoDia = todasAsAgendas[data] || [];
-                dadosDoDia.forEach((item, index) => {
-                    if (item.texto && item.texto.toLowerCase().includes(termo)) {
-                        resultados.push({ data, index, item });
-                    }
+        // Função para definir a senha pela primeira vez
+        function setPassword() {
+            const newPassword = passwordInput.value;
+            if (newPassword && newPassword.trim() !== '') {
+                database.ref(PASSWORD_NODE).set(newPassword).then(() => {
+                    alert('Senha definida com sucesso!');
+                    loadPassword(); // Recarrega para mostrar a tela de login
+                    passwordInput.value = '';
+                    document.getElementById('login-button').style.display = 'block';
+                    passwordInput.placeholder = 'Digite a senha';
+                }).catch(error => {
+                    console.error("Erro ao salvar a senha:", error);
+                    alert("Ocorreu um erro. Tente novamente.");
                 });
+            } else {
+                alert('A senha não pode ser vazia.');
             }
         }
-
-        if (resultados.length > 0) {
-            resultados.forEach(({ data, index, item }) => {
-                const divResultado = document.createElement('div');
-                divResultado.textContent = `Dia: ${data} - ${item.texto}`;
-                divResultado.onclick = () => {
-                    dataInput.value = data;
-                    carregarAgenda().then(() => {
-                        const compromisso = agendaEl.querySelectorAll('.commitment')[index];
-                        if (compromisso) {
-                            compromisso.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            compromisso.classList.add('destaque');
-                            setTimeout(() => compromisso.classList.remove('destaque'), 2000);
-                        }
-                    });
-                };
-                searchResultsEl.appendChild(divResultado);
-            });
-        } else {
-            searchResultsEl.textContent = 'Nenhum compromisso encontrado.';
-        }
-    }
-
-    /* Limpa busca */
-    function limparBusca() {
-        searchEl.value = '';
-        searchResultsEl.innerHTML = '';
-    }
-
-    /* Exporta para TXT */
-    async function exportarParaTXT(data) {
-        const snapshot = await database.ref('agenda/' + data).once('value');
-        const dados = snapshot.val() || [];
-        let conteudo = 'Agenda de ' + data + '\n\n';
-        dados.forEach((item, i) => {
-            if (item.texto) {
-                conteudo += (i + 1) + '. ' + item.texto + (item.tachado ? ' (Concluído)' : '') + '\n';
+        // Função para verificar a senha digitada
+        function checkPassword() {
+            const enteredPassword = passwordInput.value;
+            if (enteredPassword === correctPassword) {
+                showMainContent();
+            } else {
+                errorMessage.style.display = 'block';
+                passwordInput.value = ''; // Limpa o campo da senha
             }
-        });
-        const blob = new Blob([conteudo], { type: 'text/plain;charset=utf-8' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `agenda_${data}.txt`;
-        a.click();
-    }
-
-    /* Funções de Copiar/Colar */
-    function copiarCompromissos() {
-        bufferCopiados = [];
-        const section = document.querySelector('.date-section');
-        if (!section) return;
-        const compromissos = section.querySelectorAll('.commitment');
-        compromissos.forEach(div => {
-            const input = div.querySelector('input[type="text"]');
-            if (!input.classList.contains('done')) {
-                bufferCopiados.push(input.value);
-                input.classList.add('done');
+        }
+        // Função para mostrar o conteúdo principal
+        function showMainContent() {
+            loginScreen.style.display = 'none';
+            mainContent.style.display = 'flex';
+            carregarAgenda();
+            carregarNotasFixas();
+            loadAlarms();
+        }
+        // Função para alternar a visibilidade da senha
+        function togglePasswordVisibility() {
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                togglePasswordBtn.textContent = '🙈';
+            } else {
+                passwordInput.type = 'password';
+                togglePasswordBtn.textContent = '👁️';
             }
-        });
-        salvarAgenda();
-    }
-    function colarCompromissos() {
-        if (!bufferCopiados.length) return;
-        const compromissosDiv = document.querySelector('.commitments');
-        if (!compromissosDiv) return;
-        let idxBuffer = 0;
-
-        function encontrarOuAdicionarCampoVazio() {
-            const vazio = [...compromissosDiv.children].find(div => !div.querySelector('input[type=text]').value);
-            if (vazio) return vazio;
-            if (compromissosDiv.children.length < maxCompromissos) {
-                const novo = criarCampoCompromisso();
-                compromissosDiv.appendChild(novo);
-                return novo;
-            }
-            return null;
         }
-
-        while (idxBuffer < bufferCopiados.length) {
-            const campo = encontrarOuAdicionarCampoVazio();
-            if (!campo) break;
-            const input = campo.querySelector('input[type=text]');
-            const checkbox = campo.querySelector('input[type="checkbox"]');
-            input.value = bufferCopiados[idxBuffer++];
-            input.classList.remove('done');
-            checkbox.checked = false;
-            campo.classList.remove('checked');
-        }
-        salvarAgenda();
-    }
-
-    /* Funções de CPF */
-    function validarCPF(cpf) {
-        if (!cpf || cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
-        let soma = 0, resto;
-        for (let i = 1; i <= 9; i++) soma += parseInt(cpf[i - 1]) * (11 - i);
-        resto = (soma * 10) % 11;
-        if (resto === 10 || resto === 11) resto = 0;
-        if (resto !== parseInt(cpf[9])) return false;
-        soma = 0;
-        for (let i = 1; i <= 10; i++) soma += parseInt(cpf[i - 1]) * (12 - i);
-        resto = (soma * 10) % 11;
-        if (resto === 10 || resto === 11) resto = 0;
-        return resto === parseInt(cpf[10]);
-    }
-    document.getElementById('cpf').addEventListener('input', () => {
-        const raw = document.getElementById('cpf').value.replace(/\D/g, '');
-        const status = document.getElementById('cpfStatus');
-        const valido = validarCPF(raw);
-        status.textContent = valido ? 'CPF válido' : 'CPF inválido';
-        status.className = valido ? 'valid' : 'invalid';
-    });
-    function copiarCPF() {
-        let raw = document.getElementById('cpf').value.replace(/\D/g, '');
-        if (validarCPF(raw)) {
-            let formatado = raw.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
-            navigator.clipboard.writeText(formatado);
-        }
-    }
-    function limparCPF() {
-        document.getElementById('cpf').value = '';
-        document.getElementById('cpfStatus').textContent = '';
-        document.getElementById('cpfStatus').className = '';
-    }
-
-    /* Funções das Notas Fixas com Firebase */
-    async function carregarNotasFixas() {
-        const snapshot = await database.ref('notasFixas').once('value');
-        notasFixasEl.value = snapshot.val() || '';
-    }
-    notasFixasEl.addEventListener('input', () => {
-        database.ref('notasFixas').set(notasFixasEl.value);
-    });
-
-    /* Converte para maiúsculas */
-    document.addEventListener('input', (e) => {
-        if (e.target.matches('input[type="text"], textarea')) {
-            const pos = e.target.selectionStart;
-            e.target.value = e.target.value.toUpperCase();
-            e.target.setSelectionRange(pos, pos);
-        }
-    });
-
-    /* ================= ALARMES PERSISTENTES ================= */
-    let alarmTimeouts = {};
-    let alarmBlinkInterval = null;
-    let originalTitle = document.title;
-    let triggeredAlarms = new Set();
-
-    async function loadAlarms() {
-        const snapshot = await database.ref('alarms').once('value');
-        const savedAlarms = snapshot.val();
-        if (savedAlarms) {
-            for (const id in savedAlarms) {
-                const alarmData = savedAlarms[id];
-                if (alarmData && alarmData.time && alarmData.message) {
-                    document.getElementById(`alarmMessage${id}`).value = alarmData.message;
-                    document.getElementById(`alarmTime${id}`).value = alarmData.time;
-                    setAlarm(id, true);
+        // Função para permitir o login com a tecla Enter
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                if (correctPassword) {
+                    checkPassword();
+                } else {
+                    setPassword();
                 }
             }
         }
-    }
+        // Inicia o processo de login
+        window.addEventListener('load', () => {
+            loadPassword();
+        });
+        // --- FIM DA LÓGICA DE LOGIN ---
+        // Elementos principais e variáveis globais
+        const agendaEl = document.getElementById('agenda');
+        const searchEl = document.getElementById('search');
+        const searchResultsEl = document.getElementById('searchResults');
+        const dataInput = document.getElementById('dataSelecionada');
+        const novoBtn = document.getElementById('novoBtn');
+        const copiarBtn = document.getElementById('copiarBtn');
+        const colarBtn = document.getElementById('colarBtn');
+        const exportarBtn = document.getElementById('exportarBtn');
+        const hojeBtn = document.getElementById('hojeBtn');
+        const prevDayBtn = document.getElementById('prevDayBtn');
+        const nextDayBtn = document.getElementById('nextDayBtn');
+        const notasFixasEl = document.getElementById('notasFixas');
+        const maxCompromissos = 20;
+        let bufferCopiados = [];
+        /* Configuração inicial */
+        dataInput.value = new Date().toISOString().split('T')[0];
+        /* Listeners de interface */
+        dataInput.addEventListener('change', carregarAgenda);
+        novoBtn.addEventListener('click', adicionarCompromisso);
+        copiarBtn.addEventListener('click', copiarCompromissos);
+        colarBtn.addEventListener('click', colarCompromissos);
+        exportarBtn.addEventListener('click', () => exportarParaTXT(dataInput.value));
+        hojeBtn.addEventListener('click', () => {
+            const hoje = new Date().toISOString().split('T')[0];
+            dataInput.value = hoje;
+            carregarAgenda();
+        });
+        prevDayBtn.addEventListener('click', () => {
+            const d = new Date(dataInput.value);
+            d.setDate(d.getDate() - 1);
+            dataInput.value = d.toISOString().split('T')[0];
+            carregarAgenda();
+        });
+        nextDayBtn.addEventListener('click', () => {
+            const d = new Date(dataInput.value);
+            d.setDate(d.getDate() + 1);
+            dataInput.value = d.toISOString().split('T')[0];
+            carregarAgenda();
+        });
+        searchEl.addEventListener('input', pesquisarCompromisso);
+        /* Salvamento com delay */
+        let debounceTimer;
 
-    function setAlarm(id, silent = false) {
-        const msgEl = document.getElementById(`alarmMessage${id}`);
-        const timeEl = document.getElementById(`alarmTime${id}`);
-        const msg = msgEl.value.trim();
-        const time = timeEl.value;
-
-        if (!msg || !time) {
-            if (!silent) alert("Preencha a frase e o horário do alarme " + id);
-            return;
+        function salvarComDelay() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => salvarAgenda(), 1000);
+        }
+        /* Carregar agenda do dia selecionado */
+        async function carregarAgenda() {
+            const data = dataInput.value;
+            agendaEl.innerHTML = ''; // Limpa a agenda atual
+            const section = document.createElement('div');
+            section.className = 'date-section';
+            section.dataset.data = data;
+            const compromissos = document.createElement('div');
+            compromissos.className = 'commitments';
+            // Busca os dados do Firebase
+            const snapshot = await database.ref('agenda/' + data).once('value');
+            let dadosSalvos = snapshot.val() || [];
+            while (dadosSalvos.length < 15) dadosSalvos.push({
+                texto: '',
+                hora: '',
+                tachado: false,
+                selecionado: false
+            });
+            dadosSalvos.forEach(item => compromissos.appendChild(criarCampoCompromisso(item)));
+            section.appendChild(compromissos);
+            agendaEl.appendChild(section);
+        }
+        /* Salvamento da agenda */
+        function salvarAgenda() {
+            const data = dataInput.value;
+            const section = document.querySelector('.date-section');
+            if (!section) return;
+            const textos = [];
+            section.querySelectorAll('.commitment').forEach(div => {
+                const input = div.querySelector('input[type=text]');
+                const checkbox = div.querySelector('input[type=checkbox]');
+                textos.push({
+                    texto: input.value,
+                    hora: '',
+                    tachado: input.classList.contains('done'),
+                    selecionado: checkbox.checked
+                });
+            });
+            database.ref('agenda/' + data).set(textos);
+        }
+        /* Cria um campo de compromisso */
+        function criarCampoCompromisso(item = {
+                texto: '',
+                hora: '',
+                tachado: false,
+                selecionado: false
+            }) {
+            const div = document.createElement('div');
+            div.className = 'commitment';
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = item.selecionado;
+            checkbox.addEventListener('change', () => {
+                div.classList.toggle('checked', checkbox.checked);
+                salvarAgenda();
+            });
+            if (item.selecionado) {
+                div.classList.add('checked');
+            }
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = item.texto;
+            if (item.tachado) input.classList.add('done');
+            input.addEventListener('input', salvarComDelay);
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    const allInputs = [...document.querySelectorAll('.commitment input[type=text]')];
+                    const idx = allInputs.indexOf(input);
+                    const next = allInputs[idx + 1];
+                    if (next) next.focus();
+                }
+            });
+            const okBtn = document.createElement('button');
+            okBtn.textContent = 'OK';
+            okBtn.onclick = () => {
+                input.classList.toggle('done');
+                salvarAgenda();
+            };
+            const delBtn = document.createElement('button');
+            delBtn.textContent = 'Excluir';
+            delBtn.onclick = () => {
+                input.value = '';
+                input.classList.remove('done');
+                salvarAgenda();
+            };
+            div.appendChild(checkbox);
+            div.appendChild(input);
+            div.appendChild(okBtn);
+            div.appendChild(delBtn);
+            return div;
+        }
+        /* Adiciona um novo campo de compromisso */
+        function adicionarCompromisso() {
+            const compromissos = document.querySelector('.commitments');
+            if (compromissos.children.length < maxCompromissos) {
+                compromissos.appendChild(criarCampoCompromisso());
+            }
+        }
+        /* Pesquisa por compromissos no Firebase */
+        async function pesquisarCompromisso() {
+            const termo = searchEl.value.trim().toLowerCase();
+            searchResultsEl.innerHTML = '';
+            if (termo.length < 3) return;
+            const resultados = [];
+            const snapshot = await database.ref('agenda').once('value');
+            const todasAsAgendas = snapshot.val();
+            if (todasAsAgendas) {
+                for (const data in todasAsAgendas) {
+                    const dadosDoDia = todasAsAgendas[data] || [];
+                    dadosDoDia.forEach((item, index) => {
+                        if (item.texto && item.texto.toLowerCase().includes(termo)) {
+                            resultados.push({
+                                data,
+                                index,
+                                item
+                            });
+                        }
+                    });
+                }
+            }
+            if (resultados.length > 0) {
+                resultados.forEach(({
+                    data,
+                    index,
+                    item
+                }) => {
+                    const divResultado = document.createElement('div');
+                    divResultado.textContent = `Dia: ${data} - ${item.texto}`;
+                    divResultado.onclick = () => {
+                        dataInput.value = data;
+                        carregarAgenda().then(() => {
+                            const compromisso = agendaEl.querySelectorAll('.commitment')[index];
+                            if (compromisso) {
+                                compromisso.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'center'
+                                });
+                                compromisso.classList.add('destaque');
+                                setTimeout(() => compromisso.classList.remove('destaque'), 2000);
+                            }
+                        });
+                    };
+                    searchResultsEl.appendChild(divResultado);
+                });
+            } else {
+                searchResultsEl.textContent = 'Nenhum compromisso encontrado.';
+            }
+        }
+        /* Limpa busca */
+        function limparBusca() {
+            searchEl.value = '';
+            searchResultsEl.innerHTML = '';
+        }
+        /* Exporta para TXT */
+        async function exportarParaTXT(data) {
+            const snapshot = await database.ref('agenda/' + data).once('value');
+            const dados = snapshot.val() || [];
+            let conteudo = 'Agenda de ' + data + '\n\n';
+            dados.forEach((item, i) => {
+                if (item.texto) {
+                    conteudo += (i + 1) + '. ' + item.texto + (item.tachado ? ' (Concluído)' : '') + '\n';
+                }
+            });
+            const blob = new Blob([conteudo], {
+                type: 'text/plain;charset=utf-8'
+            });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `agenda_${data}.txt`;
+            a.click();
+        }
+        /* Funções de Copiar/Colar */
+        function copiarCompromissos() {
+            bufferCopiados = [];
+            const section = document.querySelector('.date-section');
+            if (!section) return;
+            const compromissos = section.querySelectorAll('.commitment');
+            compromissos.forEach(div => {
+                const input = div.querySelector('input[type="text"]');
+                if (!input.classList.contains('done')) {
+                    bufferCopiados.push(input.value);
+                    input.classList.add('done');
+                }
+            });
+            salvarAgenda();
         }
 
-        database.ref(`alarms/${id}`).set({ message: msg, time: time });
+        function colarCompromissos() {
+            if (!bufferCopiados.length) return;
+            const compromissosDiv = document.querySelector('.commitments');
+            if (!compromissosDiv) return;
+            let idxBuffer = 0;
 
-        if (alarmTimeouts[id]) {
-            clearTimeout(alarmTimeouts[id]);
+            function encontrarOuAdicionarCampoVazio() {
+                const vazio = [...compromissosDiv.children].find(div => !div.querySelector('input[type=text]').value);
+                if (vazio) return vazio;
+                if (compromissosDiv.children.length < maxCompromissos) {
+                    const novo = criarCampoCompromisso();
+                    compromissosDiv.appendChild(novo);
+                    return novo;
+                }
+                return null;
+            }
+            while (idxBuffer < bufferCopiados.length) {
+                const campo = encontrarOuAdicionarCampoVazio();
+                if (!campo) break;
+                const input = campo.querySelector('input[type=text]');
+                const checkbox = campo.querySelector('input[type="checkbox"]');
+                input.value = bufferCopiados[idxBuffer++];
+                input.classList.remove('done');
+                checkbox.checked = false;
+                campo.classList.remove('checked');
+            }
+            salvarAgenda();
+        }
+        /* Funções de CPF */
+        function validarCPF(cpf) {
+            if (!cpf || cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+            let soma = 0,
+                resto;
+            for (let i = 1; i <= 9; i++) soma += parseInt(cpf[i - 1]) * (11 - i);
+            resto = (soma * 10) % 11;
+            if (resto === 10 || resto === 11) resto = 0;
+            if (resto !== parseInt(cpf[9])) return false;
+            soma = 0;
+            for (let i = 1; i <= 10; i++) soma += parseInt(cpf[i - 1]) * (12 - i);
+            resto = (soma * 10) % 11;
+            if (resto === 10 || resto === 11) resto = 0;
+            return resto === parseInt(cpf[10]);
+        }
+        document.getElementById('cpf').addEventListener('input', () => {
+            const raw = document.getElementById('cpf').value.replace(/\D/g, '');
+            const status = document.getElementById('cpfStatus');
+            const valido = validarCPF(raw);
+            status.textContent = valido ? 'CPF válido' : 'CPF inválido';
+            status.className = valido ? 'valid' : 'invalid';
+        });
+
+        function copiarCPF() {
+            let raw = document.getElementById('cpf').value.replace(/\D/g, '');
+            if (validarCPF(raw)) {
+                let formatado = raw.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+                navigator.clipboard.writeText(formatado);
+            }
         }
 
-        const [h, m] = time.split(':').map(Number);
-        const now = new Date();
-        const alarm = new Date(now);
-        alarm.setHours(h, m, 0, 0);
-
-        if (alarm < now) {
-            alarm.setDate(alarm.getDate() + 1);
+        function limparCPF() {
+            document.getElementById('cpf').value = '';
+            document.getElementById('cpfStatus').textContent = '';
+            document.getElementById('cpfStatus').className = '';
+        }
+        /* Funções das Notas Fixas com Firebase */
+        async function carregarNotasFixas() {
+            const snapshot = await database.ref('notasFixas').once('value');
+            notasFixasEl.value = snapshot.val() || '';
+        }
+        notasFixasEl.addEventListener('input', () => {
+            database.ref('notasFixas').set(notasFixasEl.value);
+        });
+        /* Converte para maiúsculas */
+        document.addEventListener('input', (e) => {
+            if (e.target.matches('input[type="text"], textarea')) {
+                const pos = e.target.selectionStart;
+                e.target.value = e.target.value.toUpperCase();
+                e.target.setSelectionRange(pos, pos);
+            }
+        });
+        /* ================= ALARMES PERSISTENTES ================= */
+        let alarmTimeouts = {};
+        let alarmBlinkInterval = null;
+        let originalTitle = document.title;
+        let triggeredAlarms = new Set();
+        async function loadAlarms() {
+            const snapshot = await database.ref('alarms').once('value');
+            const savedAlarms = snapshot.val();
+            if (savedAlarms) {
+                for (const id in savedAlarms) {
+                    const alarmData = savedAlarms[id];
+                    if (alarmData && alarmData.time && alarmData.message) {
+                        document.getElementById(`alarmMessage${id}`).value = alarmData.message;
+                        document.getElementById(`alarmTime${id}`).value = alarmData.time;
+                        setAlarm(id, true);
+                    }
+                }
+            }
         }
 
-        const diff = alarm.getTime() - now.getTime();
-        alarmTimeouts[id] = setTimeout(() => triggerAlarm(msg, id), diff);
-    }
-
-    function clearAlarm(id) {
-        if (alarmTimeouts[id]) {
-            clearTimeout(alarmTimeouts[id]);
-            delete alarmTimeouts[id];
+        function setAlarm(id, silent = false) {
+            const msgEl = document.getElementById(`alarmMessage${id}`);
+            const timeEl = document.getElementById(`alarmTime${id}`);
+            const msg = msgEl.value.trim();
+            const time = timeEl.value;
+            if (!msg || !time) {
+                if (!silent) alert("Preencha a frase e o horário do alarme " + id);
+                return;
+            }
+            database.ref(`alarms/${id}`).set({
+                message: msg,
+                time: time
+            });
+            if (alarmTimeouts[id]) {
+                clearTimeout(alarmTimeouts[id]);
+            }
+            const [h, m] = time.split(':').map(Number);
+            const now = new Date();
+            const alarm = new Date(now);
+            alarm.setHours(h, m, 0, 0);
+            if (alarm < now) {
+                alarm.setDate(alarm.getDate() + 1);
+            }
+            const diff = alarm.getTime() - now.getTime();
+            alarmTimeouts[id] = setTimeout(() => triggerAlarm(msg, id), diff);
         }
-        document.getElementById(`alarmMessage${id}`).value = '';
-        document.getElementById(`alarmTime${id}`).value = '';
-        database.ref(`alarms/${id}`).remove();
-    }
 
-    function triggerAlarm(message, id) {
-        if (triggeredAlarms.has(id)) return;
-        triggeredAlarms.add(id);
-
-        alert("⏰ ALARME " + id + ": " + message);
-
-        if (!alarmBlinkInterval) {
-            let visible = true;
-            alarmBlinkInterval = setInterval(() => {
-                document.title = visible ? "⚠️ ALARME ⚠️" : originalTitle;
-                visible = !visible;
-            }, 800);
-            
-            window.addEventListener('focus', stopAlarmBlink, { once: true });
-            window.addEventListener('click', stopAlarmBlink, { once: true });
+        function clearAlarm(id) {
+            if (alarmTimeouts[id]) {
+                clearTimeout(alarmTimeouts[id]);
+                delete alarmTimeouts[id];
+            }
+            document.getElementById(`alarmMessage${id}`).value = '';
+            document.getElementById(`alarmTime${id}`).value = '';
+            database.ref(`alarms/${id}`).remove();
         }
-        
-        database.ref(`alarms/${id}`).remove();
-    }
 
-    function stopAlarmBlink() {
-        if (alarmBlinkInterval) {
-            clearInterval(alarmBlinkInterval);
-            alarmBlinkInterval = null;
+        function triggerAlarm(message, id) {
+            if (triggeredAlarms.has(id)) return;
+            triggeredAlarms.add(id);
+            alert("⏰ ALARME " + id + ": " + message);
+            if (!alarmBlinkInterval) {
+                let visible = true;
+                alarmBlinkInterval = setInterval(() => {
+                    document.title = visible ? "⚠️ ALARME ⚠️" : originalTitle;
+                    visible = !visible;
+                }, 800);
+                window.addEventListener('focus', stopAlarmBlink, {
+                    once: true
+                });
+                window.addEventListener('click', stopAlarmBlink, {
+                    once: true
+                });
+            }
+            database.ref(`alarms/${id}`).remove();
         }
-        document.title = originalTitle;
-        triggeredAlarms.clear();
-        window.removeEventListener('focus', stopAlarmBlink);
-        window.removeEventListener('click', stopAlarmBlink);
-    }
-    /* ======================================================== */
+
+        function stopAlarmBlink() {
+            if (alarmBlinkInterval) {
+                clearInterval(alarmBlinkInterval);
+                alarmBlinkInterval = null;
+            }
+            document.title = originalTitle;
+            triggeredAlarms.clear();
+            window.removeEventListener('focus', stopAlarmBlink);
+            window.removeEventListener('click', stopAlarmBlink);
+        }
+        /* ======================================================== */
     </script>
 </body>
 
 </html>
-
-
-
-
