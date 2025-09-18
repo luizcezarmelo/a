@@ -1,13 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controle de Despesas</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
         :root {
             --bg-color: #f8f9fa;
             --surface-color: #ffffff;
@@ -108,7 +106,7 @@
         }
 
         .container {
-            max-width: 1200px;
+            width: 100%;
             margin: auto;
             padding: 0;
         }
@@ -164,17 +162,13 @@
             color: var(--accent-color);
         }
 
-        #prevMonthBtn,
-        #nextMonthBtn {
+        #prevMonthBtn, #nextMonthBtn {
             width: 38px;
             padding: 0;
             font-size: 1.25rem;
         }
 
-        #saveDataBtn,
-        #restoreDataBtn,
-        #todayBtn,
-        #clearAllBtn {
+        #saveDataBtn, #restoreDataBtn, #todayBtn, #clearAllBtn {
             width: auto;
             padding: 0 16px;
             font-size: 0.9rem;
@@ -201,8 +195,7 @@
             color: white;
         }
 
-        #saveDataBtn:hover,
-        #restoreDataBtn:hover {
+        #saveDataBtn:hover, #restoreDataBtn:hover {
             background-color: var(--accent-color);
             color: var(--surface-color);
         }
@@ -230,12 +223,14 @@
             font-weight: 700;
         }
 
+        /* Alterações no grid para o novo layout */
         .grid-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(4, 1fr);
             gap: 15px;
+            margin: 0; /* Remove margens extras */
         }
-
+        
         .grid-item {
             background-color: var(--surface-color);
             padding: 20px 12px;
@@ -250,14 +245,26 @@
             grid-column: 1 / -1;
         }
 
+        /* Media query para telas menores */
+        @media (max-width: 1200px) {
+            .grid-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .grid-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
         table {
             width: 100%;
             border-collapse: collapse;
             flex-grow: 1;
         }
 
-        th,
-        td {
+        th, td {
             padding: 6px 8px;
             text-align: left;
             border: none;
@@ -339,7 +346,6 @@
         }
     </style>
 </head>
-
 <body>
     <div id="login-overlay">
         <div id="login-box">
@@ -351,7 +357,6 @@
     </div>
     <div class="container">
         <h1>Controle de Despesas</h1>
-
         <div class="month-navigation">
             <button id="prevMonthBtn" title="Mês Anterior">&lt;</button>
             <h2 id="currentMonthYear" style="border: none; margin: 0;"></h2>
@@ -362,12 +367,10 @@
             <button id="clearAllBtn" title="Limpar todos os dados deste mês">Limpar tudo</button>
             <input type="file" id="restoreFileInput" accept=".txt,.json" style="display: none;">
         </div>
-
         <div class="summary-box">
             <h3>Total Geral do Mês</h3>
             <div id="totalGeral">R$ 0,00</div>
         </div>
-
         <div class="grid-container">
             <div class="grid-item">
                 <h2>Despesas Fixas</h2>
@@ -389,7 +392,6 @@
                     </tfoot>
                 </table>
             </div>
-
             <div class="grid-item">
                 <h2 class="card-header nubank-header"><span>Nubank</span></h2>
                 <table id="nubankTable">
@@ -411,7 +413,6 @@
                     </tfoot>
                 </table>
             </div>
-
             <div class="grid-item">
                 <h2 class="card-header c6-header"><span>C6 Bank</span></h2>
                 <table id="c6Table">
@@ -433,7 +434,6 @@
                     </tfoot>
                 </table>
             </div>
-
             <div class="grid-item">
                 <h2>Diversos</h2>
                 <table id="diversosTable">
@@ -455,7 +455,6 @@
                     </tfoot>
                 </table>
             </div>
-
             <div class="grid-item full-width-item">
                 <h2>Vencimento das parcelas</h2>
                 <table id="installmentsSummaryTable">
@@ -481,17 +480,9 @@
         </div>
     </div>
     <div id="status"></div>
-
     <script type="module">
-        import {
-            initializeApp
-        } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import {
-            getDatabase,
-            ref,
-            set,
-            onValue
-        } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
         // Your web app's Firebase configuration
         const firebaseConfig = {
@@ -507,7 +498,6 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
-
         let current_date = new Date();
         let debounceTimer;
 
@@ -549,9 +539,7 @@
                 } else {
                     setupFirstAccessScreen();
                 }
-            }, {
-                onlyOnce: true
-            });
+            }, { onlyOnce: true });
         }
 
         function setupLoginScreen(correctPasscode) {
@@ -596,14 +584,11 @@
             });
         }
 
-
         function startApp() {
             // MODIFICADO: Avança a data em um mês na inicialização da página
             current_date.setMonth(current_date.getMonth() + 1);
-
             updateMonthDisplay();
             loadData();
-
             ui.prevMonthBtn.addEventListener('click', () => changeMonth(-1));
             ui.nextMonthBtn.addEventListener('click', () => changeMonth(1));
             ui.todayBtn.addEventListener('click', () => {
@@ -617,7 +602,6 @@
             ui.restoreDataBtn.addEventListener('click', () => ui.restoreFileInput.click());
             ui.restoreFileInput.addEventListener('change', restoreDataFromFile);
             ui.clearAllBtn.addEventListener('click', clearAllData);
-
             setupTableListeners(ui.fixedExpensesTable, 'fixed');
             setupTableListeners(ui.diversosTable, 'diversos');
             setupTableListeners(ui.nubankTable, 'nubank');
@@ -633,9 +617,7 @@
                     return;
                 }
                 const dataStr = JSON.stringify(data, null, 2);
-                const blob = new Blob([dataStr], {
-                    type: 'application/json'
-                });
+                const blob = new Blob([dataStr], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
@@ -646,11 +628,8 @@
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
                 showStatus('Backup gerado com sucesso!', 3000);
-            }, {
-                onlyOnce: true
-            });
+            }, { onlyOnce: true });
         }
-
 
         function restoreDataFromFile(event) {
             if (!confirm('ATENÇÃO! Isto irá substituir TODOS os dados existentes na nuvem pelos dados do arquivo. Deseja continuar?')) {
@@ -659,7 +638,6 @@
             }
             const file = event.target.files[0];
             if (!file) return;
-
             const reader = new FileReader();
             reader.onload = (e) => {
                 try {
@@ -690,9 +668,7 @@
         }
 
         function updateMonthDisplay() {
-            const month = current_date.toLocaleString('pt-BR', {
-                month: 'long'
-            });
+            const month = current_date.toLocaleString('pt-BR', { month: 'long' });
             const year = current_date.getFullYear();
             ui.currentMonthYear.textContent = `${month.charAt(0).toUpperCase() + month.slice(1)} de ${year}`;
         }
@@ -719,7 +695,6 @@
                     nubank: parseTableData(ui.nubankTable),
                     c6: parseTableData(ui.c6Table),
                 };
-
                 set(ref(database, 'expenses/' + monthKey), dataToSave)
                     .then(() => showStatus('Salvo!'))
                     .catch((error) => {
@@ -727,7 +702,6 @@
                         showStatus('Erro ao salvar!', 5000);
                     });
             };
-
             if (force) {
                 saveAction();
             } else {
@@ -740,32 +714,17 @@
             const prevMonthDate = new Date(current_date);
             prevMonthDate.setMonth(prevMonthDate.getMonth() - 1);
             const prevMonthKey = getMonthYearKey(prevMonthDate);
-
             const currentMonthRef = ref(database, 'expenses/' + monthKey);
             const prevMonthRef = ref(database, 'expenses/' + prevMonthKey);
 
             onValue(currentMonthRef, (currentSnapshot) => {
-                const currentData = currentSnapshot.val() || {
-                    fixed: [],
-                    diversos: [],
-                    nubank: [],
-                    c6: []
-                };
-
+                const currentData = currentSnapshot.val() || { fixed: [], diversos: [], nubank: [], c6: [] };
                 onValue(prevMonthRef, (prevSnapshot) => {
-                    const prevData = prevSnapshot.val() || {
-                        fixed: [],
-                        diversos: [],
-                        nubank: [],
-                        c6: []
-                    };
-
+                    const prevData = prevSnapshot.val() || { fixed: [], diversos: [], nubank: [], c6: [] };
                     const continuingNubank = processContinuingInstallments(prevData.nubank || []);
                     const continuingC6 = processContinuingInstallments(prevData.c6 || []);
                     const continuingDiversos = processContinuingInstallments(prevData.diversos || []);
                     const continuingFixed = (prevData.fixed || []).map(item => [item[0], item[1], false]);
-
-
                     const combinedData = {
                         fixed: combineData(currentData.fixed, continuingFixed),
                         diversos: combineData(currentData.diversos, continuingDiversos),
@@ -777,29 +736,27 @@
                     populateTable(ui.diversosTable, combinedData.diversos);
                     populateTable(ui.nubankTable, combinedData.nubank);
                     populateTable(ui.c6Table, combinedData.c6);
+
                     [ui.fixedExpensesTable, ui.diversosTable, ui.nubankTable, ui.c6Table].forEach(ensureEmptyRow);
                     updateAllTotals();
 
                     set(currentMonthRef, combinedData);
-                }, {
-                    onlyOnce: true
-                });
-
-            }, {
-                onlyOnce: true
-            });
+                }, { onlyOnce: true });
+            }, { onlyOnce: true });
         }
 
         function combineData(currentData, prevData) {
             if (!currentData || currentData.length === 0) {
                 return prevData;
             }
+
             const prevMap = new Map();
             prevData.forEach(item => {
                 const description = item[0] || '';
                 const installment = item[2] || '';
                 prevMap.set(description + installment, item);
             });
+
             currentData.forEach(item => {
                 const description = item[0] || '';
                 const installment = item[2] || '';
@@ -808,9 +765,9 @@
                     prevMap.delete(key);
                 }
             });
+
             return [...currentData, ...Array.from(prevMap.values())];
         }
-
 
         function clearAllData() {
             if (!confirm('ATENÇÃO! Isso vai apagar todos os dados. Deseja continuar?')) {
@@ -829,7 +786,6 @@
                     showStatus('Erro ao limpar os dados!', 5000);
                 });
         }
-
 
         function processContinuingInstallments(installments) {
             return installments.reduce((acc, item) => {
@@ -892,6 +848,7 @@
                 }
                 return true;
             }
+
             if (tbody.rows.length === 0 || (tbody.rows.length > 0 && !isRowEmpty(tbody.rows[tbody.rows.length - 1]))) {
                 addNewRow(tbody);
             }
@@ -900,7 +857,6 @@
         function addNewRow(tbody, focusFirstCell = false) {
             const newRow = tbody.insertRow();
             const colCount = tbody.parentElement.tHead.rows[0].cells.length;
-
             for (let i = 0; i < colCount - 1; i++) {
                 newRow.insertCell().setAttribute('contenteditable', 'true');
             }
@@ -909,7 +865,6 @@
             checkbox.type = 'checkbox';
             paidCell.style.textAlign = 'center';
             paidCell.appendChild(checkbox);
-
             if (focusFirstCell) newRow.cells[0].focus();
         }
 
@@ -921,10 +876,7 @@
                         const text = cell.textContent.trim();
                         if (text) {
                             let number = parseCurrency(text);
-                            cell.textContent = number.toLocaleString('pt-BR', {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            });
+                            cell.textContent = number.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                             updateTotals(type);
                             saveData();
                         }
@@ -962,10 +914,7 @@
         }
 
         function formatCurrency(value) {
-            return value.toLocaleString('pt-BR', {
-                style: 'currency',
-                currency: 'BRL'
-            });
+            return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         }
 
         function parseCurrency(text) {
@@ -978,26 +927,13 @@
 
         function updateInstallmentSummary() {
             ui.installmentsSummaryTable.innerHTML = '';
-
             const allInstallmentsRaw = [
-                ...parseTableData(ui.nubankTable).map(d => ({
-                    data: d,
-                    card: 'Nubank'
-                })),
-                ...parseTableData(ui.c6Table).map(d => ({
-                    data: d,
-                    card: 'C6 Bank'
-                })),
-                ...parseTableData(ui.diversosTable).map(d => ({
-                    data: d,
-                    card: 'Diversos'
-                }))
+                ...parseTableData(ui.nubankTable).map(d => ({ data: d, card: 'Nubank' })),
+                ...parseTableData(ui.c6Table).map(d => ({ data: d, card: 'C6 Bank' })),
+                ...parseTableData(ui.diversosTable).map(d => ({ data: d, card: 'Diversos' }))
             ];
 
-            const installmentsWithData = allInstallmentsRaw.map(({
-                data,
-                card
-            }) => {
+            const installmentsWithData = allInstallmentsRaw.map(({ data, card }) => {
                 const description = data[0];
                 const valueText = data[1];
                 const installmentText = data[2] || "";
@@ -1008,20 +944,15 @@
                 const currentPart = parseInt(parts[1], 10);
                 const totalParts = parseInt(parts[2], 10);
                 const remaining = totalParts - currentPart;
+
                 if (remaining < 0) return null;
 
                 const dueDate = new Date(current_date);
                 dueDate.setMonth(dueDate.getMonth() + remaining);
                 dueDate.setDate(1);
-
                 const value = parseCurrency(valueText);
-                return {
-                    description,
-                    card,
-                    value,
-                    installmentText,
-                    dueDate
-                };
+
+                return { description, card, value, installmentText, dueDate };
             }).filter(item => item !== null);
 
             installmentsWithData.sort((a, b) => a.dueDate - b.dueDate);
@@ -1029,19 +960,14 @@
             let totalInstallmentsValue = 0;
             installmentsWithData.forEach(item => {
                 totalInstallmentsValue += item.value;
-                const endMonth = item.dueDate.toLocaleString('pt-BR', {
-                    month: 'long'
-                });
+                const endMonth = item.dueDate.toLocaleString('pt-BR', { month: 'long' });
                 const endYear = item.dueDate.getFullYear();
 
                 const row = ui.installmentsSummaryTable.insertRow();
                 row.insertCell().textContent = item.description;
                 row.insertCell().textContent = item.card;
                 const valueCell = row.insertCell();
-                valueCell.textContent = item.value.toLocaleString('pt-BR', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
+                valueCell.textContent = item.value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 row.insertCell().textContent = item.installmentText;
                 row.insertCell().textContent = `${endMonth.charAt(0).toUpperCase() + endMonth.slice(1)}/${endYear}`;
             });
@@ -1051,26 +977,16 @@
 
         function updateTotals(type) {
             const totalsMap = {
-                fixed: {
-                    el: ui.fixedTotal,
-                    table: ui.fixedExpensesTable
-                },
-                diversos: {
-                    el: ui.diversosTotal,
-                    table: ui.diversosTable
-                },
-                nubank: {
-                    el: ui.nubankTotal,
-                    table: ui.nubankTable
-                },
-                c6: {
-                    el: ui.c6Total,
-                    table: ui.c6Table
-                }
+                fixed: { el: ui.fixedTotal, table: ui.fixedExpensesTable },
+                diversos: { el: ui.diversosTotal, table: ui.diversosTable },
+                nubank: { el: ui.nubankTotal, table: ui.nubankTable },
+                c6: { el: ui.c6Total, table: ui.c6Table }
             };
+
             if (totalsMap[type]) {
                 totalsMap[type].el.textContent = formatCurrency(calculateColumnTotal(totalsMap[type].table, 1));
             }
+
             updateAllTotals();
         }
 
@@ -1084,11 +1000,9 @@
             ui.diversosTotal.textContent = formatCurrency(diversosTotal);
             ui.nubankTotal.textContent = formatCurrency(nubankTotal);
             ui.c6Total.textContent = formatCurrency(c6Total);
-
             ui.totalGeral.textContent = formatCurrency(fixedTotal + diversosTotal + nubankTotal + c6Total);
             updateInstallmentSummary();
         }
     </script>
 </body>
-
 </html>
