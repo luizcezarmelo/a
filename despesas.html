@@ -391,27 +391,6 @@
             </div>
 
             <div class="grid-item">
-                <h2>Diversos</h2>
-                <table id="diversosTable">
-                    <thead>
-                        <tr>
-                            <th>Descrição</th>
-                            <th>Valor (R$)</th>
-                            <th>Conferido</th>
-                        </tr>
-                    </thead>
-                    <tbody id="diversosTbody"></tbody>
-                    <tfoot>
-                        <tr class="total-row">
-                            <td><strong>Total Diversos</strong></td>
-                            <td id="diversosTotal">R$ 0,00</td>
-                            <td></td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-
-            <div class="grid-item">
                 <h2 class="card-header nubank-header"><span>Nubank</span></h2>
                 <table id="nubankTable">
                     <thead>
@@ -449,6 +428,28 @@
                         <tr class="total-row">
                             <td colspan="1"><strong>Total C6</strong></td>
                             <td id="c6Total" colspan="2">R$ 0,00</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <div class="grid-item">
+                <h2>Diversos</h2>
+                <table id="diversosTable">
+                    <thead>
+                        <tr>
+                            <th>Descrição</th>
+                            <th>Valor</th>
+                            <th>Parcela</th>
+                            <th>Conferido</th>
+                        </tr>
+                    </thead>
+                    <tbody id="diversosTbody"></tbody>
+                    <tfoot>
+                        <tr class="total-row">
+                            <td colspan="1"><strong>Total Diversos</strong></td>
+                            <td id="diversosTotal" colspan="2">R$ 0,00</td>
                             <td></td>
                         </tr>
                     </tfoot>
@@ -761,8 +762,8 @@
 
                     const continuingNubank = processContinuingInstallments(prevData.nubank || []);
                     const continuingC6 = processContinuingInstallments(prevData.c6 || []);
+                    const continuingDiversos = processContinuingInstallments(prevData.diversos || []);
                     const continuingFixed = (prevData.fixed || []).map(item => [item[0], item[1], false]);
-                    const continuingDiversos = (prevData.diversos || []).map(item => [item[0], item[1], false]);
 
 
                     const combinedData = {
@@ -986,6 +987,10 @@
                 ...parseTableData(ui.c6Table).map(d => ({
                     data: d,
                     card: 'C6 Bank'
+                })),
+                ...parseTableData(ui.diversosTable).map(d => ({
+                    data: d,
+                    card: 'Diversos'
                 }))
             ];
 
