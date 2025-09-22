@@ -264,7 +264,8 @@
             </div>
             <div class="actions">
                 <button id="novoBtn">Novo</button>
-                <button id="organizarBtn">Organizar</button> <button id="copiarBtn">Copiar</button>
+                <button id="organizarBtn">Organizar</button>
+                <button id="copiarBtn">Copiar</button>
                 <button id="colarBtn">Colar</button>
                 <button id="exportarBtn">Exportar TXT</button>
             </div>
@@ -353,6 +354,7 @@
                 passwordInput.placeholder = 'Defina uma senha';
             }
             loginScreen.style.display = 'flex';
+            passwordInput.focus(); // Foco automático no campo de senha
         }
 
         // Função para definir a senha pela primeira vez
@@ -429,7 +431,7 @@
         const searchResultsEl = document.getElementById('searchResults');
         const dataInput = document.getElementById('dataSelecionada');
         const novoBtn = document.getElementById('novoBtn');
-        const organizarBtn = document.getElementById('organizarBtn'); // NOVA REFERÊNCIA
+        const organizarBtn = document.getElementById('organizarBtn');
         const copiarBtn = document.getElementById('copiarBtn');
         const colarBtn = document.getElementById('colarBtn');
         const exportarBtn = document.getElementById('exportarBtn');
@@ -446,7 +448,7 @@
         /* Listeners de interface */
         dataInput.addEventListener('change', carregarAgenda);
         novoBtn.addEventListener('click', adicionarCompromisso);
-        organizarBtn.addEventListener('click', organizarAgenda); // NOVO LISTENER
+        organizarBtn.addEventListener('click', organizarAgenda);
         copiarBtn.addEventListener('click', copiarCompromissos);
         colarBtn.addEventListener('click', colarCompromissos);
         exportarBtn.addEventListener('click', () => exportarParaTXT(dataInput.value));
@@ -590,9 +592,6 @@
             }
         }
 
-        // =========================================================
-        //                 NOVA FUNÇÃO ORGANIZAR
-        // =========================================================
         function organizarAgenda() {
             const compromissosDiv = document.querySelector('.commitments');
             if (!compromissosDiv) return;
@@ -640,7 +639,6 @@
             // 3. Salvar o novo estado no Firebase
             salvarAgenda();
         }
-        // =========================================================
 
         /* Pesquisa por compromissos no Firebase */
         async function pesquisarCompromisso() {
