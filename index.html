@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -231,8 +230,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 </head>
-
 <body>
+
     <div id="login-screen">
         <div id="login-form">
             <h2 id="login-title">Acesso Restrito</h2>
@@ -248,6 +247,7 @@
             </div>
         </div>
     </div>
+
     <div class="container" id="main-content" style="display: none;">
         <div class="left-panel">
             <h2>Agenda de compromissos</h2>
@@ -264,7 +264,7 @@
             </div>
             <div class="actions">
                 <button id="novoBtn">Novo</button>
-                <button id="copiarBtn">Copiar</button>
+                <button id="organizarBtn">Organizar</button> <button id="copiarBtn">Copiar</button>
                 <button id="colarBtn">Colar</button>
                 <button id="exportarBtn">Exportar TXT</button>
             </div>
@@ -278,12 +278,14 @@
             </div>
             <p id="cpfStatus"></p>
             <button onclick="copiarCPF()">Copiar</button>
+
             <h3>🔍 Pesquisa</h3>
             <div class="search-area">
                 <input type="text" id="search" placeholder="Pesquisar...">
                 <button onclick="limparBusca()">❌</button>
             </div>
             <div id="searchResults" class="search-results"></div>
+
             <h3>⏰ Alarmes</h3>
             <div id="alarmes" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px;">
                 <div>
@@ -305,13 +307,16 @@
                     <button onclick="clearAlarm(3)" title="Limpar Alarme 3">❌</button>
                 </div>
             </div>
+
             <h3>📝 Lembretes:</h3>
             <textarea id="notasFixas" rows="15" style="width: 100%; resize: vertical;"></textarea>
         </div>
     </div>
+
     <script>
         // --- LÓGICA DE LOGIN INSERIDA AQUI ---
         const PASSWORD_NODE = 'appPassword'; // Nome do nó no Firebase para armazenar a senha
+
         const mainContent = document.getElementById('main-content');
         const loginScreen = document.getElementById('login-screen');
         const passwordInput = document.getElementById('password-input');
@@ -319,6 +324,7 @@
         const togglePasswordBtn = document.getElementById('toggle-password');
         const setupMessage = document.getElementById('setup-message');
         const loginTitle = document.getElementById('login-title');
+
         // Inicializa o Firebase (manter a sua configuração)
         const firebaseConfig = {
             apiKey: "AIzaSyDQOGFiqafMZh0ha6XW62P1DpIKJE8TBYc",
@@ -332,6 +338,7 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
         let correctPassword = null;
+
         // Função para verificar a senha no Firebase
         async function loadPassword() {
             const snapshot = await database.ref(PASSWORD_NODE).once('value');
@@ -347,6 +354,7 @@
             }
             loginScreen.style.display = 'flex';
         }
+
         // Função para definir a senha pela primeira vez
         function setPassword() {
             const newPassword = passwordInput.value;
@@ -365,6 +373,7 @@
                 alert('A senha não pode ser vazia.');
             }
         }
+
         // Função para verificar a senha digitada
         function checkPassword() {
             const enteredPassword = passwordInput.value;
@@ -375,6 +384,7 @@
                 passwordInput.value = ''; // Limpa o campo da senha
             }
         }
+
         // Função para mostrar o conteúdo principal
         function showMainContent() {
             loginScreen.style.display = 'none';
@@ -383,6 +393,7 @@
             carregarNotasFixas();
             loadAlarms();
         }
+
         // Função para alternar a visibilidade da senha
         function togglePasswordVisibility() {
             if (passwordInput.type === 'password') {
@@ -393,6 +404,7 @@
                 togglePasswordBtn.textContent = '👁️';
             }
         }
+
         // Função para permitir o login com a tecla Enter
         function handleKeyPress(event) {
             if (event.key === 'Enter') {
@@ -403,17 +415,21 @@
                 }
             }
         }
+
         // Inicia o processo de login
         window.addEventListener('load', () => {
             loadPassword();
         });
         // --- FIM DA LÓGICA DE LOGIN ---
+
+
         // Elementos principais e variáveis globais
         const agendaEl = document.getElementById('agenda');
         const searchEl = document.getElementById('search');
         const searchResultsEl = document.getElementById('searchResults');
         const dataInput = document.getElementById('dataSelecionada');
         const novoBtn = document.getElementById('novoBtn');
+        const organizarBtn = document.getElementById('organizarBtn'); // NOVA REFERÊNCIA
         const copiarBtn = document.getElementById('copiarBtn');
         const colarBtn = document.getElementById('colarBtn');
         const exportarBtn = document.getElementById('exportarBtn');
@@ -423,11 +439,14 @@
         const notasFixasEl = document.getElementById('notasFixas');
         const maxCompromissos = 20;
         let bufferCopiados = [];
+
         /* Configuração inicial */
         dataInput.value = new Date().toISOString().split('T')[0];
+
         /* Listeners de interface */
         dataInput.addEventListener('change', carregarAgenda);
         novoBtn.addEventListener('click', adicionarCompromisso);
+        organizarBtn.addEventListener('click', organizarAgenda); // NOVO LISTENER
         copiarBtn.addEventListener('click', copiarCompromissos);
         colarBtn.addEventListener('click', colarCompromissos);
         exportarBtn.addEventListener('click', () => exportarParaTXT(dataInput.value));
@@ -449,6 +468,7 @@
             carregarAgenda();
         });
         searchEl.addEventListener('input', pesquisarCompromisso);
+
         /* Salvamento com delay */
         let debounceTimer;
 
@@ -456,6 +476,7 @@
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(() => salvarAgenda(), 1000);
         }
+
         /* Carregar agenda do dia selecionado */
         async function carregarAgenda() {
             const data = dataInput.value;
@@ -463,26 +484,32 @@
             const section = document.createElement('div');
             section.className = 'date-section';
             section.dataset.data = data;
+
             const compromissos = document.createElement('div');
             compromissos.className = 'commitments';
+
             // Busca os dados do Firebase
             const snapshot = await database.ref('agenda/' + data).once('value');
             let dadosSalvos = snapshot.val() || [];
+
             while (dadosSalvos.length < 15) dadosSalvos.push({
                 texto: '',
                 hora: '',
                 tachado: false,
                 selecionado: false
             });
+
             dadosSalvos.forEach(item => compromissos.appendChild(criarCampoCompromisso(item)));
             section.appendChild(compromissos);
             agendaEl.appendChild(section);
         }
+
         /* Salvamento da agenda */
         function salvarAgenda() {
             const data = dataInput.value;
             const section = document.querySelector('.date-section');
             if (!section) return;
+
             const textos = [];
             section.querySelectorAll('.commitment').forEach(div => {
                 const input = div.querySelector('input[type=text]');
@@ -494,17 +521,20 @@
                     selecionado: checkbox.checked
                 });
             });
+
             database.ref('agenda/' + data).set(textos);
         }
+
         /* Cria um campo de compromisso */
         function criarCampoCompromisso(item = {
-                texto: '',
-                hora: '',
-                tachado: false,
-                selecionado: false
-            }) {
+            texto: '',
+            hora: '',
+            tachado: false,
+            selecionado: false
+        }) {
             const div = document.createElement('div');
             div.className = 'commitment';
+
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.checked = item.selecionado;
@@ -515,6 +545,7 @@
             if (item.selecionado) {
                 div.classList.add('checked');
             }
+
             const input = document.createElement('input');
             input.type = 'text';
             input.value = item.texto;
@@ -528,12 +559,14 @@
                     if (next) next.focus();
                 }
             });
+
             const okBtn = document.createElement('button');
             okBtn.textContent = 'OK';
             okBtn.onclick = () => {
                 input.classList.toggle('done');
                 salvarAgenda();
             };
+
             const delBtn = document.createElement('button');
             delBtn.textContent = 'Excluir';
             delBtn.onclick = () => {
@@ -541,12 +574,14 @@
                 input.classList.remove('done');
                 salvarAgenda();
             };
+
             div.appendChild(checkbox);
             div.appendChild(input);
             div.appendChild(okBtn);
             div.appendChild(delBtn);
             return div;
         }
+
         /* Adiciona um novo campo de compromisso */
         function adicionarCompromisso() {
             const compromissos = document.querySelector('.commitments');
@@ -554,14 +589,69 @@
                 compromissos.appendChild(criarCampoCompromisso());
             }
         }
+
+        // =========================================================
+        //                 NOVA FUNÇÃO ORGANIZAR
+        // =========================================================
+        function organizarAgenda() {
+            const compromissosDiv = document.querySelector('.commitments');
+            if (!compromissosDiv) return;
+
+            // 1. Coletar todos os dados dos campos que estão preenchidos
+            const dadosPreenchidos = [];
+            const todosOsCampos = compromissosDiv.querySelectorAll('.commitment');
+
+            todosOsCampos.forEach(div => {
+                const input = div.querySelector('input[type="text"]');
+                if (input.value.trim() !== '') {
+                    const checkbox = div.querySelector('input[type="checkbox"]');
+                    dadosPreenchidos.push({
+                        texto: input.value,
+                        tachado: input.classList.contains('done'),
+                        selecionado: checkbox.checked
+                    });
+                }
+            });
+
+            // 2. Reescrever os dados nos campos desde o início
+            todosOsCampos.forEach((div, index) => {
+                const input = div.querySelector('input[type="text"]');
+                const checkbox = div.querySelector('input[type="checkbox"]');
+
+                if (index < dadosPreenchidos.length) {
+                    // Preenche com os dados coletados
+                    const dados = dadosPreenchidos[index];
+                    input.value = dados.texto;
+                    checkbox.checked = dados.selecionado;
+
+                    // Ajusta as classes CSS (para visual)
+                    input.classList.toggle('done', dados.tachado);
+                    div.classList.toggle('checked', dados.selecionado);
+
+                } else {
+                    // Limpa os campos excedentes
+                    input.value = '';
+                    checkbox.checked = false;
+                    input.classList.remove('done');
+                    div.classList.remove('checked');
+                }
+            });
+
+            // 3. Salvar o novo estado no Firebase
+            salvarAgenda();
+        }
+        // =========================================================
+
         /* Pesquisa por compromissos no Firebase */
         async function pesquisarCompromisso() {
             const termo = searchEl.value.trim().toLowerCase();
             searchResultsEl.innerHTML = '';
             if (termo.length < 3) return;
+
             const resultados = [];
             const snapshot = await database.ref('agenda').once('value');
             const todasAsAgendas = snapshot.val();
+
             if (todasAsAgendas) {
                 for (const data in todasAsAgendas) {
                     const dadosDoDia = todasAsAgendas[data] || [];
@@ -576,6 +666,7 @@
                     });
                 }
             }
+
             if (resultados.length > 0) {
                 resultados.forEach(({
                     data,
@@ -604,11 +695,13 @@
                 searchResultsEl.textContent = 'Nenhum compromisso encontrado.';
             }
         }
+
         /* Limpa busca */
         function limparBusca() {
             searchEl.value = '';
             searchResultsEl.innerHTML = '';
         }
+
         /* Exporta para TXT */
         async function exportarParaTXT(data) {
             const snapshot = await database.ref('agenda/' + data).once('value');
@@ -619,6 +712,7 @@
                     conteudo += (i + 1) + '. ' + item.texto + (item.tachado ? ' (Concluído)' : '') + '\n';
                 }
             });
+
             const blob = new Blob([conteudo], {
                 type: 'text/plain;charset=utf-8'
             });
@@ -627,6 +721,7 @@
             a.download = `agenda_${data}.txt`;
             a.click();
         }
+
         /* Funções de Copiar/Colar */
         function copiarCompromissos() {
             bufferCopiados = [];
@@ -647,6 +742,7 @@
             if (!bufferCopiados.length) return;
             const compromissosDiv = document.querySelector('.commitments');
             if (!compromissosDiv) return;
+
             let idxBuffer = 0;
 
             function encontrarOuAdicionarCampoVazio() {
@@ -659,6 +755,7 @@
                 }
                 return null;
             }
+
             while (idxBuffer < bufferCopiados.length) {
                 const campo = encontrarOuAdicionarCampoVazio();
                 if (!campo) break;
@@ -671,6 +768,7 @@
             }
             salvarAgenda();
         }
+
         /* Funções de CPF */
         function validarCPF(cpf) {
             if (!cpf || cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
@@ -707,6 +805,7 @@
             document.getElementById('cpfStatus').textContent = '';
             document.getElementById('cpfStatus').className = '';
         }
+
         /* Funções das Notas Fixas com Firebase */
         async function carregarNotasFixas() {
             const snapshot = await database.ref('notasFixas').once('value');
@@ -715,6 +814,7 @@
         notasFixasEl.addEventListener('input', () => {
             database.ref('notasFixas').set(notasFixasEl.value);
         });
+
         /* Converte para maiúsculas */
         document.addEventListener('input', (e) => {
             if (e.target.matches('input[type="text"], textarea')) {
@@ -723,11 +823,13 @@
                 e.target.setSelectionRange(pos, pos);
             }
         });
+
         /* ================= ALARMES PERSISTENTES ================= */
         let alarmTimeouts = {};
         let alarmBlinkInterval = null;
         let originalTitle = document.title;
         let triggeredAlarms = new Set();
+
         async function loadAlarms() {
             const snapshot = await database.ref('alarms').once('value');
             const savedAlarms = snapshot.val();
@@ -748,24 +850,30 @@
             const timeEl = document.getElementById(`alarmTime${id}`);
             const msg = msgEl.value.trim();
             const time = timeEl.value;
+
             if (!msg || !time) {
                 if (!silent) alert("Preencha a frase e o horário do alarme " + id);
                 return;
             }
+
             database.ref(`alarms/${id}`).set({
                 message: msg,
                 time: time
             });
+
             if (alarmTimeouts[id]) {
                 clearTimeout(alarmTimeouts[id]);
             }
+
             const [h, m] = time.split(':').map(Number);
             const now = new Date();
             const alarm = new Date(now);
             alarm.setHours(h, m, 0, 0);
+
             if (alarm < now) {
                 alarm.setDate(alarm.getDate() + 1);
             }
+
             const diff = alarm.getTime() - now.getTime();
             alarmTimeouts[id] = setTimeout(() => triggerAlarm(msg, id), diff);
         }
@@ -783,7 +891,9 @@
         function triggerAlarm(message, id) {
             if (triggeredAlarms.has(id)) return;
             triggeredAlarms.add(id);
+
             alert("⏰ ALARME " + id + ": " + message);
+
             if (!alarmBlinkInterval) {
                 let visible = true;
                 alarmBlinkInterval = setInterval(() => {
@@ -813,5 +923,4 @@
         /* ======================================================== */
     </script>
 </body>
-
 </html>
