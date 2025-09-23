@@ -118,7 +118,7 @@
             color: var(--danger-color);
             margin-top: 15px;
             min-height: 1.2rem; /* Evita que o layout pule */
-            display: none;
+            font-weight: 500;
         }
         
         #setup-message {
@@ -301,11 +301,9 @@
     </div>
 
     <script type="module">
-        // Módulos do Firebase importados diretamente no script principal
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
         import { getDatabase, ref, get, set, remove } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 
-        // Sua configuração do Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDQOGFiqafMZh0ha6XW62P1DpIKJE8TBYc",
             authDomain: "agenda-online-7b71c.firebaseapp.com",
@@ -316,11 +314,9 @@
             appId: "1:28125733214:web:162d1cce5d14f55c24afcf"
         };
         
-        // Inicializa o Firebase e armazena referências locais
         const firebaseApp = initializeApp(firebaseConfig);
         const database = getDatabase(firebaseApp);
 
-        // Aguarda o DOM estar completamente carregado antes de executar o script
         document.addEventListener('DOMContentLoaded', () => {
 
             const App = {
@@ -340,6 +336,7 @@
                     NUM_ALARMS: 3,
                     SEARCH_MIN_LENGTH: 3,
                     SAVE_DEBOUNCE_MS: 1000,
+                    CONNECTION_TIMEOUT_MS: 8000,
                 },
                 db: {
                     async get(path) {
@@ -348,7 +345,7 @@
                             return snapshot.val();
                         } catch (error) {
                             console.error(`Erro ao buscar dados de "${path}":`, error);
-                            return null;
+                            throw error; // Lança o erro para ser pego pelo 'catch' do chamador
                         }
                     },
                     async set(path, value) {
@@ -413,275 +410,264 @@
 
                 auth: {
                     async init() {
-                        const password = await App.db.get('appPassword');
-                        App.state.correctPassword = password;
-                        
-                        App.elements.passwordInput.disabled = false;
+                        const timeoutPromise = new Promise((_, reject) => 
+                            setTimeout(() => reject(new Error('Tempo de conexão esgotado.')), App.config.CONNECTION_TIMEOUT_MS)
+                        );
 
-                        if (password) {
-                            App.elements.setupMessage.style.display = 'none';
-                            App.elements.loginTitle.textContent = 'Acesso Restrito';
-                            App.elements.loginButton.style.display = 'block';
-                            App.elements.loginButton.disabled = false;
-                            App.elements.passwordInput.placeholder = 'Digite a senha';
-                        } else {
-                            App.elements.setupMessage.style.display = 'block';
-                            App.elements.loginTitle.textContent = 'Configurar Senha';
-                            App.elements.loginButton.style.display = 'none';
-                            App.elements.setPasswordButton.disabled = false;
-                            App.elements.passwordInput.placeholder = 'Defina uma senha';
-                        }
-                        App.elements.loginScreen.style.display = 'flex';
-                        App.elements.passwordInput.focus();
-                    },
+                        try {
+                            const password = await Promise.race([
+                                App.db.get('appPassword'),
+                                timeoutPromise
+                            ]);
+                            
+                            App.state.correctPassword = password;
+                            App.elements.passwordInput.disabled = false;
 
-                    async setPassword() {
-                        const newPassword = App.elements.passwordInput.value.trim();
-                        if (newPassword) {
-                            App.elements.setPasswordButton.disabled = true;
-                            App.elements.setPasswordButton.textContent = 'Salvando...';
-                            await App.db.set('appPassword', newPassword);
-                            alert('Senha definida com sucesso!');
-                            App.elements.passwordInput.value = '';
-                            App.elements.setPasswordButton.textContent = 'Definir Senha';
-                            this.init();
-                        } else {
-                            alert('A senha não pode ser vazia.');
-                        }
-                    },
-
-                    checkPassword() {
-                        if (App.elements.passwordInput.value === App.state.correctPassword) {
-                            App.elements.loginScreen.style.display = 'none';
-                            App.elements.mainContent.style.display = 'flex';
-                            App.agenda.init();
-                            App.notes.load();
-                            App.alarms.load();
-                        } else {
-                            App.elements.errorMessage.textContent = 'Senha incorreta. Tente novamente.';
-                            App.elements.errorMessage.style.display = 'block';
-                            App.elements.passwordInput.value = '';
+                            if (password) {
+                                App.elements.setupMessage.style.display = 'none';
+                                App.elements.loginTitle.textContent = 'Acesso Restrito';
+                                App.elements.loginButton.style.display = 'block';
+                                App.elements.loginButton.disabled = false;
+                                App.elements.passwordInput.placeholder = 'Digite a senha';
+                            } else {
+                                App.elements.setupMessage.style.display = 'block';
+                                App.elements.loginTitle.textContent = 'Configurar Senha';
+                                App.elements.loginButton.style.display = 'none';
+                                App.elements.setPasswordButton.disabled = false;
+                                App.elements.passwordInput.placeholder = 'Defina uma senha';
+                            }
                             App.elements.passwordInput.focus();
-                        }
-                    },
-                    
-                    togglePasswordVisibility() {
-                        const input = App.elements.passwordInput;
-                        const button = App.elements.togglePassword;
-                        if (input.type === 'password') {
-                            input.type = 'text';
-                            button.textContent = '🙈';
-                        } else {
-                            input.type = 'password';
-                            button.textContent = '👁️';
+                        } catch (error) {
+                            console.error("Erro na inicialização:", error);
+                            App.elements.loginTitle.textContent = 'Erro de Conexão';
+                            App.elements.errorMessage.textContent = 'Não foi possível conectar ao banco de dados. Verifique sua conexão e recarregue a página.';
+                            App.elements.errorMessage.style.display = 'block';
                         }
                     },
 
-                    handleKeyPress(event) {
-                        if (event.key === 'Enter') {
-                            if (App.elements.loginButton.disabled && App.elements.setPasswordButton.disabled) return;
-                            App.state.correctPassword ? this.checkPassword() : this.setPassword();
-                        }
-                    }
+                    async setPassword() { /* ... (código inalterado) ... */ },
+                    checkPassword() { /* ... (código inalterado) ... */ },
+                    togglePasswordVisibility() { /* ... (código inalterado) ... */ },
+                    handleKeyPress(event) { /* ... (código inalterado) ... */ }
                 },
                 
-                agenda: {
-                    init() {
-                        App.elements.dataSelecionada.value = new Date().toISOString().split('T')[0];
-                        this.load();
-                    },
+                // --- Módulos restantes (agenda, cpf, search, etc.) ---
+                // O código para os outros módulos permanece o mesmo do anterior.
+                // Omitido aqui para não repetir o bloco de código gigante,
+                // mas está incluído no arquivo completo.
+            };
 
-                    async load() {
-                        const date = App.elements.dataSelecionada.value;
-                        App.elements.agenda.innerHTML = '';
-                        
-                        const savedData = await App.db.get(`agenda/${date}`) || [];
-                        while (savedData.length < App.config.MIN_COMMITMENTS) {
-                            savedData.push({ text: '', done: false, checked: false });
+            // Colando o restante do objeto App para garantir a integridade
+            App.auth.setPassword = async function() {
+                const newPassword = App.elements.passwordInput.value.trim();
+                if (newPassword) {
+                    App.elements.setPasswordButton.disabled = true;
+                    App.elements.setPasswordButton.textContent = 'Salvando...';
+                    await App.db.set('appPassword', newPassword);
+                    alert('Senha definida com sucesso!');
+                    App.elements.passwordInput.value = '';
+                    App.elements.setPasswordButton.textContent = 'Definir Senha';
+                    this.init();
+                } else {
+                    alert('A senha não pode ser vazia.');
+                }
+            };
+            App.auth.checkPassword = function() {
+                if (App.elements.passwordInput.value === App.state.correctPassword) {
+                    App.elements.loginScreen.style.display = 'none';
+                    App.elements.mainContent.style.display = 'flex';
+                    App.agenda.init();
+                    App.notes.load();
+                    App.alarms.load();
+                } else {
+                    App.elements.errorMessage.textContent = 'Senha incorreta. Tente novamente.';
+                    App.elements.errorMessage.style.display = 'block';
+                    App.elements.passwordInput.value = '';
+                    App.elements.passwordInput.focus();
+                }
+            };
+            App.auth.togglePasswordVisibility = function() {
+                const input = App.elements.passwordInput;
+                const button = App.elements.togglePassword;
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    button.textContent = '🙈';
+                } else {
+                    input.type = 'password';
+                    button.textContent = '👁️';
+                }
+            };
+            App.auth.handleKeyPress = function(event) {
+                if (event.key === 'Enter') {
+                    if (App.elements.loginButton.disabled && App.elements.setPasswordButton.disabled) return;
+                    App.state.correctPassword ? this.checkPassword() : this.setPassword();
+                }
+            };
+            App.agenda = {
+                init() {
+                    App.elements.dataSelecionada.value = new Date().toISOString().split('T')[0];
+                    this.load();
+                },
+                async load() {
+                    const date = App.elements.dataSelecionada.value;
+                    App.elements.agenda.innerHTML = '';
+                    const savedData = await App.db.get(`agenda/${date}`) || [];
+                    while (savedData.length < App.config.MIN_COMMITMENTS) {
+                        savedData.push({ text: '', done: false, checked: false });
+                    }
+                    const fragment = document.createDocumentFragment();
+                    savedData.forEach(item => fragment.appendChild(this.createCommitmentElement(item)));
+                    App.elements.agenda.appendChild(fragment);
+                },
+                save() {
+                    const date = App.elements.dataSelecionada.value;
+                    const commitments = [...App.elements.agenda.querySelectorAll('.commitment')];
+                    const dataToSave = commitments.map(div => ({
+                        text: div.querySelector('input[type=text]').value,
+                        done: div.querySelector('input[type=text]').classList.contains('done'),
+                        checked: div.querySelector('input[type=checkbox]').checked,
+                    }));
+                    App.db.set(`agenda/${date}`, dataToSave);
+                },
+                saveWithDebounce() {
+                    clearTimeout(App.state.debounceTimer);
+                    App.state.debounceTimer = setTimeout(() => this.save(), App.config.SAVE_DEBOUNCE_MS);
+                },
+                createCommitmentElement(item = { text: '', done: false, checked: false }) {
+                    const div = document.createElement('div');
+                    div.className = 'commitment';
+                    if (item.checked) div.classList.add('checked');
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.checked = item.checked;
+                    checkbox.addEventListener('change', () => {
+                        div.classList.toggle('checked', checkbox.checked);
+                        this.save();
+                    });
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.value = item.text;
+                    if (item.done) input.classList.add('done');
+                    input.addEventListener('input', () => this.saveWithDebounce());
+                    input.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            const nextInput = e.target.closest('.commitment').nextElementSibling?.querySelector('input[type=text]');
+                            nextInput?.focus();
                         }
-                        
-                        const fragment = document.createDocumentFragment();
-                        savedData.forEach(item => fragment.appendChild(this.createCommitmentElement(item)));
-                        App.elements.agenda.appendChild(fragment);
-                    },
-
-                    save() {
-                        const date = App.elements.dataSelecionada.value;
-                        const commitments = [...App.elements.agenda.querySelectorAll('.commitment')];
-                        const dataToSave = commitments.map(div => ({
+                    });
+                    const okBtn = document.createElement('button');
+                    okBtn.textContent = 'OK';
+                    okBtn.addEventListener('click', () => {
+                        input.classList.toggle('done');
+                        this.save();
+                    });
+                    const delBtn = document.createElement('button');
+                    delBtn.textContent = 'Limpar';
+                    delBtn.title = 'Limpa o campo do compromisso';
+                    delBtn.addEventListener('click', () => {
+                        input.value = '';
+                        input.classList.remove('done');
+                        this.save();
+                    });
+                    div.append(checkbox, input, okBtn, delBtn);
+                    return div;
+                },
+                addCommitment() {
+                    const commitmentsContainer = App.elements.agenda;
+                    if (commitmentsContainer.children.length < App.config.MAX_COMMITMENTS) {
+                        commitmentsContainer.appendChild(this.createCommitmentElement());
+                    }
+                },
+                organize() {
+                    const commitments = [...App.elements.agenda.querySelectorAll('.commitment')];
+                    const filledData = commitments
+                        .map(div => ({
                             text: div.querySelector('input[type=text]').value,
                             done: div.querySelector('input[type=text]').classList.contains('done'),
                             checked: div.querySelector('input[type=checkbox]').checked,
-                        }));
-                        App.db.set(`agenda/${date}`, dataToSave);
-                    },
-
-                    saveWithDebounce() {
-                        clearTimeout(App.state.debounceTimer);
-                        App.state.debounceTimer = setTimeout(() => this.save(), App.config.SAVE_DEBOUNCE_MS);
-                    },
-                    
-                    createCommitmentElement(item = { text: '', done: false, checked: false }) {
-                        const div = document.createElement('div');
-                        div.className = 'commitment';
-                        if (item.checked) div.classList.add('checked');
-
-                        const checkbox = document.createElement('input');
-                        checkbox.type = 'checkbox';
-                        checkbox.checked = item.checked;
-                        checkbox.addEventListener('change', () => {
-                            div.classList.toggle('checked', checkbox.checked);
-                            this.save();
-                        });
-
-                        const input = document.createElement('input');
-                        input.type = 'text';
-                        input.value = item.text;
-                        if (item.done) input.classList.add('done');
-                        input.addEventListener('input', () => this.saveWithDebounce());
-                        input.addEventListener('keydown', (e) => {
-                            if (e.key === 'Enter') {
-                                const nextInput = e.target.closest('.commitment').nextElementSibling?.querySelector('input[type=text]');
-                                nextInput?.focus();
-                            }
-                        });
-
-                        const okBtn = document.createElement('button');
-                        okBtn.textContent = 'OK';
-                        okBtn.addEventListener('click', () => {
-                            input.classList.toggle('done');
-                            this.save();
-                        });
-
-                        const delBtn = document.createElement('button');
-                        delBtn.textContent = 'Limpar';
-                        delBtn.title = 'Limpa o campo do compromisso';
-                        delBtn.addEventListener('click', () => {
+                        }))
+                        .filter(item => item.text.trim() !== '');
+                    commitments.forEach((div, index) => {
+                        const input = div.querySelector('input[type=text]');
+                        const checkbox = div.querySelector('input[type=checkbox]');
+                        if (index < filledData.length) {
+                            const data = filledData[index];
+                            input.value = data.text;
+                            input.classList.toggle('done', data.done);
+                            checkbox.checked = data.checked;
+                            div.classList.toggle('checked', data.checked);
+                        } else {
                             input.value = '';
                             input.classList.remove('done');
-                            this.save();
-                        });
-
-                        div.append(checkbox, input, okBtn, delBtn);
-                        return div;
-                    },
-
-                    addCommitment() {
-                        const commitmentsContainer = App.elements.agenda;
-                        if (commitmentsContainer.children.length < App.config.MAX_COMMITMENTS) {
-                            commitmentsContainer.appendChild(this.createCommitmentElement());
+                            checkbox.checked = false;
+                            div.classList.remove('checked');
                         }
-                    },
-                    
-                    organize() {
-                        const commitments = [...App.elements.agenda.querySelectorAll('.commitment')];
-                        const filledData = commitments
-                            .map(div => ({
-                                text: div.querySelector('input[type=text]').value,
-                                done: div.querySelector('input[type=text]').classList.contains('done'),
-                                checked: div.querySelector('input[type=checkbox]').checked,
-                            }))
-                            .filter(item => item.text.trim() !== '');
-
-                        commitments.forEach((div, index) => {
-                            const input = div.querySelector('input[type=text]');
-                            const checkbox = div.querySelector('input[type=checkbox]');
-                            if (index < filledData.length) {
-                                const data = filledData[index];
-                                input.value = data.text;
-                                input.classList.toggle('done', data.done);
-                                checkbox.checked = data.checked;
-                                div.classList.toggle('checked', data.checked);
-                            } else {
-                                input.value = '';
-                                input.classList.remove('done');
-                                checkbox.checked = false;
-                                div.classList.remove('checked');
-                            }
-                        });
-                        this.save();
-                    },
-
-                    copyCommitments() {
-                        const commitments = App.elements.agenda.querySelectorAll('.commitment');
-                        App.state.copiedBuffer = [];
-                        commitments.forEach(div => {
-                            const input = div.querySelector('input[type=text]');
-                            if (!input.classList.contains('done') && input.value.trim()) {
-                                App.state.copiedBuffer.push(input.value);
-                                input.classList.add('done');
-                            }
-                        });
-                        this.save();
-                    },
-                    
-                    pasteCommitments() {
-                        if (App.state.copiedBuffer.length === 0) return;
-                        
-                        const commitments = [...App.elements.agenda.querySelectorAll('.commitment')];
-                        let bufferIndex = 0;
-                        
-                        for (const commitment of commitments) {
-                            if (bufferIndex >= App.state.copiedBuffer.length) break;
-                            const input = commitment.querySelector('input[type=text]');
-                            if (input.value.trim() === '') {
-                                input.value = App.state.copiedBuffer[bufferIndex++];
-                                input.classList.remove('done');
-                                commitment.querySelector('input[type=checkbox]').checked = false;
-                                commitment.classList.remove('checked');
-                            }
-                        }
-
-                        while (bufferIndex < App.state.copiedBuffer.length && App.elements.agenda.children.length < App.config.MAX_COMMITMENTS) {
-                            const newCommitment = this.createCommitmentElement({
-                                text: App.state.copiedBuffer[bufferIndex++],
-                                done: false,
-                                checked: false
-                            });
-                            App.elements.agenda.appendChild(newCommitment);
-                        }
-                        this.save();
-                    },
-
-                    async exportToTXT() {
-                        const date = App.elements.dataSelecionada.value;
-                        const data = await App.db.get(`agenda/${date}`) || [];
-                        let content = `Agenda de ${date}\n\n`;
-                        data.forEach((item, i) => {
-                            if (item.text) {
-                                content += `${i + 1}. ${item.text}${item.done ? ' (Concluído)' : ''}\n`;
-                            }
-                        });
-                        
-                        const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-                        const a = document.createElement('a');
-                        a.href = URL.createObjectURL(blob);
-                        a.download = `agenda_${date}.txt`;
-                        a.click();
-                        URL.revokeObjectURL(a.href);
-                    },
-
-                    goToToday() {
-                        App.elements.dataSelecionada.value = new Date().toISOString().split('T')[0];
-                        this.load();
-                    },
-                    
-                    navigateDay(offset) {
-                        const currentDate = new Date(App.elements.dataSelecionada.value);
-                        currentDate.setDate(currentDate.getDate() + (offset || 0)); // Corrigido para lidar com offset 0
-                        App.elements.dataSelecionada.value = currentDate.toISOString().split('T')[0];
-                        this.load();
-                    }
+                    });
+                    this.save();
                 },
-                
-                cpf: { /* ... (sem alterações) ... */ },
-                search: { /* ... (sem alterações) ... */ },
-                notes: { /* ... (sem alterações) ... */ },
-                alarms: { /* ... (sem alterações, mas o código está omitido aqui por brevidade, ele está no bloco completo) ... */ },
-                handleAutoUppercase: (e) => { /* ... (sem alterações) ... */ }
+                copyCommitments() {
+                    const commitments = App.elements.agenda.querySelectorAll('.commitment');
+                    App.state.copiedBuffer = [];
+                    commitments.forEach(div => {
+                        const input = div.querySelector('input[type=text]');
+                        if (!input.classList.contains('done') && input.value.trim()) {
+                            App.state.copiedBuffer.push(input.value);
+                            input.classList.add('done');
+                        }
+                    });
+                    this.save();
+                },
+                pasteCommitments() {
+                    if (App.state.copiedBuffer.length === 0) return;
+                    const commitments = [...App.elements.agenda.querySelectorAll('.commitment')];
+                    let bufferIndex = 0;
+                    for (const commitment of commitments) {
+                        if (bufferIndex >= App.state.copiedBuffer.length) break;
+                        const input = commitment.querySelector('input[type=text]');
+                        if (input.value.trim() === '') {
+                            input.value = App.state.copiedBuffer[bufferIndex++];
+                            input.classList.remove('done');
+                            commitment.querySelector('input[type=checkbox]').checked = false;
+                            commitment.classList.remove('checked');
+                        }
+                    }
+                    while (bufferIndex < App.state.copiedBuffer.length && App.elements.agenda.children.length < App.config.MAX_COMMITMENTS) {
+                        const newCommitment = this.createCommitmentElement({
+                            text: App.state.copiedBuffer[bufferIndex++],
+                            done: false,
+                            checked: false
+                        });
+                        App.elements.agenda.appendChild(newCommitment);
+                    }
+                    this.save();
+                },
+                async exportToTXT() {
+                    const date = App.elements.dataSelecionada.value;
+                    const data = await App.db.get(`agenda/${date}`) || [];
+                    let content = `Agenda de ${date}\n\n`;
+                    data.forEach((item, i) => {
+                        if (item.text) {
+                            content += `${i + 1}. ${item.text}${item.done ? ' (Concluído)' : ''}\n`;
+                        }
+                    });
+                    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = `agenda_${date}.txt`;
+                    a.click();
+                    URL.revokeObjectURL(a.href);
+                },
+                goToToday() {
+                    App.elements.dataSelecionada.value = new Date().toISOString().split('T')[0];
+                    this.load();
+                },
+                navigateDay(offset) {
+                    const currentDate = new Date(App.elements.dataSelecionada.value);
+                    currentDate.setDate(currentDate.getDate() + offset);
+                    App.elements.dataSelecionada.value = currentDate.toISOString().split('T')[0];
+                    this.load();
+                }
             };
-
-            // Copiando as seções não alteradas para manter o código completo
             App.cpf = {
                 validate() {
                     const rawCpf = App.elements.cpf.value.replace(/\D/g, '');
@@ -848,8 +834,7 @@
                     target.setSelectionRange(start, end);
                 }
             };
-
-            // Inicia a aplicação
+            
             App.init();
         });
     </script>
