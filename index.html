@@ -4,29 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agenda do Fofo</title>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-        import { getDatabase, ref, get, set, remove } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
-
-        // Sua configuração do Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyDQOGFiqafMZh0ha6XW62P1DpIKJE8TBYc",
-            authDomain: "agenda-online-7b71c.firebaseapp.com",
-            databaseURL: "https://agenda-online-7b71c-default-rtdb.firebaseio.com",
-            projectId: "agenda-online-7b71c",
-            storageBucket: "agenda-online-7b71c.appspot.com",
-            messagingSenderId: "28125733214",
-            appId: "1:28125733214:web:162d1cce5d14f55c24afcf"
-        };
-        
-        // Inicializa o Firebase e exporta os módulos para o script principal
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
-
-        // Disponibiliza as funções do Firebase para o escopo global do script principal
-        window.firebaseDB = { database, ref, get, set, remove };
-    </script>
     
     <style>
         /* Estilos Globais e Variáveis */
@@ -62,7 +39,7 @@
             padding: 8px 16px;
             border-radius: 4px;
             font-size: 1rem;
-            transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease, opacity 0.2s ease;
         }
         
         button:hover {
@@ -71,6 +48,11 @@
 
         button:active {
             transform: scale(0.98);
+        }
+        
+        button:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
         }
 
         input, textarea {
@@ -135,6 +117,7 @@
         #error-message {
             color: var(--danger-color);
             margin-top: 15px;
+            min-height: 1.2rem; /* Evita que o layout pule */
             display: none;
         }
         
@@ -257,16 +240,16 @@
 
     <div id="login-screen">
         <div id="login-form">
-            <h2 id="login-title">Acesso Restrito</h2>
+            <h2 id="login-title">Carregando...</h2>
             <div class="password-wrapper">
-                <input type="password" id="password-input" placeholder="Digite a senha">
+                <input type="password" id="password-input" placeholder="Digite a senha" disabled>
                 <button id="toggle-password" title="Mostrar/Ocultar senha">👁️</button>
             </div>
-            <p id="error-message">Senha incorreta. Tente novamente.</p>
-            <button id="login-button">Entrar</button>
+            <p id="error-message"></p>
+            <button id="login-button" disabled>Entrar</button>
             <div id="setup-message">
                 <p>Ainda não há senha. Defina uma para continuar.</p>
-                <button id="set-password-button">Definir Senha</button>
+                <button id="set-password-button" disabled>Definir Senha</button>
             </div>
         </div>
     </div>
@@ -278,4 +261,597 @@
                 <button id="despesasBtn">Despesas</button>
             </div>
             <div class="controls-group">
-                <input type="date" id
+                <input type="date" id="dataSelecionada">
+                <button id="hojeBtn" title="Hoje">📅</button>
+                <button id="prevDayBtn" title="Dia anterior">◀</button>
+                <button id="nextDayBtn" title="Próximo dia">▶</button>
+            </div>
+            <div class="controls-group">
+                <button id="novoBtn">Novo</button>
+                <button id="organizarBtn">Organizar</button>
+                <button id="copiarBtn">Copiar</button>
+                <button id="colarBtn">Colar</button>
+                <button id="exportarBtn">Exportar TXT</button>
+            </div>
+            <div id="agenda"></div>
+        </div>
+        <div class="right-panel">
+            <h2>Validador de CPF</h2>
+            <div class="controls-group">
+                <input type="text" id="cpf" placeholder="Digite o CPF">
+                <button id="cpfLimparBtn" title="Limpar CPF">❌</button>
+            </div>
+            <p id="cpfStatus"></p>
+            <button id="cpfCopiarBtn">Copiar</button>
+            
+            <h3>🔍 Pesquisa</h3>
+            <div class="search-area">
+                <input type="text" id="search" placeholder="Pesquisar...">
+                <button id="searchLimparBtn">❌</button>
+            </div>
+            <div id="searchResults" class="search-results"></div>
+            
+            <h3>⏰ Alarmes</h3>
+            <div id="alarmes" style="display: flex; flex-direction: column; gap: 10px;">
+                </div>
+            
+            <h3>📝 Lembretes:</h3>
+            <textarea id="notasFixas" placeholder="Suas anotações rápidas..."></textarea>
+        </div>
+    </div>
+
+    <script type="module">
+        // Módulos do Firebase importados diretamente no script principal
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+        import { getDatabase, ref, get, set, remove } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+
+        // Sua configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDQOGFiqafMZh0ha6XW62P1DpIKJE8TBYc",
+            authDomain: "agenda-online-7b71c.firebaseapp.com",
+            databaseURL: "https://agenda-online-7b71c-default-rtdb.firebaseio.com",
+            projectId: "agenda-online-7b71c",
+            storageBucket: "agenda-online-7b71c.appspot.com",
+            messagingSenderId: "28125733214",
+            appId: "1:28125733214:web:162d1cce5d14f55c24afcf"
+        };
+        
+        // Inicializa o Firebase e armazena referências locais
+        const firebaseApp = initializeApp(firebaseConfig);
+        const database = getDatabase(firebaseApp);
+
+        // Aguarda o DOM estar completamente carregado antes de executar o script
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const App = {
+                elements: {},
+                state: {
+                    correctPassword: null,
+                    copiedBuffer: [],
+                    alarmTimeouts: {},
+                    triggeredAlarms: new Set(),
+                    alarmBlinkInterval: null,
+                    originalTitle: document.title,
+                    debounceTimer: null,
+                },
+                config: {
+                    MAX_COMMITMENTS: 20,
+                    MIN_COMMITMENTS: 15,
+                    NUM_ALARMS: 3,
+                    SEARCH_MIN_LENGTH: 3,
+                    SAVE_DEBOUNCE_MS: 1000,
+                },
+                db: {
+                    async get(path) {
+                        try {
+                            const snapshot = await get(ref(database, path));
+                            return snapshot.val();
+                        } catch (error) {
+                            console.error(`Erro ao buscar dados de "${path}":`, error);
+                            return null;
+                        }
+                    },
+                    async set(path, value) {
+                        try {
+                            await set(ref(database, path), value);
+                        } catch (error) {
+                            console.error(`Erro ao salvar dados em "${path}":`, error);
+                        }
+                    },
+                    async remove(path) {
+                        try {
+                            await remove(ref(database, path));
+                        } catch (error) {
+                            console.error(`Erro ao remover dados de "${path}":`, error);
+                        }
+                    }
+                },
+
+                init() {
+                    this.queryElements();
+                    this.bindEvents();
+                    this.generateAlarmInputs();
+                    this.auth.init();
+                },
+
+                queryElements() {
+                    const ids = [
+                        'login-screen', 'login-form', 'login-title', 'password-input',
+                        'toggle-password', 'error-message', 'login-button', 'setup-message',
+                        'set-password-button', 'main-content', 'despesasBtn', 'dataSelecionada',
+                        'hojeBtn', 'prevDayBtn', 'nextDayBtn', 'novoBtn', 'organizarBtn',
+                        'copiarBtn', 'colarBtn', 'exportarBtn', 'agenda', 'cpf', 'cpfLimparBtn',
+                        'cpfStatus', 'cpfCopiarBtn', 'search', 'searchLimparBtn', 'searchResults',
+                        'alarmes', 'notasFixas'
+                    ];
+                    ids.forEach(id => this.elements[id] = document.getElementById(id));
+                },
+
+                bindEvents() {
+                    this.elements.loginButton.addEventListener('click', () => this.auth.checkPassword());
+                    this.elements.setPasswordButton.addEventListener('click', () => this.auth.setPassword());
+                    this.elements.togglePassword.addEventListener('click', () => this.auth.togglePasswordVisibility());
+                    this.elements.passwordInput.addEventListener('keypress', (e) => this.auth.handleKeyPress(e));
+                    this.elements.dataSelecionada.addEventListener('change', () => this.agenda.load());
+                    this.elements.hojeBtn.addEventListener('click', () => this.agenda.goToToday());
+                    this.elements.prevDayBtn.addEventListener('click', () => this.agenda.navigateDay(-1));
+                    this.elements.nextDayBtn.addEventListener('click', () => this.agenda.navigateDay(1));
+                    this.elements.novoBtn.addEventListener('click', () => this.agenda.addCommitment());
+                    this.elements.organizarBtn.addEventListener('click', () => this.agenda.organize());
+                    this.elements.copiarBtn.addEventListener('click', () => this.agenda.copyCommitments());
+                    this.elements.colarBtn.addEventListener('click', () => this.agenda.pasteCommitments());
+                    this.elements.exportarBtn.addEventListener('click', () => this.agenda.exportToTXT());
+                    this.elements.despesasBtn.addEventListener('click', () => window.open('https://luizcezarmelo.github.io/a/despesas.html', '_blank'));
+                    this.elements.cpf.addEventListener('input', () => this.cpf.validate());
+                    this.elements.cpfLimparBtn.addEventListener('click', () => this.cpf.clear());
+                    this.elements.cpfCopiarBtn.addEventListener('click', () => this.cpf.copy());
+                    this.elements.search.addEventListener('input', () => this.search.perform());
+                    this.elements.searchLimparBtn.addEventListener('click', () => this.search.clear());
+                    this.elements.notasFixas.addEventListener('input', () => this.notes.save());
+                    document.addEventListener('input', this.handleAutoUppercase);
+                },
+
+                auth: {
+                    async init() {
+                        const password = await App.db.get('appPassword');
+                        App.state.correctPassword = password;
+                        
+                        App.elements.passwordInput.disabled = false;
+
+                        if (password) {
+                            App.elements.setupMessage.style.display = 'none';
+                            App.elements.loginTitle.textContent = 'Acesso Restrito';
+                            App.elements.loginButton.style.display = 'block';
+                            App.elements.loginButton.disabled = false;
+                            App.elements.passwordInput.placeholder = 'Digite a senha';
+                        } else {
+                            App.elements.setupMessage.style.display = 'block';
+                            App.elements.loginTitle.textContent = 'Configurar Senha';
+                            App.elements.loginButton.style.display = 'none';
+                            App.elements.setPasswordButton.disabled = false;
+                            App.elements.passwordInput.placeholder = 'Defina uma senha';
+                        }
+                        App.elements.loginScreen.style.display = 'flex';
+                        App.elements.passwordInput.focus();
+                    },
+
+                    async setPassword() {
+                        const newPassword = App.elements.passwordInput.value.trim();
+                        if (newPassword) {
+                            App.elements.setPasswordButton.disabled = true;
+                            App.elements.setPasswordButton.textContent = 'Salvando...';
+                            await App.db.set('appPassword', newPassword);
+                            alert('Senha definida com sucesso!');
+                            App.elements.passwordInput.value = '';
+                            App.elements.setPasswordButton.textContent = 'Definir Senha';
+                            this.init();
+                        } else {
+                            alert('A senha não pode ser vazia.');
+                        }
+                    },
+
+                    checkPassword() {
+                        if (App.elements.passwordInput.value === App.state.correctPassword) {
+                            App.elements.loginScreen.style.display = 'none';
+                            App.elements.mainContent.style.display = 'flex';
+                            App.agenda.init();
+                            App.notes.load();
+                            App.alarms.load();
+                        } else {
+                            App.elements.errorMessage.textContent = 'Senha incorreta. Tente novamente.';
+                            App.elements.errorMessage.style.display = 'block';
+                            App.elements.passwordInput.value = '';
+                            App.elements.passwordInput.focus();
+                        }
+                    },
+                    
+                    togglePasswordVisibility() {
+                        const input = App.elements.passwordInput;
+                        const button = App.elements.togglePassword;
+                        if (input.type === 'password') {
+                            input.type = 'text';
+                            button.textContent = '🙈';
+                        } else {
+                            input.type = 'password';
+                            button.textContent = '👁️';
+                        }
+                    },
+
+                    handleKeyPress(event) {
+                        if (event.key === 'Enter') {
+                            if (App.elements.loginButton.disabled && App.elements.setPasswordButton.disabled) return;
+                            App.state.correctPassword ? this.checkPassword() : this.setPassword();
+                        }
+                    }
+                },
+                
+                agenda: {
+                    init() {
+                        App.elements.dataSelecionada.value = new Date().toISOString().split('T')[0];
+                        this.load();
+                    },
+
+                    async load() {
+                        const date = App.elements.dataSelecionada.value;
+                        App.elements.agenda.innerHTML = '';
+                        
+                        const savedData = await App.db.get(`agenda/${date}`) || [];
+                        while (savedData.length < App.config.MIN_COMMITMENTS) {
+                            savedData.push({ text: '', done: false, checked: false });
+                        }
+                        
+                        const fragment = document.createDocumentFragment();
+                        savedData.forEach(item => fragment.appendChild(this.createCommitmentElement(item)));
+                        App.elements.agenda.appendChild(fragment);
+                    },
+
+                    save() {
+                        const date = App.elements.dataSelecionada.value;
+                        const commitments = [...App.elements.agenda.querySelectorAll('.commitment')];
+                        const dataToSave = commitments.map(div => ({
+                            text: div.querySelector('input[type=text]').value,
+                            done: div.querySelector('input[type=text]').classList.contains('done'),
+                            checked: div.querySelector('input[type=checkbox]').checked,
+                        }));
+                        App.db.set(`agenda/${date}`, dataToSave);
+                    },
+
+                    saveWithDebounce() {
+                        clearTimeout(App.state.debounceTimer);
+                        App.state.debounceTimer = setTimeout(() => this.save(), App.config.SAVE_DEBOUNCE_MS);
+                    },
+                    
+                    createCommitmentElement(item = { text: '', done: false, checked: false }) {
+                        const div = document.createElement('div');
+                        div.className = 'commitment';
+                        if (item.checked) div.classList.add('checked');
+
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.checked = item.checked;
+                        checkbox.addEventListener('change', () => {
+                            div.classList.toggle('checked', checkbox.checked);
+                            this.save();
+                        });
+
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.value = item.text;
+                        if (item.done) input.classList.add('done');
+                        input.addEventListener('input', () => this.saveWithDebounce());
+                        input.addEventListener('keydown', (e) => {
+                            if (e.key === 'Enter') {
+                                const nextInput = e.target.closest('.commitment').nextElementSibling?.querySelector('input[type=text]');
+                                nextInput?.focus();
+                            }
+                        });
+
+                        const okBtn = document.createElement('button');
+                        okBtn.textContent = 'OK';
+                        okBtn.addEventListener('click', () => {
+                            input.classList.toggle('done');
+                            this.save();
+                        });
+
+                        const delBtn = document.createElement('button');
+                        delBtn.textContent = 'Limpar';
+                        delBtn.title = 'Limpa o campo do compromisso';
+                        delBtn.addEventListener('click', () => {
+                            input.value = '';
+                            input.classList.remove('done');
+                            this.save();
+                        });
+
+                        div.append(checkbox, input, okBtn, delBtn);
+                        return div;
+                    },
+
+                    addCommitment() {
+                        const commitmentsContainer = App.elements.agenda;
+                        if (commitmentsContainer.children.length < App.config.MAX_COMMITMENTS) {
+                            commitmentsContainer.appendChild(this.createCommitmentElement());
+                        }
+                    },
+                    
+                    organize() {
+                        const commitments = [...App.elements.agenda.querySelectorAll('.commitment')];
+                        const filledData = commitments
+                            .map(div => ({
+                                text: div.querySelector('input[type=text]').value,
+                                done: div.querySelector('input[type=text]').classList.contains('done'),
+                                checked: div.querySelector('input[type=checkbox]').checked,
+                            }))
+                            .filter(item => item.text.trim() !== '');
+
+                        commitments.forEach((div, index) => {
+                            const input = div.querySelector('input[type=text]');
+                            const checkbox = div.querySelector('input[type=checkbox]');
+                            if (index < filledData.length) {
+                                const data = filledData[index];
+                                input.value = data.text;
+                                input.classList.toggle('done', data.done);
+                                checkbox.checked = data.checked;
+                                div.classList.toggle('checked', data.checked);
+                            } else {
+                                input.value = '';
+                                input.classList.remove('done');
+                                checkbox.checked = false;
+                                div.classList.remove('checked');
+                            }
+                        });
+                        this.save();
+                    },
+
+                    copyCommitments() {
+                        const commitments = App.elements.agenda.querySelectorAll('.commitment');
+                        App.state.copiedBuffer = [];
+                        commitments.forEach(div => {
+                            const input = div.querySelector('input[type=text]');
+                            if (!input.classList.contains('done') && input.value.trim()) {
+                                App.state.copiedBuffer.push(input.value);
+                                input.classList.add('done');
+                            }
+                        });
+                        this.save();
+                    },
+                    
+                    pasteCommitments() {
+                        if (App.state.copiedBuffer.length === 0) return;
+                        
+                        const commitments = [...App.elements.agenda.querySelectorAll('.commitment')];
+                        let bufferIndex = 0;
+                        
+                        for (const commitment of commitments) {
+                            if (bufferIndex >= App.state.copiedBuffer.length) break;
+                            const input = commitment.querySelector('input[type=text]');
+                            if (input.value.trim() === '') {
+                                input.value = App.state.copiedBuffer[bufferIndex++];
+                                input.classList.remove('done');
+                                commitment.querySelector('input[type=checkbox]').checked = false;
+                                commitment.classList.remove('checked');
+                            }
+                        }
+
+                        while (bufferIndex < App.state.copiedBuffer.length && App.elements.agenda.children.length < App.config.MAX_COMMITMENTS) {
+                            const newCommitment = this.createCommitmentElement({
+                                text: App.state.copiedBuffer[bufferIndex++],
+                                done: false,
+                                checked: false
+                            });
+                            App.elements.agenda.appendChild(newCommitment);
+                        }
+                        this.save();
+                    },
+
+                    async exportToTXT() {
+                        const date = App.elements.dataSelecionada.value;
+                        const data = await App.db.get(`agenda/${date}`) || [];
+                        let content = `Agenda de ${date}\n\n`;
+                        data.forEach((item, i) => {
+                            if (item.text) {
+                                content += `${i + 1}. ${item.text}${item.done ? ' (Concluído)' : ''}\n`;
+                            }
+                        });
+                        
+                        const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+                        const a = document.createElement('a');
+                        a.href = URL.createObjectURL(blob);
+                        a.download = `agenda_${date}.txt`;
+                        a.click();
+                        URL.revokeObjectURL(a.href);
+                    },
+
+                    goToToday() {
+                        App.elements.dataSelecionada.value = new Date().toISOString().split('T')[0];
+                        this.load();
+                    },
+                    
+                    navigateDay(offset) {
+                        const currentDate = new Date(App.elements.dataSelecionada.value);
+                        currentDate.setDate(currentDate.getDate() + (offset || 0)); // Corrigido para lidar com offset 0
+                        App.elements.dataSelecionada.value = currentDate.toISOString().split('T')[0];
+                        this.load();
+                    }
+                },
+                
+                cpf: { /* ... (sem alterações) ... */ },
+                search: { /* ... (sem alterações) ... */ },
+                notes: { /* ... (sem alterações) ... */ },
+                alarms: { /* ... (sem alterações, mas o código está omitido aqui por brevidade, ele está no bloco completo) ... */ },
+                handleAutoUppercase: (e) => { /* ... (sem alterações) ... */ }
+            };
+
+            // Copiando as seções não alteradas para manter o código completo
+            App.cpf = {
+                validate() {
+                    const rawCpf = App.elements.cpf.value.replace(/\D/g, '');
+                    const isValid = this.isValidCPF(rawCpf);
+                    App.elements.cpfStatus.textContent = isValid ? 'CPF válido' : 'CPF inválido';
+                    App.elements.cpfStatus.className = isValid ? 'valid' : 'invalid';
+                },
+                isValidCPF(cpf) {
+                    if (!cpf || cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+                    let sum = 0, remainder;
+                    for (let i = 1; i <= 9; i++) sum += parseInt(cpf[i-1]) * (11 - i);
+                    remainder = (sum * 10) % 11;
+                    if (remainder === 10 || remainder === 11) remainder = 0;
+                    if (remainder !== parseInt(cpf[9])) return false;
+                    sum = 0;
+                    for (let i = 1; i <= 10; i++) sum += parseInt(cpf[i-1]) * (12 - i);
+                    remainder = (sum * 10) % 11;
+                    if (remainder === 10 || remainder === 11) remainder = 0;
+                    return remainder === parseInt(cpf[10]);
+                },
+                copy() {
+                    const rawCpf = App.elements.cpf.value.replace(/\D/g, '');
+                    if (this.isValidCPF(rawCpf)) {
+                        const formatted = rawCpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+                        navigator.clipboard.writeText(formatted);
+                    }
+                },
+                clear() {
+                    App.elements.cpf.value = '';
+                    App.elements.cpfStatus.textContent = '';
+                    App.elements.cpfStatus.className = '';
+                }
+            };
+            App.search = {
+                async perform() {
+                    const term = App.elements.search.value.trim().toLowerCase();
+                    App.elements.searchResults.innerHTML = '';
+                    if (term.length < App.config.SEARCH_MIN_LENGTH) return;
+                    const allAgendas = await App.db.get('agenda');
+                    if (!allAgendas) return;
+                    const results = [];
+                    for (const date in allAgendas) {
+                        allAgendas[date].forEach((item, index) => {
+                            if (item.text && item.text.toLowerCase().includes(term)) {
+                                results.push({ date, index, item });
+                            }
+                        });
+                    }
+                    if (results.length > 0) {
+                        results.forEach(result => App.elements.searchResults.appendChild(this.createResultElement(result)));
+                    } else {
+                        App.elements.searchResults.textContent = 'Nenhum compromisso encontrado.';
+                    }
+                },
+                createResultElement({ date, index, item }) {
+                    const div = document.createElement('div');
+                    div.textContent = `Dia: ${date} - ${item.text}`;
+                    div.addEventListener('click', async () => {
+                        App.elements.dataSelecionada.value = date;
+                        await App.agenda.load();
+                        const commitmentEl = App.elements.agenda.querySelectorAll('.commitment')[index];
+                        if (commitmentEl) {
+                            commitmentEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            commitmentEl.classList.add('destaque');
+                            setTimeout(() => commitmentEl.classList.remove('destaque'), 2000);
+                        }
+                    });
+                    return div;
+                },
+                clear() {
+                    App.elements.search.value = '';
+                    App.elements.searchResults.innerHTML = '';
+                }
+            };
+            App.notes = {
+                async load() {
+                    App.elements.notasFixas.value = await App.db.get('notasFixas') || '';
+                },
+                save() {
+                    App.db.set('notasFixas', App.elements.notasFixas.value);
+                }
+            };
+            App.alarms = {
+                generateAlarmInputs() {
+                    const fragment = document.createDocumentFragment();
+                    for (let i = 1; i <= App.config.NUM_ALARMS; i++) {
+                        const div = document.createElement('div');
+                        div.className = 'alarm-entry';
+                        div.innerHTML = `<input type="text" id="alarmMessage${i}" placeholder="Alarme ${i}"><input type="time" id="alarmTime${i}"><button data-id="${i}" class="set-alarm-btn">OK</button><button data-id="${i}" class="clear-alarm-btn" title="Limpar Alarme ${i}">❌</button>`;
+                        fragment.appendChild(div);
+                    }
+                    App.elements.alarmes.appendChild(fragment);
+                    App.elements.alarmes.querySelectorAll('.set-alarm-btn').forEach(btn => btn.addEventListener('click', (e) => this.set(e.target.dataset.id)));
+                    App.elements.alarmes.querySelectorAll('.clear-alarm-btn').forEach(btn => btn.addEventListener('click', (e) => this.clear(e.target.dataset.id)));
+                },
+                async load() {
+                    const savedAlarms = await App.db.get('alarms');
+                    if (savedAlarms) {
+                        for (const id in savedAlarms) {
+                            const { message, time } = savedAlarms[id];
+                            document.getElementById(`alarmMessage${id}`).value = message;
+                            document.getElementById(`alarmTime${id}`).value = time;
+                            this.set(id, true);
+                        }
+                    }
+                },
+                set(id, silent = false) {
+                    const msg = document.getElementById(`alarmMessage${id}`).value.trim();
+                    const time = document.getElementById(`alarmTime${id}`).value;
+                    if (!msg || !time) {
+                        if (!silent) alert(`Preencha a frase e o horário do alarme ${id}`);
+                        return;
+                    }
+                    App.db.set(`alarms/${id}`, { message: msg, time: time });
+                    if (App.state.alarmTimeouts[id]) clearTimeout(App.state.alarmTimeouts[id]);
+                    const [h, m] = time.split(':').map(Number);
+                    const now = new Date();
+                    const alarmTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0);
+                    if (alarmTime < now) alarmTime.setDate(alarmTime.getDate() + 1);
+                    const diff = alarmTime.getTime() - now.getTime();
+                    App.state.alarmTimeouts[id] = setTimeout(() => this.trigger(msg, id), diff);
+                },
+                clear(id) {
+                    if (App.state.alarmTimeouts[id]) {
+                        clearTimeout(App.state.alarmTimeouts[id]);
+                        delete App.state.alarmTimeouts[id];
+                    }
+                    document.getElementById(`alarmMessage${id}`).value = '';
+                    document.getElementById(`alarmTime${id}`).value = '';
+                    App.db.remove(`alarms/${id}`);
+                },
+                trigger(message, id) {
+                    if (App.state.triggeredAlarms.has(id)) return;
+                    App.state.triggeredAlarms.add(id);
+                    alert(`⏰ ALARME ${id}: ${message}`);
+                    if (!App.state.alarmBlinkInterval) {
+                        let visible = true;
+                        App.state.alarmBlinkInterval = setInterval(() => {
+                            document.title = visible ? "⚠️ ALARME ⚠️" : App.state.originalTitle;
+                            visible = !visible;
+                        }, 800);
+                        const stopBlinking = () => {
+                            if (App.state.alarmBlinkInterval) {
+                                clearInterval(App.state.alarmBlinkInterval);
+                                App.state.alarmBlinkInterval = null;
+                            }
+                            document.title = App.state.originalTitle;
+                            App.state.triggeredAlarms.clear();
+                            window.removeEventListener('focus', stopBlinking);
+                            window.removeEventListener('click', stopBlinking);
+                        };
+                        window.addEventListener('focus', stopBlinking, { once: true });
+                        window.addEventListener('click', stopBlinking, { once: true });
+                    }
+                    App.db.remove(`alarms/${id}`);
+                }
+            };
+            App.handleAutoUppercase = (e) => {
+                if (e.target.matches('input[type="text"], textarea')) {
+                    const target = e.target;
+                    const start = target.selectionStart;
+                    const end = target.selectionEnd;
+                    target.value = target.value.toUpperCase();
+                    target.setSelectionRange(start, end);
+                }
+            };
+
+            // Inicia a aplicação
+            App.init();
+        });
+    </script>
+</body>
+</html>
