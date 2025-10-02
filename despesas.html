@@ -643,7 +643,7 @@
         };
         document.addEventListener('DOMContentLoaded', initLogin);
 
-        function initLogin() {
+     function initLogin() {
             const passcodeRef = ref(database, 'passcode');
             onValue(passcodeRef, (snapshot) => {
                 const savedPasscode = snapshot.val();
@@ -656,7 +656,7 @@
                 onlyOnce: true
             });
         }
-
+        
         function setupLoginScreen(correctPasscode) {
             ui.loginTitle.textContent = "Acessar Painel";
             ui.loginMessage.textContent = "Digite seu código de 4 dígitos para continuar.";
@@ -675,7 +675,7 @@
             ui.passcodeInput.addEventListener('keyup', (e) => {
                 if (e.key === 'Enter') handleLogin();
             });
-            ui.passcodeInput.focus();
+            ui.passcodeInput.focus(); // Foca no campo da senha
         }
 
         function setupFirstAccessScreen() {
@@ -698,10 +698,12 @@
             ui.passcodeInput.addEventListener('keyup', (e) => {
                 if (e.key === 'Enter') handleSetup();
             });
-            ui.passcodeInput.focus();
+            ui.passcodeInput.focus(); // Foca no campo da senha
         }
 
+
         function startApp() {
+             current_date.setMonth(current_date.getMonth());
             updateMonthDisplay();
             loadData();
             ui.prevMonthBtn.addEventListener('click', () => changeMonth(-1));
