@@ -207,41 +207,27 @@
             padding: 0;
             font-size: 1.1rem;
         }
-
+        
         #prevMonthBtn i,
         #nextMonthBtn i {
             margin: 0;
         }
 
-        #todayBtn {
-            color: var(--success-color);
-            border-color: var(--success-color);
-        }
+        #todayBtn { color: var(--success-color); border-color: var(--success-color); }
+        #todayBtn:hover { background-color: var(--success-color); color: white; }
 
-        #todayBtn:hover {
-            background-color: var(--success-color);
-            color: white;
-        }
-
-        #clearAllBtn {
-            color: var(--danger-color);
-            border-color: var(--danger-color);
-        }
-
-        #clearAllBtn:hover {
-            background-color: var(--danger-color);
-            color: white;
-        }
-
+        #clearAllBtn { color: var(--danger-color); border-color: var(--danger-color); }
+        #clearAllBtn:hover { background-color: var(--danger-color); color: white; }
+        
         /* --- CARD DE RESUMO APRIMORADO --- */
         .summary-box {
-            background: var(--surface-color);      /* ALTERAÇÃO */
-            color: var(--text-color-primary); /* ALTERAÇÃO */
+            background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-color-hover) 100%);
+            color: white;
             padding: 24px;
             border-radius: var(--border-radius);
             text-align: center;
-            border: 1px solid var(--border-color); /* ALTERAÇÃO */
-            box-shadow: var(--shadow-sm);           /* ALTERAÇÃO */
+            border: none;
+            box-shadow: var(--shadow-md);
             margin-bottom: 2rem;
         }
 
@@ -254,7 +240,7 @@
         }
 
         .summary-box #totalGeral {
-            font-size: 2.2rem; /* ALTERAÇÃO */
+            font-size: 2.5rem;
             font-weight: 700;
         }
 
@@ -292,18 +278,13 @@
         .card-header-wrapper.c6-header {
             border-top: 4px solid var(--c6-color);
         }
-
+        
         .card-header-wrapper h2 i {
             color: var(--text-color-secondary);
         }
 
-        .nubank-header h2 {
-            color: var(--nubank-color);
-        }
-
-        .c6-header h2 {
-            color: var(--c6-color);
-        }
+        .nubank-header h2 { color: var(--nubank-color); }
+        .c6-header h2 { color: var(--c6-color); }
 
         .full-width-item {
             grid-column: 1 / -1;
@@ -316,27 +297,13 @@
         }
 
         @media (max-width: 768px) {
-            body {
-                padding: 1rem;
-            }
-
-            h1 {
-                font-size: 1.75rem;
-                margin-bottom: 1.5rem;
-            }
-
+            body { padding: 1rem; }
+            h1 { font-size: 1.75rem; margin-bottom: 1.5rem; }
             .grid-container {
                 grid-template-columns: 1fr;
             }
-
-            .month-navigation {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .nav-group {
-                justify-content: center;
-            }
+            .month-navigation { flex-direction: column; align-items: stretch; }
+            .nav-group { justify-content: center; }
         }
 
         /* --- TABELAS MAIS LEGÍVEIS --- */
@@ -365,10 +332,9 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-
+        
         tbody tr:nth-child(even) {
-            background-color: #fcfcfd;
-            /* Zebra striping */
+            background-color: #fcfcfd; /* Zebra striping */
         }
 
         tbody tr:last-child td {
@@ -384,7 +350,7 @@
             background-color: #e9f2ff;
             box-shadow: 0 0 0 2px var(--accent-color) inset;
         }
-
+        
         td input[type="checkbox"] {
             width: 18px;
             height: 18px;
@@ -400,7 +366,7 @@
             font-weight: 600;
             font-size: 0.95rem;
         }
-
+        
         /* --- MENSAGEM DE STATUS --- */
         #status {
             position: fixed;
@@ -438,8 +404,10 @@
             <button id="login-button">Entrar</button>
         </div>
     </div>
+
     <div class="container">
         <h1>Controle de Despesas</h1>
+
         <div class="month-navigation">
             <div class="nav-group">
                 <button id="prevMonthBtn" title="Mês Anterior"><i class="fa-solid fa-chevron-left"></i></button>
@@ -448,21 +416,19 @@
                 <button id="todayBtn" title="Voltar para o mês atual"><i class="fa-solid fa-calendar-day"></i>Hoje</button>
             </div>
             <div class="nav-group">
-                <button id="compactTablesBtn" title="Remover linhas vazias"><i
-                        class="fa-solid fa-compress"></i>Compactar</button>
-                <button id="saveDataBtn" title="Salvar backup local em .txt"><i
-                        class="fa-solid fa-floppy-disk"></i>Salvar</button>
-                <button id="restoreDataBtn" title="Restaurar dados a partir de um backup"><i
-                        class="fa-solid fa-upload"></i>Resgatar</button>
-                <button id="clearAllBtn" title="Limpar todos os dados deste mês"><i
-                        class="fa-solid fa-trash-can"></i>Limpar tudo</button>
+                <button id="compactTablesBtn" title="Remover linhas vazias"><i class="fa-solid fa-compress"></i>Compactar</button>
+                <button id="saveDataBtn" title="Salvar backup local em .txt"><i class="fa-solid fa-floppy-disk"></i>Salvar</button>
+                <button id="restoreDataBtn" title="Restaurar dados a partir de um backup"><i class="fa-solid fa-upload"></i>Resgatar</button>
+                <button id="clearAllBtn" title="Limpar todos os dados deste mês"><i class="fa-solid fa-trash-can"></i>Limpar tudo</button>
                 <input type="file" id="restoreFileInput" accept=".txt,.json" style="display: none;">
             </div>
         </div>
+
         <div class="summary-box">
-            <h2>Total Geral do Mês</h2>
+            <h3>Total Geral do Mês</h3>
             <div id="totalGeral">R$ 0,00</div>
         </div>
+
         <div class="grid-container">
             <div class="grid-item">
                 <div class="card-header-wrapper">
@@ -488,6 +454,7 @@
                     </table>
                 </div>
             </div>
+
             <div class="grid-item">
                 <div class="card-header-wrapper nubank-header">
                     <h2><i class="fa-solid fa-credit-card"></i>Nubank</h2>
@@ -513,6 +480,7 @@
                     </table>
                 </div>
             </div>
+
             <div class="grid-item">
                 <div class="card-header-wrapper c6-header">
                     <h2><i class="fa-solid fa-credit-card"></i>C6 Bank</h2>
@@ -538,6 +506,7 @@
                     </table>
                 </div>
             </div>
+
             <div class="grid-item">
                 <div class="card-header-wrapper">
                     <h2><i class="fa-solid fa-receipt"></i>Diversos</h2>
@@ -563,6 +532,7 @@
                     </table>
                 </div>
             </div>
+
             <div class="grid-item full-width-item">
                 <div class="card-header-wrapper">
                     <h2><i class="fa-solid fa-calendar-alt"></i>Vencimento das parcelas</h2>
@@ -591,7 +561,9 @@
             </div>
         </div>
     </div>
+
     <div id="status"></div>
+
     <script type="module">
         import {
             initializeApp
@@ -602,7 +574,9 @@
             set,
             onValue
         } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
-        // Your web app's Firebase configuration const firebaseConfig = {
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
             apiKey: "AIzaSyDQOGFiqafMZh0ha6XW62P1DpIKJE8TBYc",
             authDomain: "agenda-online-7b71c.firebaseapp.com",
             databaseURL: "https://agenda-online-7b71c-default-rtdb.firebaseio.com",
@@ -610,10 +584,14 @@
             storageBucket: "agenda-online-7b71c.firebasestorage.app",
             messagingSenderId: "28125733214",
             appId: "1:28125733214:web:162d1cce5d14f55c24afcf"
-        }; // Initialize Firebase const app = initializeApp(firebaseConfig);
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
         let current_date = new Date();
         let debounceTimer;
+
         const ui = {
             loginOverlay: document.getElementById('login-overlay'),
             loginTitle: document.getElementById('login-title'),
@@ -641,9 +619,10 @@
             totalGeral: document.getElementById('totalGeral'),
             status: document.getElementById('status')
         };
+
         document.addEventListener('DOMContentLoaded', initLogin);
 
-     function initLogin() {
+        function initLogin() {
             const passcodeRef = ref(database, 'passcode');
             onValue(passcodeRef, (snapshot) => {
                 const savedPasscode = snapshot.val();
@@ -656,7 +635,7 @@
                 onlyOnce: true
             });
         }
-        
+
         function setupLoginScreen(correctPasscode) {
             ui.loginTitle.textContent = "Acessar Painel";
             ui.loginMessage.textContent = "Digite seu código de 4 dígitos para continuar.";
@@ -675,7 +654,7 @@
             ui.passcodeInput.addEventListener('keyup', (e) => {
                 if (e.key === 'Enter') handleLogin();
             });
-            ui.passcodeInput.focus(); // Foca no campo da senha
+            ui.passcodeInput.focus();
         }
 
         function setupFirstAccessScreen() {
@@ -698,14 +677,13 @@
             ui.passcodeInput.addEventListener('keyup', (e) => {
                 if (e.key === 'Enter') handleSetup();
             });
-            ui.passcodeInput.focus(); // Foca no campo da senha
+            ui.passcodeInput.focus();
         }
 
-
         function startApp() {
-             current_date.setMonth(current_date.getMonth());
-            updateMonthDisplay();
+            updateMonthDisplay(); 
             loadData();
+            
             ui.prevMonthBtn.addEventListener('click', () => changeMonth(-1));
             ui.nextMonthBtn.addEventListener('click', () => changeMonth(1));
             ui.todayBtn.addEventListener('click', () => {
@@ -718,6 +696,7 @@
             ui.restoreDataBtn.addEventListener('click', () => ui.restoreFileInput.click());
             ui.restoreFileInput.addEventListener('change', restoreDataFromFile);
             ui.clearAllBtn.addEventListener('click', clearAllData);
+            
             setupTableListeners(ui.fixedExpensesTable, 'fixed');
             setupTableListeners(ui.diversosTable, 'diversos');
             setupTableListeners(ui.nubankTable, 'nubank');
@@ -752,9 +731,7 @@
         }
 
         function restoreDataFromFile(event) {
-            if (!confirm(
-                    'ATENÇÃO! Isto irá substituir TODOS os dados existentes na nuvem pelos dados do arquivo. Deseja continuar?'
-                )) {
+            if (!confirm('ATENÇÃO! Isto irá substituir TODOS os dados existentes na nuvem pelos dados do arquivo. Deseja continuar?')) {
                 event.target.value = null;
                 return;
             }
@@ -790,9 +767,7 @@
         }
 
         function updateMonthDisplay() {
-            const month = current_date.toLocaleString('pt-BR', {
-                month: 'long'
-            });
+            const month = current_date.toLocaleString('pt-BR', { month: 'long' });
             const year = current_date.getFullYear();
             ui.currentMonthYear.textContent = `${month.charAt(0).toUpperCase() + month.slice(1)} de ${year}`;
         }
@@ -802,6 +777,7 @@
             const month = (date.getMonth() + 1).toString().padStart(2, '0');
             return `${year}_${month}`;
         }
+
 
         function showStatus(message, duration = 3000) {
             ui.status.textContent = message;
@@ -821,11 +797,12 @@
                     nubank: parseTableData(ui.nubankTable),
                     c6: parseTableData(ui.c6Table),
                 };
-                set(ref(database, 'expenses/' + monthKey), dataToSave).then(() => showStatus('Salvo!')).catch((
-                    error) => {
-                    console.error("Erro ao salvar: ", error);
-                    showStatus('Erro ao salvar!', 5000);
-                });
+                set(ref(database, 'expenses/' + monthKey), dataToSave)
+                    .then(() => showStatus('Salvo!'))
+                    .catch((error) => {
+                        console.error("Erro ao salvar: ", error);
+                        showStatus('Erro ao salvar!', 5000);
+                    });
             };
             if (force) {
                 saveAction();
@@ -839,51 +816,42 @@
             const prevMonthDate = new Date(current_date);
             prevMonthDate.setMonth(prevMonthDate.getMonth() - 1);
             const prevMonthKey = getMonthYearKey(prevMonthDate);
+
             const currentMonthRef = ref(database, 'expenses/' + monthKey);
             const prevMonthRef = ref(database, 'expenses/' + prevMonthKey);
+
             onValue(currentMonthRef, (currentSnapshot) => {
-                const currentData = currentSnapshot.val() || {
-                    fixed: [],
-                    diversos: [],
-                    nubank: [],
-                    c6: []
-                };
+                const currentData = currentSnapshot.val() || { fixed: [], diversos: [], nubank: [], c6: [] };
                 onValue(prevMonthRef, (prevSnapshot) => {
-                    const prevData = prevSnapshot.val() || {
-                        fixed: [],
-                        diversos: [],
-                        nubank: [],
-                        c6: []
-                    };
+                    const prevData = prevSnapshot.val() || { fixed: [], diversos: [], nubank: [], c6: [] };
+                    
                     const continuingNubank = processContinuingInstallments(prevData.nubank || []);
                     const continuingC6 = processContinuingInstallments(prevData.c6 || []);
-                    const continuingDiversos = processContinuingInstallments(prevData.diversos ||
-                    []);
-                    const continuingFixed = (prevData.fixed || []).map(item => [item[0], item[
-                        1], false]);
+                    const continuingDiversos = processContinuingInstallments(prevData.diversos || []);
+                    const continuingFixed = (prevData.fixed || []).map(item => [item[0], item[1], false]);
+                    
                     const combinedData = {
                         fixed: combineData(currentData.fixed, continuingFixed),
                         diversos: combineData(currentData.diversos, continuingDiversos),
                         nubank: combineData(currentData.nubank, continuingNubank),
                         c6: combineData(currentData.c6, continuingC6)
                     };
+                    
                     populateTable(ui.fixedExpensesTable, combinedData.fixed);
                     populateTable(ui.diversosTable, combinedData.diversos);
                     populateTable(ui.nubankTable, combinedData.nubank);
                     populateTable(ui.c6Table, combinedData.c6);
-                    [ui.fixedExpensesTable, ui.diversosTable, ui.nubankTable, ui.c6Table]
-                    .forEach(ensureEmptyRow);
+                    
+                    [ui.fixedExpensesTable, ui.diversosTable, ui.nubankTable, ui.c6Table].forEach(ensureEmptyRow);
                     updateAllTotals();
+                    
                     if (!currentSnapshot.val()) {
-                        set(ref(database, 'expenses/' + monthKey), combinedData);
+                         set(ref(database, 'expenses/' + monthKey), combinedData);
                     }
-                }, {
-                    onlyOnce: true
-                });
-            }, {
-                onlyOnce: true
-            });
+                }, { onlyOnce: true });
+            }, { onlyOnce: true });
         }
+
 
         function combineData(currentData, prevData) {
             if (!currentData || currentData.length === 0) {
@@ -911,17 +879,17 @@
                 return;
             }
             const monthKey = getMonthYearKey(current_date);
-            set(ref(database, 'expenses/' + monthKey), null).then(() => {
-                showStatus('Dados do mês atual limpos com sucesso!', 3000);
-                [ui.fixedExpensesTable, ui.diversosTable, ui.nubankTable, ui.c6Table].forEach(t => t
-                    .innerHTML = '');
-                [ui.fixedExpensesTable, ui.diversosTable, ui.nubankTable, ui.c6Table].forEach(
-                    ensureEmptyRow);
-                updateAllTotals();
-            }).catch((error) => {
-                console.error("Erro ao limpar dados: ", error);
-                showStatus('Erro ao limpar os dados!', 5000);
-            });
+            set(ref(database, 'expenses/' + monthKey), null)
+                .then(() => {
+                    showStatus('Dados do mês atual limpos com sucesso!', 3000);
+                    [ui.fixedExpensesTable, ui.diversosTable, ui.nubankTable, ui.c6Table].forEach(t => t.innerHTML = '');
+                    [ui.fixedExpensesTable, ui.diversosTable, ui.nubankTable, ui.c6Table].forEach(ensureEmptyRow);
+                    updateAllTotals();
+                })
+                .catch((error) => {
+                    console.error("Erro ao limpar dados: ", error);
+                    showStatus('Erro ao limpar os dados!', 5000);
+                });
         }
 
         function processContinuingInstallments(installments) {
@@ -985,8 +953,7 @@
                 }
                 return true;
             }
-            if (tbody.rows.length === 0 || (tbody.rows.length > 0 && !isRowEmpty(tbody.rows[tbody.rows.length -
-                    1]))) {
+            if (tbody.rows.length === 0 || (tbody.rows.length > 0 && !isRowEmpty(tbody.rows[tbody.rows.length - 1]))) {
                 addNewRow(tbody);
             }
         }
@@ -1048,10 +1015,16 @@
                 }
             });
         }
-
+        
         function compactAllTables() {
-            const tablesToCompact = [ui.fixedExpensesTable, ui.nubankTable, ui.c6Table, ui.diversosTable];
+            const tablesToCompact = [
+                ui.fixedExpensesTable,
+                ui.nubankTable,
+                ui.c6Table,
+                ui.diversosTable
+            ];
             let rowsRemovedCount = 0;
+
             tablesToCompact.forEach(tbody => {
                 const rows = Array.from(tbody.rows);
                 rows.forEach(row => {
@@ -1069,6 +1042,7 @@
                 });
                 ensureEmptyRow(tbody);
             });
+
             if (rowsRemovedCount > 0) {
                 showStatus('Linhas vazias removidas com sucesso!', 3000);
                 saveData(true);
@@ -1089,88 +1063,67 @@
         }
 
         function calculateColumnTotal(tbody, colIndex) {
-            return Array.from(tbody.rows).reduce((total, row) => total + (row.cells[colIndex] ? parseCurrency(
-                row.cells[colIndex].textContent) : 0), 0);
+            return Array.from(tbody.rows).reduce((total, row) => total + (row.cells[colIndex] ? parseCurrency(row.cells[colIndex].textContent) : 0), 0);
         }
-        // ========================================================================= // A FUNÇÃO ABAIXO FOI CORRIGIDA E RETORNADA PARA A VERSÃO ORIGINAL // =========================================================================
+        
+        // =========================================================================
+        // A FUNÇÃO ABAIXO FOI CORRIGIDA E RETORNADA PARA A VERSÃO ORIGINAL
+        // =========================================================================
         function updateInstallmentSummary() {
             ui.installmentsSummaryTable.innerHTML = '';
-            const allInstallmentsRaw = [...parseTableData(ui.nubankTable).map(d => ({
-                data: d,
-                card: 'Nubank'
-            })), ...parseTableData(ui.c6Table).map(d => ({
-                data: d,
-                card: 'C6 Bank'
-            })), ...parseTableData(ui.diversosTable).map(d => ({
-                data: d,
-                card: 'Diversos'
-            }))];
-            const installmentsWithData = allInstallmentsRaw.map(({
-                data,
-                card
-            }) => {
-                const description = data[0];
-                const valueText = data[1];
-                const installmentText = data[2] || "";
-                const parts = installmentText.match(/(\d+)\/(\d+)/);
-                if (!parts || !description || !valueText) return null;
-                const currentPart = parseInt(parts[1], 10);
-                const totalParts = parseInt(parts[2], 10);
-                const remaining = totalParts - currentPart;
-                if (remaining < 0) return null;
-                const dueDate = new Date(current_date);
-                dueDate.setMonth(dueDate.getMonth() + remaining);
-                dueDate.setDate(1);
-                const value = parseCurrency(valueText);
-                return {
-                    description,
-                    card,
-                    value,
-                    installmentText,
-                    dueDate
-                };
-            }).filter(item => item !== null);
+            const allInstallmentsRaw = [
+                ...parseTableData(ui.nubankTable).map(d => ({ data: d, card: 'Nubank' })),
+                ...parseTableData(ui.c6Table).map(d => ({ data: d, card: 'C6 Bank' })),
+                ...parseTableData(ui.diversosTable).map(d => ({ data: d, card: 'Diversos' }))
+            ];
+
+            const installmentsWithData = allInstallmentsRaw
+                .map(({ data, card }) => {
+                    const description = data[0];
+                    const valueText = data[1];
+                    const installmentText = data[2] || "";
+                    const parts = installmentText.match(/(\d+)\/(\d+)/);
+                    if (!parts || !description || !valueText) return null;
+
+                    const currentPart = parseInt(parts[1], 10);
+                    const totalParts = parseInt(parts[2], 10);
+                    const remaining = totalParts - currentPart;
+                    if (remaining < 0) return null;
+
+                    const dueDate = new Date(current_date);
+                    dueDate.setMonth(dueDate.getMonth() + remaining);
+                    dueDate.setDate(1);
+
+                    const value = parseCurrency(valueText);
+                    return { description, card, value, installmentText, dueDate };
+                })
+                .filter(item => item !== null);
+
             installmentsWithData.sort((a, b) => a.dueDate - b.dueDate);
+
             let totalInstallmentsValue = 0;
             installmentsWithData.forEach(item => {
                 totalInstallmentsValue += item.value;
-                const endMonth = item.dueDate.toLocaleString('pt-BR', {
-                    month: 'long'
-                });
+                const endMonth = item.dueDate.toLocaleString('pt-BR', { month: 'long' });
                 const endYear = item.dueDate.getFullYear();
                 const row = ui.installmentsSummaryTable.insertRow();
                 row.insertCell().textContent = item.description;
                 row.insertCell().textContent = item.card;
                 const valueCell = row.insertCell();
-                valueCell.textContent = item.value.toLocaleString('pt-BR', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
+                valueCell.textContent = item.value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 row.insertCell().textContent = item.installmentText;
-                row.insertCell().textContent =
-                    `${endMonth.charAt(0).toUpperCase() + endMonth.slice(1)}/${endYear}`;
+                row.insertCell().textContent = `${endMonth.charAt(0).toUpperCase() + endMonth.slice(1)}/${endYear}`;
             });
+
             document.getElementById('installmentsTotal').textContent = formatCurrency(totalInstallmentsValue);
         }
 
         function updateTotals(type) {
             const totalsMap = {
-                fixed: {
-                    el: ui.fixedTotal,
-                    table: ui.fixedExpensesTable
-                },
-                diversos: {
-                    el: ui.diversosTotal,
-                    table: ui.diversosTable
-                },
-                nubank: {
-                    el: ui.nubankTotal,
-                    table: ui.nubankTable
-                },
-                c6: {
-                    el: ui.c6Total,
-                    table: ui.c6Table
-                }
+                fixed: { el: ui.fixedTotal, table: ui.fixedExpensesTable },
+                diversos: { el: ui.diversosTotal, table: ui.diversosTable },
+                nubank: { el: ui.nubankTotal, table: ui.nubankTable },
+                c6: { el: ui.c6Total, table: ui.c6Table }
             };
             if (totalsMap[type]) {
                 totalsMap[type].el.textContent = formatCurrency(calculateColumnTotal(totalsMap[type].table, 1));
@@ -1183,10 +1136,12 @@
             const diversosTotal = calculateColumnTotal(ui.diversosTable, 1);
             const nubankTotal = calculateColumnTotal(ui.nubankTable, 1);
             const c6Total = calculateColumnTotal(ui.c6Table, 1);
+            
             ui.fixedTotal.textContent = formatCurrency(fixedTotal);
             ui.diversosTotal.textContent = formatCurrency(diversosTotal);
             ui.nubankTotal.textContent = formatCurrency(nubankTotal);
             ui.c6Total.textContent = formatCurrency(c6Total);
+            
             ui.totalGeral.textContent = formatCurrency(fixedTotal + nubankTotal + c6Total + diversosTotal);
             updateInstallmentSummary();
         }
