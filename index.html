@@ -248,19 +248,19 @@
             border: 1px solid transparent;
             transition: background-color 0.2s, border-color 0.2s;
         }
-
-        /* MODIFICAÇÃO 1: Realce mais forte ao passar o mouse */
-        .commitment:hover {
-            background-color: #e9f5ff; 
-        }
-
+        
+        /* CORREÇÃO: A regra :hover foi movida para DEPOIS de :nth-child para ter prioridade */
         .commitment:nth-child(even) {
             background-color: #fdfdff;
         }
-
+        
         .commitment.checked {
             background-color: #e9f5ff;
             border-color: #a3d1ff;
+        }
+
+        .commitment:hover {
+            background-color: #e9f5ff; 
         }
 
         .commitment.checked .done {
@@ -292,7 +292,6 @@
             font-size: 0.75em;
         }
         
-        /* MODIFICAÇÃO 2: Ajuste de margem para nova ordem dos botões */
         .commitment input[type="checkbox"] + button {
             margin-left: 4px;
         }
@@ -728,7 +727,6 @@
                 salvarAgenda();
             };
 
-            // MODIFICAÇÃO 3: Nova ordem dos elementos
             div.appendChild(okBtn);
             div.appendChild(input);
             div.appendChild(checkbox);
