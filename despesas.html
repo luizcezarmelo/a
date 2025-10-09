@@ -567,12 +567,8 @@
         const app = initializeApp(firebaseConfig); 
         const database = getDatabase(app); 
 
-        // ========================================================================= 
-        // ESTA É A LINHA QUE FAZ A PÁGINA ABRIR NO MÊS ATUAL 
-        // new Date() pega a data e hora do sistema no momento em que a página carrega. 
         let current_date = new Date(); 
-        // ========================================================================= 
-        
+        current_date.setMonth(current_date.getMonth() + 1);
         let debounceTimer; 
         const ui = { 
             loginOverlay: document.getElementById('login-overlay'), 
