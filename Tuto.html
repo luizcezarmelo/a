@@ -7,14 +7,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #f8f9fa; /* Fundo mais suave */
+            --bg: #f8f9fa;
             --card: #ffffff;
-            --text: #111827; /* Texto principal (não preto puro) */
+            --text: #111827;
             --muted: #6b7280;
-            --accent: #0ea5a4; /* Mantido o azul-petróleo */
-            --accent-light: #f0fdfa; /* Fundo do item de menu ativo/hover */
-            --border: #e5e7eb; /* Borda mais suave */
-            --code-bg: #0b1220; /* Fundo do código */
+            --accent: #0ea5a4;
+            --accent-light: #f0fdfa;
+            --border: #e5e7eb;
+            --code-bg: #0b1220;
             --code-text: #e6eef6;
             --mono: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
         }
@@ -29,13 +29,13 @@
             background: var(--bg);
             color: var(--text);
             min-height: 100vh;
-            padding: 32px; /* Mais respiro */
+            padding: 32px;
             font-size: 15px;
             line-height: 1.6;
         }
 
         .container {
-            max-width: 1200px; /* Um pouco mais largo para conteúdo denso */
+            max-width: 1200px;
             margin: 0 auto;
         }
 
@@ -54,13 +54,8 @@
             margin: 0;
             font-weight: 700;
         }
-
-        p.lead {
-            margin: 4px 0 0;
-            color: var(--muted);
-            font-size: 14px;
-            max-width: 60ch;
-        }
+        
+        /* REMOVIDO: p.lead e .meta */
 
         .topbar {
             display: flex;
@@ -72,6 +67,42 @@
             flex: 1;
             display: flex;
             gap: 8px;
+        }
+        
+        /* NOVO: Wrapper para input de pesquisa e botão Limpar */
+        .search-wrapper {
+            position: relative;
+            flex: 1; /* Faz a caixa de pesquisa crescer */
+        }
+        
+        .search-wrapper input[type="search"] {
+            width: 100%;
+            padding-right: 36px; /* Espaço para o botão X */
+        }
+        
+        /* NOVO: Botão Limpar (X) */
+        #btnClearSearch {
+            display: none; /* Começa escondido */
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--border);
+            color: var(--muted);
+            border: none;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            font-weight: 700;
+            line-height: 28px;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        #btnClearSearch:hover {
+            background: #d1d5db;
+            color: var(--text);
         }
 
         input[type="search"],
@@ -111,7 +142,7 @@
 
         .grid {
             display: grid;
-            grid-template-columns: 300px 1fr; /* Menu lateral mais largo */
+            grid-template-columns: 300px 1fr;
             gap: 24px;
         }
 
@@ -120,10 +151,9 @@
             padding: 20px;
             border-radius: 12px;
             border: 1px solid var(--border);
-            /* A altura será definida pelo conteúdo, mas com um mínimo */
-            align-self: start; /* Fica fixo no topo */
+            align-self: start;
             position: sticky;
-            top: 24px; /* Fixa abaixo do padding do body */
+            top: 24px;
         }
         
         .toc-title {
@@ -144,7 +174,7 @@
             list-style: none;
             padding: 0;
             margin: 0;
-            max-height: 55vh; /* Limita altura do menu */
+            max-height: 55vh;
             overflow-y: auto;
         }
 
@@ -172,7 +202,7 @@
         main {
             background: var(--card);
             border-radius: 12px;
-            padding: 24px 32px; /* Mais padding interno */
+            padding: 24px 32px;
             min-height: 520px;
             border: 1px solid var(--border);
         }
@@ -227,7 +257,7 @@
             font-family: var(--mono);
             font-size: 13.5px;
             overflow-x: auto;
-            white-space: pre-wrap; /* Quebra linha e preserva espaços */
+            white-space: pre-wrap;
             line-height: 1.5;
         }
 
@@ -273,13 +303,7 @@
             margin-bottom: 0.5em;
         }
 
-        footer {
-            margin-top: 24px;
-            color: var(--muted);
-            font-size: 13px;
-            text-align: center;
-            padding: 16px;
-        }
+        /* REMOVIDO: footer */
 
         .btn-small {
             padding: 6px 8px;
@@ -309,9 +333,9 @@
         }
         
         .danger {
-            background: #fffbe6; /* Amarelo claro */
-            border: 1px solid #fde68a; /* Amarelo */
-            color: #713f12; /* Marrom escuro */
+            background: #fffbe6;
+            border: 1px solid #fde68a;
+            color: #713f12;
             padding: 12px 16px;
             border-radius: 8px;
             margin-bottom: 1em;
@@ -333,7 +357,7 @@
                 top: auto;
             }
             nav#toc ul {
-                max-height: none; /* Remove limite de altura no mobile */
+                max-height: none;
             }
         }
         
@@ -352,6 +376,11 @@
             .search {
                 flex-direction: column;
             }
+            /* NOVO: Ajuste do wrapper no mobile */
+            .search-wrapper {
+                flex: none;
+                width: 100%;
+            }
         }
         
         @media print {
@@ -359,7 +388,7 @@
                 padding: 0;
                 background: #fff;
             }
-            .topbar, aside, header .meta, footer, .copy-btn {
+            .topbar, aside, header, .copy-btn {
                 display: none;
             }
             .grid {
@@ -383,16 +412,15 @@
         <header>
             <div>
                 <h1>Guia de Campo: Diagnóstico Windows</h1>
-                <p class="lead">Um guia técnico interativo para diagnóstico e reparo do Windows em ambientes WinPE, instalação ou sistema operacional online.</p>
-            </div>
-            <div style="text-align:right">
-                <div class="meta">Formato: HTML estático — roda localmente</div>
-            </div>
-        </header>
+                </div>
+            </header>
         
         <div class="topbar">
             <div class="search">
-                <input id="q" type="search" placeholder="Pesquisar (ex: chkdsk, diskpart, bcd)" />
+                <div class="search-wrapper">
+                    <input id="q" type="search" placeholder="Pesquisar (ex: chkdsk, diskpart, bcd)" />
+                    <button id="btnClearSearch" title="Limpar pesquisa">X</button>
+                </div>
                 <select id="sectionSelect">
                     <option value="all">Todas as seções</option>
                 </select>
@@ -419,19 +447,10 @@
             </aside>
             
             <main>
-                <section class="section" style="background: var(--accent-light); border-color: var(--accent);">
-                    <h2 style="color: var(--accent); border-color: var(--accent-light);">Introdução: A Abordagem do Técnico</h2>
-                    <p>Este guia é um "manual de campo" para diagnóstico rápido. O objetivo é isolar problemas em quatro categorias principais: <strong>Hardware Físico</strong>, <strong>Armazenamento (Disco/Partição)</strong>, <strong>Sistema de Arquivos</strong> ou <strong>Arquivos do SO/Boot</strong>.</p>
-                    <p class="muted">A maioria dos problemas de "não inicializa" ou "instalação falhou" se enquadra em uma dessas categorias. Use o índice para pular para a ferramenta correta.</p>
-                </section>
-            
                 <div id="content">
                     </div>
                 
-                <footer>
-                    <div class="muted">Use com responsabilidade. Comandos como <code>clean</code> (DiskPart) e <code>format</code> apagam dados permanentemente. Sempre confirme o disco/partição alvo antes de executar.</div>
-                </footer>
-            </main>
+                </main>
         </div>
     </div>
 
@@ -801,6 +820,7 @@ netsh winsock reset</pre></div>
         const tocEl = document.getElementById('toc');
         const select = document.getElementById('sectionSelect');
         const qInput = document.getElementById('q');
+        const btnClearSearch = document.getElementById('btnClearSearch');
         const tocList = document.createElement('ul');
         tocEl.appendChild(tocList);
 
@@ -813,15 +833,10 @@ netsh winsock reset</pre></div>
             btn.className = 'copy-btn';
             btn.textContent = 'Copiar';
 
-            // Encontra o bloco de código DENTRO do contêiner
             const codeBlock = container.querySelector('.code');
-            if (!codeBlock) {
-                console.error('Bloco .code não encontrado dentro de .code-container');
-                return;
-            }
+            if (!codeBlock) return;
 
             btn.onclick = () => {
-                // Usa o innerText do <pre> para copiar
                 navigator.clipboard.writeText(codeBlock.innerText).then(() => {
                     btn.textContent = 'Copiado!';
                     setTimeout(() => { btn.textContent = 'Copiar'; }, 2000);
@@ -866,13 +881,10 @@ netsh winsock reset</pre></div>
                 const sec = document.createElement('section');
                 sec.className = 'section';
                 sec.id = 'sec-' + s.id;
-                
-                // [CORREÇÃO]: Removemos o .replace() que estava quebrando o HTML.
-                // O s.body já está no formato correto.
                 sec.innerHTML = `<h2>${s.title}</h2>${s.body}`;
                 contentEl.appendChild(sec);
                 
-                // [CORREÇÃO]: Iteramos sobre os '.code-container' e usamos a nova função
+                // Adicionar botões de cópia
                 sec.querySelectorAll('.code-container').forEach(addCopyButtonToContainer);
             });
         }
@@ -882,23 +894,23 @@ netsh winsock reset</pre></div>
          * @param {string} id - O ID da seção a mostrar
          */
         function showSection(id) {
+            // Limpa a pesquisa ao navegar pelo TOC
+            qInput.value = ''; 
+            btnClearSearch.style.display = 'none';
+
             if (id === 'all') {
                 document.querySelectorAll('.section').forEach(e => e.style.display = 'block');
                 document.querySelectorAll('#toc a').forEach(a => a.classList.remove('active'));
                 select.value = 'all';
-                qInput.value = '';
                 window.scrollTo({ top: 0, behavior: 'smooth' });
                 return;
             }
             
-            // Oculta todas
             document.querySelectorAll('.section').forEach(e => e.style.display = 'none');
             
-            // Mostra a selecionada
             const el = document.getElementById('sec-' + id);
             if (el) {
                 el.style.display = 'block';
-                // Rola para o elemento
                 window.scrollTo({ top: el.offsetTop - 80, behavior: 'smooth' });
             }
             
@@ -916,17 +928,26 @@ netsh winsock reset</pre></div>
          */
         function stripHtml(html) {
             const tmp = document.createElement('div');
-            // Substitui <pre> por quebras de linha para preservar a formatação no .txt
             tmp.innerHTML = html.replace(/<pre[^>]*>/g, '\n').replace(/<\/pre>/g, '\n');
             return tmp.textContent || tmp.innerText || '';
         }
 
         /**
          * Executa a pesquisa
+         * @param {boolean} fromTyping - Indica se a busca veio do live search
          */
-        function doSearch() {
+        function doSearch(fromTyping = false) {
             const q = qInput.value.trim().toLowerCase();
-            const sel = select.value;
+            
+            // Se a busca veio da digitação, ignora o select. Senão, usa o select.
+            const sel = fromTyping ? 'all' : select.value;
+            
+            // Se veio da digitação, reseta o select e o TOC
+            if(fromTyping) {
+                select.value = 'all';
+                document.querySelectorAll('#toc a').forEach(a => a.classList.remove('active'));
+            }
+            
             let firstMatch = null;
 
             document.querySelectorAll('.section').forEach(sec => {
@@ -946,32 +967,61 @@ netsh winsock reset</pre></div>
                 }
             });
             
-            // Atualiza menu
-            document.querySelectorAll('#toc a').forEach(a => a.classList.remove('active'));
-            if(sel !== 'all') {
-                 const activeLink = document.querySelector(`#toc a[data-id="${sel}"]`);
-                 if(activeLink) activeLink.classList.add('active');
+            // Atualiza o menu TOC apenas se a busca NÃO VEIO da digitação
+            if(!fromTyping) {
+                document.querySelectorAll('#toc a').forEach(a => a.classList.remove('active'));
+                if(sel !== 'all') {
+                    const activeLink = document.querySelector(`#toc a[data-id="${sel}"]`);
+                    if(activeLink) activeLink.classList.add('active');
+                }
             }
             
-            // Rola para o primeiro resultado (se não for "todos" e houver pesquisa)
+            // Rola para o primeiro resultado
             if (firstMatch && (q || sel !== 'all')) {
                 window.scrollTo({ top: firstMatch.offsetTop - 80, behavior: 'smooth' });
             }
         }
 
         // --- Event Listeners ---
-        document.getElementById('btnSearch').addEventListener('click', doSearch);
+        
+        // Botão Pesquisar (clique)
+        document.getElementById('btnSearch').addEventListener('click', () => doSearch(false));
+        
+        // Select dropdown (mudança)
+        select.addEventListener('change', () => doSearch(false));
+        
+        // NOVO: Caixa de pesquisa (digitação)
         qInput.addEventListener('keyup', e => {
-            if (e.key === 'Enter') doSearch();
+            const q = qInput.value.trim();
+            btnClearSearch.style.display = q.length > 0 ? 'inline-block' : 'none';
+
+            if (e.key === 'Enter') {
+                doSearch(false); // Trata Enter como uma pesquisa manual
+                return;
+            }
+            if (q.length === 0) {
+                doSearch(true); // Reseta a lista se apagar tudo
+                return;
+            }
+            if (q.length >= 3) {
+                doSearch(true); // Executa live search
+            }
         });
-        select.addEventListener('change', doSearch);
+        
+        // NOVO: Botão Limpar (X)
+        btnClearSearch.addEventListener('click', () => {
+            qInput.value = '';
+            btnClearSearch.style.display = 'none';
+            doSearch(false); // Reseta a busca
+            qInput.focus();
+        });
 
         // Exportar TXT
         document.getElementById('btnExport').addEventListener('click', () => {
             let txt = `GUIA DE CAMPO: DIAGNÓSTICO WINDOWS (TÉCNICO)\n${'='.repeat(50)}\n\n`;
             sections.forEach(s => {
                 txt += `\n--- ${s.title.toUpperCase()} ---\n\n`;
-                txt += stripHtml(s.body).replace(/^\s*[\r\n]/gm, '\n'); // Limpa linhas em branco extras
+                txt += stripHtml(s.body).replace(/^\s*[\r\n]/gm, '\n');
                 txt += `\n${'-'.repeat(50)}\n`;
             });
             
