@@ -1,995 +1,574 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Guia de Campo: Diagnóstico Windows — Técnico (Detallhado)</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enciclopédia do Técnico de TI</title>
     <style>
+        /* CSS Otimizado para Página Única */
         :root {
-            --bg: #f8f9fa; /* Fundo mais suave */
-            --card: #ffffff;
-            --text: #111827; /* Texto principal (não preto puro) */
-            --muted: #6b7280;
-            --accent: #0ea5a4; /* Mantido o azul-petróleo */
-            --accent-light: #f0fdfa; /* Fundo do item de menu ativo/hover */
-            --border: #e5e7eb; /* Borda mais suave */
-            --code-bg: #0b1220; /* Fundo do código */
-            --code-text: #e6eef6;
-            --mono: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            --cor-primaria: #2c3e50;
+            --cor-secundaria: #34495e;
+            --cor-destaque: #3498db;
+            --cor-texto: #ecf0f1;
+            --cor-fundo: #f4f4f9;
+            --cor-conteudo: #ffffff;
+            --cor-borda: #dfe6e9;
         }
-
-        * {
-            box-sizing: border-box;
-            font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Noto Sans', sans-serif;
+        html {
+            scroll-behavior: smooth;
         }
-
         body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            padding: 32px; /* Mais respiro */
-            font-size: 15px;
-            line-height: 1.6;
+            background-color: var(--cor-fundo);
+            color: #333;
         }
-
         .container {
-            max-width: 1200px; /* Um pouco mais largo para conteúdo denso */
-            margin: 0 auto;
-        }
-
-        header {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 20px;
-            margin-bottom: 24px;
         }
-
-        h1 {
-            font-size: 24px;
+        .sidebar {
+            width: 280px;
+            background-color: var(--cor-primaria);
+            color: var(--cor-texto);
+            height: 100vh;
+            position: fixed;
+            overflow-y: auto;
+            padding-top: 20px;
+        }
+        .sidebar h2 {
+            text-align: center;
+            padding-bottom: 10px;
             margin: 0;
-            font-weight: 700;
+            border-bottom: 1px solid var(--cor-secundaria);
         }
-
-        p.lead {
-            margin: 4px 0 0;
-            color: var(--muted);
-            font-size: 14px;
-            max-width: 60ch;
-        }
-
-        .topbar {
-            display: flex;
-            gap: 12px;
-            margin: 18px 0;
-        }
-
-        .search {
-            flex: 1;
-            display: flex;
-            gap: 8px;
-        }
-
-        input[type="search"],
-        select {
-            background: var(--card);
-            border: 1px solid var(--border);
-            padding: 10px 12px;
-            border-radius: 8px;
-            color: inherit;
-            outline: none;
-            font-size: 14px;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        
-        input[type="search"]:focus,
-        select:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 2px var(--accent-light);
-        }
-
-        button,
-        .btn {
-            background: var(--accent);
-            border: none;
-            padding: 10px 14px;
-            border-radius: 8px;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 14px;
-            transition: opacity 0.2s;
-        }
-        button:hover,
-        .btn:hover {
-            opacity: 0.85;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: 300px 1fr; /* Menu lateral mais largo */
-            gap: 24px;
-        }
-
-        aside {
-            background: var(--card);
-            padding: 20px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            /* A altura será definida pelo conteúdo, mas com um mínimo */
-            align-self: start; /* Fica fixo no topo */
-            position: sticky;
-            top: 24px; /* Fixa abaixo do padding do body */
-        }
-        
-        .toc-title {
-            font-weight: 700;
-            margin-bottom: 8px;
-            font-size: 16px;
-            padding-left: 12px;
-        }
-        
-        .toc-shortcuts {
-            margin-top: 24px;
-            padding: 16px;
-            background: var(--bg);
-            border-radius: 8px;
-        }
-
-        nav#toc ul {
+        .sidebar ul {
             list-style: none;
             padding: 0;
-            margin: 0;
-            max-height: 55vh; /* Limita altura do menu */
-            overflow-y: auto;
         }
-
-        nav#toc a {
+        .sidebar .menu-item > a, .sidebar .menu-item .submenu-toggle {
             display: block;
-            padding: 9px 12px;
-            border-radius: 6px;
+            padding: 12px 20px;
+            color: var(--cor-texto);
             text-decoration: none;
-            color: var(--text);
-            font-size: 14px;
-            font-weight: 500;
-            transition: background-color 0.2s, color 0.2s;
+            cursor: pointer;
+            background-color: var(--cor-primaria);
+            border: none;
+            width: 100%;
+            text-align: left;
+            font-size: 16px;
+            transition: background-color 0.2s;
         }
-
-        nav#toc a:hover {
-            background: var(--accent-light);
-            color: var(--accent);
+        .sidebar .menu-item > a:hover, .sidebar .menu-item .submenu-toggle:hover {
+            background-color: var(--cor-secundaria);
         }
-        nav#toc a.active {
-            background: var(--accent);
+        .submenu {
+            list-style: none;
+            padding-left: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            background-color: #233140;
+        }
+        .submenu a {
+            display: block;
+            padding: 10px 35px;
+            color: #bdc3c7;
+            text-decoration: none;
+        }
+        .submenu a:hover {
+            background-color: #465a70;
             color: white;
-            font-weight: 600;
         }
-
-        main {
-            background: var(--card);
-            border-radius: 12px;
-            padding: 24px 32px; /* Mais padding interno */
-            min-height: 520px;
-            border: 1px solid var(--border);
+        .main-content {
+            margin-left: 280px;
+            padding: 20px 40px;
+            width: calc(100% - 360px);
         }
-        
-        main h2, main h3, main p {
-            margin: 0;
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--cor-borda);
         }
-        
-        main h3 {
-            font-size: 18px;
-            font-weight: 600;
-            margin-top: 1.5em;
-            margin-bottom: 0.5em;
+        .search-container {
+            position: relative;
+            width: 50%;
         }
-        
-        main p {
-            margin-bottom: 1em;
+        .search-container input {
+            width: 100%;
+            padding: 10px 30px 10px 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
         }
-
-        .section {
-            padding: 14px;
-            border-radius: 10px;
-            margin-bottom: 24px;
-            border: 1px solid var(--border);
-            background: linear-gradient(180deg, #fff, #fdfdff);
+        .search-container .clear-search {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            display: none;
         }
-
-        .section h2 {
-            margin: 0 0 16px;
-            font-size: 20px;
-            font-weight: 700;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 12px;
+        #search-results {
+            position: absolute;
+            background-color: white;
+            border: 1px solid #ccc;
+            width: 100%;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
         }
-
-        .meta {
-            color: var(--muted);
-            font-size: 13px;
+        #search-results a {
+            display: block;
+            padding: 10px;
+            text-decoration: none;
+            color: #333;
+            border-bottom: 1px solid #eee;
+        }
+        #search-results a:hover {
+            background-color: #f0f0f0;
+        }
+        .content-section {
+            background-color: var(--cor-conteudo);
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-top: 30px;
+            scroll-margin-top: 20px; /* Espaço para o header ao rolar */
+        }
+        .content-section h2 {
+            color: var(--cor-primaria);
+            border-bottom: 3px solid var(--cor-destaque);
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        .content-section h3 {
+            color: var(--cor-secundaria);
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        code {
+            background-color: #eef;
+            color: #d63384;
+            padding: 3px 7px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.95em;
+        }
+        .summary-list {
+            border-left: 4px solid var(--cor-destaque);
+            padding: 15px 20px;
+            margin-top: 20px;
+            background-color: #f8f9fa;
+        }
+        .summary-list h4 {
+            margin-top: 0;
+            color: var(--cor-primaria);
+        }
+        .summary-list ul {
+            padding-left: 20px;
+            margin-bottom: 0;
+        }
+        .summary-list li {
             margin-bottom: 8px;
         }
-        
-        .code-container {
-            position: relative;
-            margin: 12px 0;
-        }
-
-        .code {
-            background: var(--code-bg);
-            color: var(--code-text);
-            padding: 16px;
-            border-radius: 8px;
-            font-family: var(--mono);
-            font-size: 13.5px;
-            overflow-x: auto;
-            white-space: pre-wrap; /* Quebra linha e preserva espaços */
-            line-height: 1.5;
-        }
-
-        .copy-btn {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 4px 8px;
-            font-size: 12px;
-            border-radius: 6px;
-            opacity: 0;
-            transition: opacity 0.2s;
-            cursor: pointer;
-        }
-        
-        .code-container:hover .copy-btn {
-            opacity: 1;
-        }
-        
-        .copy-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .label {
-            display: inline-block;
-            background: #eef2f7;
-            color: #0f1724;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 12px;
-            margin-right: 6px;
-        }
-
-        .list-compact {
-            margin: 8px 0;
-            padding-left: 18px;
-        }
-        .list-compact li {
-            margin-bottom: 0.5em;
-        }
-
-        footer {
-            margin-top: 24px;
-            color: var(--muted);
-            font-size: 13px;
-            text-align: center;
-            padding: 16px;
-        }
-
-        .btn-small {
-            padding: 6px 8px;
-            border-radius: 8px;
-            font-weight: 600;
-        }
-
-        .kbd {
-            background: var(--code-bg);
-            color: var(--code-text);
-            padding: 4px 8px;
-            border-radius: 6px;
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            font-family: var(--mono);
-            font-size: 12px;
-        }
-
-        .row {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .muted {
-            color: var(--muted);
-            font-size: 14px;
-        }
-        
-        .danger {
-            background: #fffbe6; /* Amarelo claro */
-            border: 1px solid #fde68a; /* Amarelo */
-            color: #713f12; /* Marrom escuro */
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 1em;
-            font-size: 14px;
-        }
-        .danger code {
-            background: #fef3c7;
-            padding: 2px 4px;
-            border-radius: 4px;
-            font-weight: 600;
-        }
-
-        @media (max-width: 960px) {
-            .grid {
-                grid-template-columns: 1fr;
-            }
-            aside {
-                position: static;
-                top: auto;
-            }
-            nav#toc ul {
-                max-height: none; /* Remove limite de altura no mobile */
-            }
-        }
-        
-        @media (max-width: 600px) {
-            body {
-                padding: 16px;
-            }
-            header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 8px;
-            }
-            .topbar {
-                flex-direction: column;
-            }
-            .search {
-                flex-direction: column;
-            }
-        }
-        
-        @media print {
-            body {
-                padding: 0;
-                background: #fff;
-            }
-            .topbar, aside, header .meta, footer, .copy-btn {
-                display: none;
-            }
-            .grid {
-                grid-template-columns: 1fr;
-            }
-            main, .section {
-                border: none;
-                padding: 0;
-                margin: 0;
-                box-shadow: none;
-            }
-            .container {
-                max-width: 100%;
-            }
+        ol li {
+            margin-bottom: 15px;
+            line-height: 1.6;
         }
     </style>
 </head>
-
 <body>
+
     <div class="container">
-        <header>
-            <div>
-                <h1>Guia de Campo: Diagnóstico Windows</h1>
-                <p class="lead">Um guia técnico interativo para diagnóstico e reparo do Windows em ambientes WinPE, instalação ou sistema operacional online.</p>
-            </div>
-            <div style="text-align:right">
-                <div class="meta">Formato: HTML estático — roda localmente</div>
-            </div>
-        </header>
-        
-        <div class="topbar">
-            <div class="search">
-                <input id="q" type="search" placeholder="Pesquisar (ex: chkdsk, diskpart, bcd)" />
-                <select id="sectionSelect">
-                    <option value="all">Todas as seções</option>
-                </select>
-                <button id="btnSearch">Pesquisar</button>
-            </div>
-            <div style="display:flex;gap:8px">
-                <button id="btnExport" class="btn">Exportar .TXT</button>
-                <button id="btnPrint" class="btn">Imprimir</button>
-            </div>
-        </div>
-        
-        <div class="grid">
-            <aside>
-                <div class="toc-title">Navegação Rápida</div>
-                <nav id="toc">
-                    </nav>
-                
-                <div class="toc-shortcuts">
-                    <div style="font-weight:700;margin-bottom:12px;font-size:14px;">Atalhos Essenciais</div>
-                    <div style="margin-bottom:8px"><span class="label">Prompt (Instalação)</span> <span class="kbd">Shift + F10</span></div>
-                    <div style="margin-bottom:8px"><span class="label">Gerenciador Tarefas</span> <span class="kbd">Ctrl + Shift + Esc</span></div>
-                    <div style="margin-bottom:8px"><span class="label">Reinício Rápido</span> <span class="kbd">shutdown /r /t 0</span></div>
+        <nav class="sidebar">
+            <h2>Enciclopédia TI</h2>
+            <ul>
+                <li class="menu-item"><a href="#inicio">🏠 Início</a></li>
+                <li class="menu-item">
+                    <button class="submenu-toggle">▶️ Guia de Comandos</button>
+                    <ul class="submenu">
+                        <li><a href="#cmd_ipconfig">ipconfig</a></li>
+                        <li><a href="#cmd_ping">ping</a></li>
+                        <li><a href="#cmd_sfc">sfc /scannow</a></li>
+                        <li><a href="#cmd_chkdsk">chkdsk</a></li>
+                        <li><a href="#cmd_netstat">netstat</a></li>
+                    </ul>
+                </li>
+                <li class="menu-item">
+                    <button class="submenu-toggle">🔧 Solução de Problemas</button>
+                    <ul class="submenu">
+                        <li><a href="#prob_impressora">Fila de Impressão Travada</a></li>
+                        <li><a href="#prob_lentidao">Computador Lento</a></li>
+                        <li><a href="#prob_internet">Não Conecta à Internet</a></li>
+                    </ul>
+                </li>
+                <li class="menu-item">
+                    <button class="submenu-toggle">📖 Tutoriais Passo a Passo</button>
+                    <ul class="submenu">
+                        <li><a href="#tut_formatar_win11">Formatar e Instalar Windows 11</a></li>
+                    </ul>
+                </li>
+                <li class="menu-item">
+                    <button class="submenu-toggle">🧰 Ferramentas Essenciais</button>
+                    <ul class="submenu">
+                        <li><a href="#ferramentas">Lista de Softwares</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <header>
+                <h1>Central de Conhecimento</h1>
+                <div class="search-container">
+                    <input type="text" id="search-box" placeholder="Pesquisar (ex: 'sfc', 'impressora', 'rede')...">
+                    <span class="clear-search" id="clear-btn">✖</span>
+                    <div id="search-results"></div>
                 </div>
-            </aside>
+            </header>
+
+            <section id="inicio" class="content-section">
+                <h2>Bem-vindo!</h2>
+                <p>Este é o seu portal de referência para comandos, soluções e tutoriais de TI. Utilize o menu ou a pesquisa para encontrar rapidamente o que precisa.</p>
+            </section>
+
+            <section id="cmd_ipconfig" class="content-section">
+                <h2>Comando: <code>ipconfig</code></h2>
+                <h3>O que faz?</h3>
+                <p>Exibe as configurações de rede TCP/IP atuais de um computador.</p>
+                <h3>Para qual ocasião usar?</h3>
+                <p>É o primeiro comando a ser usado em qualquer problema de rede. Ideal para verificar o endereço IP, gateway e servidores DNS.</p>
+                <h3>Parâmetros mais comuns:</h3>
+                <ul>
+                    <li><code>ipconfig /all</code>: Mostra todas as informações detalhadas, incluindo endereço MAC.</li>
+                    <li><code>ipconfig /release</code>: Libera o endereço IP atual.</li>
+                    <li><code>ipconfig /renew</code>: Solicita um novo endereço IP.</li>
+                    <li><code>ipconfig /flushdns</code>: Limpa o cache de resolução de DNS.</li>
+                </ul>
+                <div class="summary-list">
+                    <h4>📋 Resumo Rápido</h4>
+                    <ul>
+                        <li><b>Ver seu IP:</b> <code>ipconfig</code></li>
+                        <li><b>Ver TUDO (MAC, DNS, etc):</b> <code>ipconfig /all</code></li>
+                        <li><b>Resolver conflito de IP:</b> <code>ipconfig /release</code> seguido de <code>ipconfig /renew</code></li>
+                        <li><b>Site não abre:</b> <code>ipconfig /flushdns</code></li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="cmd_ping" class="content-section">
+                <h2>Comando: <code>ping</code></h2>
+                <h3>O que faz?</h3>
+                <p>Testa a conectividade entre o seu computador e um destino (outro computador, servidor, site) enviando pacotes de dados e aguardando uma resposta.</p>
+                <h3>Para qual ocasião usar?</h3>
+                <p>Para diagnosticar problemas de rede. Permite saber se um dispositivo está acessível na rede e mede o tempo de resposta (latência).</p>
+                <h3>Exemplos de uso:</h3>
+                <ul>
+                    <li><code>ping 8.8.8.8</code>: Testa a conexão com o servidor DNS do Google. Um bom teste para saber se há conexão com a internet externa.</li>
+                    <li><code>ping google.com</code>: Testa se a resolução de nomes (DNS) está funcionando.</li>
+                    <li><code>ping 192.168.0.1</code>: Testa a conexão com o seu roteador (gateway).</li>
+                    <li><code>ping -t google.com</code>: Ping contínuo, útil para monitorar a estabilidade da conexão. (Use Ctrl+C para parar).</li>
+                </ul>
+                <div class="summary-list">
+                    <h4>📋 Resumo Rápido</h4>
+                    <ul>
+                        <li><b>Saber se tem internet:</b> <code>ping 8.8.8.8</code></li>
+                        <li><b>Saber se o roteador responde:</b> <code>ping [IP do gateway]</code></li>
+                        <li><b>Verificar se o DNS funciona:</b> <code>ping [nome de um site]</code></li>
+                        <li><b>Monitorar quedas de conexão:</b> <code>ping -t [destino]</code></li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="cmd_sfc" class="content-section">
+                <h2>Comando: <code>sfc /scannow</code></h2>
+                <h3>O que faz?</h3>
+                <p>O <b>SFC</b> (System File Checker) verifica a integridade de todos os arquivos de sistema protegidos do Windows e substitui versões corrompidas, danificadas ou incorretas pelas versões corretas.</p>
+                <h3>Para qual ocasião usar?</h3>
+                <p>Quando o Windows apresenta comportamento estranho, erros inesperados, telas azuis (BSOD) ou funcionalidades do sistema param de funcionar. Deve ser executado em um Prompt de Comando como Administrador.</p>
+                <h3>Como usar:</h3>
+                <ol>
+                    <li>Abra o Prompt de Comando (ou PowerShell) como Administrador.</li>
+                    <li>Digite <code>sfc /scannow</code> e pressione Enter.</li>
+                    <li>Aguarde o processo terminar. Ele pode levar um tempo.</li>
+                </ol>
+                <div class="summary-list">
+                    <h4>📋 Resumo Rápido</h4>
+                    <ul>
+                        <li><b>Problemas estranhos no Windows?</b> Use <code>sfc /scannow</code>.</li>
+                        <li><b>Objetivo:</b> Corrigir arquivos do sistema corrompidos.</li>
+                        <li><b>Requisito:</b> Sempre executar como <strong>Administrador</strong>.</li>
+                    </ul>
+                </div>
+            </section>
             
-            <main>
-                <section class="section" style="background: var(--accent-light); border-color: var(--accent);">
-                    <h2 style="color: var(--accent); border-color: var(--accent-light);">Introdução: A Abordagem do Técnico</h2>
-                    <p>Este guia é um "manual de campo" para diagnóstico rápido. O objetivo é isolar problemas em quatro categorias principais: <strong>Hardware Físico</strong>, <strong>Armazenamento (Disco/Partição)</strong>, <strong>Sistema de Arquivos</strong> ou <strong>Arquivos do SO/Boot</strong>.</p>
-                    <p class="muted">A maioria dos problemas de "não inicializa" ou "instalação falhou" se enquadra em uma dessas categorias. Use o índice para pular para a ferramenta correta.</p>
-                </section>
+            <section id="cmd_chkdsk" class="content-section">
+                <h2>Comando: <code>chkdsk</code></h2>
+                <h3>O que faz?</h3>
+                <p>O <b>Check Disk</b> (<code>chkdsk</code>) verifica o sistema de arquivos de um disco (HD/SSD) em busca de erros lógicos e físicos e tenta corrigi-los.</p>
+                <h3>Para qual ocasião usar?</h3>
+                <p>Quando há suspeita de problemas no disco rígido, como lentidão excessiva, arquivos que não abrem, ou se o Windows sugere uma verificação. Executar como Administrador.</p>
+                <h3>Parâmetros mais comuns:</h3>
+                <ul>
+                    <li><code>chkdsk c: /f</code>: Verifica o disco C: e corrige os erros encontrados. O Windows geralmente precisa agendar a verificação para a próxima reinicialização.</li>
+                    <li><code>chkdsk c: /r</code>: Localiza setores defeituosos no disco C: e tenta recuperar informações legíveis (inclui a função do /f). É mais demorado.</li>
+                </ul>
+                <div class="summary-list">
+                    <h4>📋 Resumo Rápido</h4>
+                    <ul>
+                        <li><b>Suspeita de erro no HD/SSD?</b> Use <code>chkdsk /f</code>.</li>
+                        <li><b>Análise completa (corrige erros e setores):</b> <code>chkdsk /r</code> (mais demorado).</li>
+                        <li><b>Importante:</b> Se o <code>chkdsk</code> encontrar muitos erros, considere fazer um backup imediato dos dados.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="cmd_netstat" class="content-section">
+                <h2>Comando: <code>netstat</code></h2>
+                <h3>O que faz?</h3>
+                <p>Exibe as conexões de rede ativas (entrando e saindo), tabelas de roteamento e estatísticas de rede.</p>
+                <h3>Para qual ocasião usar?</h3>
+                <p>É uma ferramenta avançada para identificar quais programas estão se conectando à internet, verificar se há conexões suspeitas (malware) e diagnosticar problemas de porta.</p>
+                <h3>Parâmetros mais comuns:</h3>
+                <ul>
+                    <li><code>netstat -an</code>: Exibe todas as conexões e portas em escuta em formato numérico. Rápido e eficiente.</li>
+                    <li><code>netstat -ano</code>: Igual ao anterior, mas também mostra o PID (ID do Processo) de cada conexão. Útil para descobrir qual programa está usando uma porta.</li>
+                    <li><code>netstat -b</code>: Mostra o executável (.exe) envolvido na criação de cada conexão. Requer privilégios de administrador e é mais lento.</li>
+                </ul>
+                <div class="summary-list">
+                    <h4>📋 Resumo Rápido</h4>
+                    <ul>
+                        <li><b>Ver todas as conexões de rede:</b> <code>netstat -an</code>.</li>
+                        <li><b>Descobrir qual processo usa uma porta:</b> <code>netstat -ano</code> (depois, use o PID no Gerenciador de Tarefas).</li>
+                        <li><b>Ver o nome do programa (.exe) da conexão:</b> <code>netstat -b</code> (como Admin).</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="prob_impressora" class="content-section">
+                <h2>Problema: Fila de Impressão Travada</h2>
+                <h3>Sintoma</h3>
+                <p>Documentos enviados para a impressora ficam parados na fila e não podem ser cancelados.</p>
+                <h3>Solução Passo a Passo (CMD como Admin):</h3>
+                <ol>
+                    <li><b>Pare o serviço de impressão:</b> <code>net stop spooler</code></li>
+                    <li><b>Limpe a fila manualmente:</b> Apague todos os arquivos da pasta <code>C:\Windows\System32\spool\PRINTERS</code>.</li>
+                    <li><b>Reinicie o serviço de impressão:</b> <code>net start spooler</code></li>
+                </ol>
+                <div class="summary-list">
+                    <h4>📋 Resumo Rápido</h4>
+                    <ul>
+                        <li><b>Abra CMD como Admin.</b></li>
+                        <li><b>Pare o serviço:</b> <code>net stop spooler</code></li>
+                        <li><b>Limpe a pasta:</b> Apague o conteúdo de <code>...\spool\PRINTERS</code></li>
+                        <li><b>Inicie o serviço:</b> <code>net start spooler</code></li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="prob_lentidao" class="content-section">
+                <h2>Problema: Computador Lento</h2>
+                <h3>Sintomas</h3>
+                <p>O sistema demora para iniciar, programas demoram para abrir e o uso geral do computador é lento e com travamentos.</p>
+                <h3>Diagnóstico e Solução Passo a Passo:</h3>
+                <ol>
+                    <li><b>Gerenciador de Tarefas (Ctrl+Shift+Esc):</b> Verifique a aba "Processos" por alto uso de CPU, Memória ou Disco. Na aba "Inicializar", desabilite programas desnecessários.</li>
+                    <li><b>Limpeza de Disco:</b> Use a ferramenta "Limpeza de Disco" do Windows para remover arquivos temporários e outros lixos eletrônicos.</li>
+                    <li><b>Verificação de Malware:</b> Rode uma verificação completa com o Windows Defender e, se possível, com uma segunda opinião como o Malwarebytes.</li>
+                    <li><b>Verificar saúde do Disco:</b> Use o comando <code>chkdsk c: /f</code> para verificar erros no disco. Para uma análise mais profunda, use o CrystalDiskInfo para ver o status S.M.A.R.T. do disco.</li>
+                    <li><b>Verificar arquivos do sistema:</b> Execute o <code>sfc /scannow</code> em um CMD como admin.</li>
+                </ol>
+                <div class="summary-list">
+                    <h4>📋 Resumo Rápido</h4>
+                    <ul>
+                        <li><b>Analisar uso:</b> Gerenciador de Tarefas (CPU, Memória, Disco, Inicializar).</li>
+                        <li><b>Limpar arquivos:</b> Ferramenta "Limpeza de Disco" do Windows.</li>
+                        <li><b>Procurar vírus:</b> Windows Defender + Malwarebytes.</li>
+                        <li><b>Checar o disco:</b> <code>chkdsk /f</code> e CrystalDiskInfo.</li>
+                        <li><b>Corrigir o sistema:</b> <code>sfc /scannow</code>.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="prob_internet" class="content-section">
+                <h2>Problema: Não Conecta à Internet</h2>
+                <h3>Sintomas</h3>
+                <p>O computador está conectado à rede (via cabo ou Wi-Fi), mas não consegue acessar sites ou serviços online. O ícone de rede pode mostrar "Sem acesso à Internet".</p>
+                <h3>Diagnóstico e Solução Passo a Passo:</h3>
+                <ol>
+                    <li><b>Verificar outros dispositivos:</b> Confirme se outros aparelhos (como seu celular) conseguem acessar a internet na mesma rede. Se não, o problema é no roteador ou no provedor. Reinicie o roteador.</li>
+                    <li><b>Ping para diagnóstico (CMD):</b>
+                        <ul>
+                            <li><code>ping 192.168.0.1</code> (ou o IP do seu roteador): Se falhar, há um problema entre o PC e o roteador (cabo, Wi-Fi, placa de rede).</li>
+                            <li><code>ping 8.8.8.8</code>: Se o passo anterior funcionar mas este falhar, o PC chega ao roteador, mas não à internet. O problema pode ser no roteador ou no provedor.</li>
+                            <li><code>ping google.com</code>: Se o passo anterior funcionar mas este falhar, o problema é no DNS.</li>
+                        </ul>
+                    </li>
+                    <li><b>Comandos de Rede para Resetar (CMD como Admin):</b> Execute na ordem:
+                        <ol>
+                           <li><code>ipconfig /release</code></li>
+                           <li><code>ipconfig /renew</code></li>
+                           <li><code>ipconfig /flushdns</code></li>
+                           <li><code>netsh winsock reset</code> (requer reinicialização)</li>
+                        </ol>
+                    </li>
+                    <li><b>Verificar Drivers:</b> No "Gerenciador de Dispositivos", verifique se o "Adaptador de Rede" está funcionando corretamente (sem triângulos amarelos). Se necessário, reinstale ou atualize o driver.</li>
+                </ol>
+                <div class="summary-list">
+                    <h4>📋 Resumo Rápido</h4>
+                    <ul>
+                        <li><b>Teste Básico:</b> Verifique outros dispositivos e reinicie o roteador.</li>
+                        <li><b>Diagnóstico Rápido (Ping):</b> Teste o gateway (roteador), um IP externo (8.8.8.8) e um domínio (google.com).</li>
+                        <li><b>Resetar Configurações (CMD Admin):</b> <code>ipconfig /release</code>, <code>/renew</code>, <code>/flushdns</code> e <code>netsh winsock reset</code>.</li>
+                        <li><b>Verificar Hardware:</b> Cheque os drivers do adaptador de rede.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="tut_formatar_win11" class="content-section">
+                <h2>Tutorial: Como Formatar e Instalar o Windows 11</h2>
+                <h3>Requisitos</h3>
+                <ul>
+                    <li>Um pendrive de no mínimo 8 GB.</li>
+                    <li>Acesso a um computador funcional para criar o pendrive bootável.</li>
+                    <li>Backup de todos os seus arquivos importantes! Este processo apagará tudo.</li>
+                </ul>
+                <h3>Passo a Passo</h3>
+                <ol>
+                    <li><b>Criar o Pendrive Bootável:</b>
+                        <ul>
+                            <li>Baixe a "Ferramenta de Criação de Mídia do Windows 11" do site oficial da Microsoft.</li>
+                            <li>Execute a ferramenta, aceite os termos, selecione "Criar mídia de instalação" e avance.</li>
+                            <li>Escolha "Unidade flash USB", selecione seu pendrive na lista e aguarde o processo terminar.</li>
+                        </ul>
+                    </li>
+                    <li><b>Iniciar pelo Pendrive:</b>
+                        <ul>
+                            <li>Conecte o pendrive no computador que será formatado.</li>
+                            <li>Reinicie o computador e acesse a BIOS/UEFI (pressionando F2, F10, F12 ou Del durante a inicialização).</li>
+                            <li>Na seção "Boot" ou "Inicialização", defina o pendrive USB como a primeira opção de boot.</li>
+                            <li>Salve as alterações e saia da BIOS. O computador irá reiniciar e iniciar pelo pendrive.</li>
+                        </ul>
+                    </li>
+                    <li><b>Processo de Instalação:</b>
+                        <ul>
+                            <li>Na primeira tela, configure idioma e teclado e clique em "Avançar" e "Instalar agora".</li>
+                            <li>Insira sua chave do Windows ou clique em "Não tenho a chave do produto".</li>
+                            <li>Escolha a versão do Windows 11 que deseja instalar (geralmente Home ou Pro).</li>
+                            <li>Selecione a opção "Personalizada: Instalar apenas o Windows (avançado)".</li>
+                            <li>Na tela de partições, exclua as partições antigas do sistema (Cuidado para não apagar partições de dados!). Selecione o espaço não alocado e clique em "Avançar". O Windows criará as partições necessárias.</li>
+                            <li>Aguarde a instalação. O computador reiniciará algumas vezes.</li>
+                        </ul>
+                    </li>
+                    <li><b>Configuração Final:</b>
+                        <ul>
+                            <li>Após a instalação, siga as instruções na tela para configurar sua região, teclado, conta Microsoft e preferências de privacidade.</li>
+                            <li>Após chegar à área de trabalho, conecte-se à internet e vá em "Configurações > Windows Update" para baixar todos os drivers e atualizações mais recentes.</li>
+                        </ul>
+                    </li>
+                </ol>
+                 <div class="summary-list">
+                    <h4>📋 Resumo Rápido</h4>
+                    <ul>
+                        <li><b>Preparação:</b> Faça backup de tudo e crie um pendrive bootável com a ferramenta da Microsoft.</li>
+                        <li><b>Inicialização:</b> Configure a BIOS/UEFI para dar boot pelo pendrive.</li>
+                        <li><b>Instalação:</b> Escolha a instalação "Personalizada", exclua as partições antigas e instale no espaço não alocado.</li>
+                        <li><b>Pós-Instalação:</b> Configure o Windows e, o mais importante, execute o Windows Update para instalar todos os drivers.</li>
+                    </ul>
+                </div>
+            </section>
             
-                <div id="content">
-                    </div>
-                
-                <footer>
-                    <div class="muted">Use com responsabilidade. Comandos como <code>clean</code> (DiskPart) e <code>format</code> apagam dados permanentemente. Sempre confirme o disco/partição alvo antes de executar.</div>
-                </footer>
-            </main>
-        </div>
+            <section id="ferramentas" class="content-section">
+                <h2>🧰 Ferramentas Essenciais</h2>
+                <h3>Lista de Softwares que todo Técnico Deveria Ter</h3>
+                <ul>
+                    <li><b>Malwarebytes:</b> Excelente para uma segunda opinião na remoção de malwares.</li>
+                    <li><b>CrystalDiskInfo:</b> Verifica o status de saúde (S.M.A.R.T.) de HDs e SSDs, prevendo falhas.</li>
+                    <li><b>HWiNFO64:</b> Fornece um relatório completo de todo o hardware do computador, incluindo temperaturas.</li>
+                    <li><b>Rufus:</b> Uma ferramenta poderosa e flexível para criar pendrives bootáveis de diversos sistemas.</li>
+                    <li><b>Macrium Reflect Free:</b> Ótima solução para clonagem de discos e criação de imagens de backup.</li>
+                    <li><b>7-Zip:</b> Compactador/descompactador de arquivos leve, gratuito e compatível com múltiplos formatos.</li>
+                    <li><b>ProduKey (NirSoft):</b> Ajuda a recuperar chaves de produto do Windows e Office instalados na máquina.</li>
+                </ul>
+            </section>
+        </main>
     </div>
 
     <script>
-        // --- Conteúdo detalhado das seções ---
-        const sections = [
-            {
-                id: 'physical',
-                title: 'Verificações Físicas (Passo Zero)',
-                body: `
-                    <h3>O que é</h3>
-                    <p>Antes de executar qualquer comando, valide o hardware. Problemas de software são frequentemente sintomas de problemas físicos.</p>
-                    <h3>Checklist Rápido</h3>
-                    <ul class="list-compact">
-                        <li><strong>Cabos:</strong> Verifique se os cabos SATA (dados e energia) ou o encaixe M.2 do SSD/NVMe estão firmes.</li>
-                        <li><strong>Memória RAM:</strong> Remova e recoloque os pentes de memória. Tente inicializar com apenas um pente de cada vez.</li>
-                        <li><strong>Portas USB:</strong> Se estiver usando um pendrive de instalação, troque a porta USB. Use portas traseiras (direto na placa-mãe) em vez de frontais ou hubs.</li>
-                        <li><strong>Periféricos:</strong> Desconecte todos os dispositivos USB desnecessários (HDs externos, webcams, controles) antes de tentar a instalação ou boot.</li>
-                        <li><strong>Poeira:</strong> Superaquecimento por poeira pode causar travamentos. Verifique os coolers.</li>
-                    </ul>
-                    <p class="muted">Muitos "erros de cópia de arquivos" (0x80070570) ou travamentos aleatórios são causados por RAM ou SSD/HD mal encaixados.</p>
-                `
-            },
-            {
-                id: 'access',
-                title: 'Acesso Rápido ao Prompt (CMD)',
-                body: `
-                    <h3>O que é</h3>
-                    <p>O Prompt de Comando (CMD) é sua principal ferramenta de diagnóstico em ambientes de pré-instalação (WinPE) ou recuperação (WinRE).</p>
-                    <h3>Como Acessar</h3>
-                    <ul class="list-compact">
-                        <li><strong>Durante Instalação do Windows:</strong> Pressione <span class="kbd">Shift + F10</span> a qualquer momento.</li>
-                        <li><strong>Na Tela de Login (Win 10/11):</strong> Segure <span class="kbd">Shift</span>, clique no ícone de Energia e escolha "Reiniciar". Isso o levará ao WinRE (Ambiente de Recuperação). Vá em Solução de Problemas → Opções Avançadas → Prompt de Comando.</li>
-                        <li><strong>No Windows (Online):</strong> Pesquise "cmd", clique com o botão direito e "Executar como administrador".</li>
-                    </ul>
-                `
-            },
-            {
-                id: 'diskpart',
-                title: 'DiskPart — Gerenciamento de Discos',
-                body: `
-                    <h3>O que faz</h3>
-                    <p>DiskPart é o utilitário de linha de comando para gerenciar discos, partições e volumes. Essencial para preparar um disco para instalação, corrigir partições corrompidas ou converter estilos de partição (MBR/GPT).</p>
-                    
-                    <div class="danger">
-                        <strong>Risco Alto:</strong> O comando <code>clean</code> apaga <strong>TODAS</strong> as partições e dados do disco selecionado instantaneamente. Tenha 100% de certeza de que selecionou o disco correto (<code>select disk X</code>).
-                    </div>
-                    
-                    <h3>Comandos Essenciais (Listar e Identificar)</h3>
-                    <p>Sempre comece por aqui para identificar seu alvo.</p>
-                    <div class="code-container"><pre class="code">diskpart
-list disk       // Lista discos físicos (HD/SSD). Verifique o tamanho para identificar.
-list volume     // Lista volumes (partições com letras). Útil para ver a letra do seu pendrive ou partição do Windows.</pre></div>
-
-                    <h3>Exemplo: Limpar disco para instalação (UEFI/GPT)</h3>
-                    <p>Use este fluxo se a instalação do Windows falhar ou o disco estiver em um formato incorreto (MBR em vez de GPT).</p>
-                    <div class="code-container"><pre class="code">list disk
-select disk 0    // Substitua 0 pelo número do disco alvo
-clean            // PERIGOSO: Apaga tudo no disco 0
-convert gpt      // Converte para GPT (padrão UEFI moderno)
-exit</pre></div>
-                    <p>Após <code>convert gpt</code>, você pode fechar o prompt e continuar a instalação do Windows. O instalador criará as partições (EFI, MSR, Primária) automaticamente.</p>
-                    
-                    <h3>Exemplo: Atribuir letra (para rodar SFC/DISM)</h3>
-                    <p>Às vezes, no WinRE, a partição do Windows não recebe uma letra (ou recebe a letra errada). Use o <code>list volume</code> para encontrar a partição correta (baseado no tamanho) e atribua uma letra.</p>
-                    <div class="code-container"><pre class="code">list volume
-select volume 3  // Substitua 3 pelo volume do seu Windows
-assign letter=C  // Atribui a letra C:
-exit</pre></div>
-                `
-            },
-            {
-                id: 'chkdsk',
-                title: 'CHKDSK — Verificar e Reparar Disco',
-                body: `
-                    <h3>O que faz</h3>
-                    <p>CHKDSK (Check Disk) verifica a integridade do sistema de arquivos (NTFS, FAT32) e, opcionalmente, a superfície física do disco em busca de setores defeituosos.</p>
-                    <h3>Quando usar</h3>
-                    <p>Use se a instalação travar em uma porcentagem fixa, o Windows travar ao carregar, ou se houver erros de "arquivo não encontrado" ou "leitura de disco" (I/O).</p>
-                    
-                    <h3>Comandos Principais</h3>
-                    <div class="code-container"><pre class="code">rem Primeiro, descubra a letra da partição do Windows (pode não ser C: no WinRE)
-diskpart
-list volume
-exit
-
-rem /f - Corrige erros no sistema de arquivos
-chkdsk C: /f
-
-rem /r - Localiza setores defeituosos e recupera informações legíveis (inclui /f). É MUITO lento.
-chkdsk C: /r</pre></div>
-                    
-                    <h3>Observações</h3>
-                    <p>Se você executar no Windows, ele agendará a verificação para a próxima reinicialização. Se executar no WinRE/WinPE, ele tentará "travar" o volume e executar imediatamente. Se falhar, é porque o volume está em uso.</p>
-                    <p class="muted">Se <code>chkdsk /r</code> encontrar muitos setores defeituosos, o disco está falhando. Faça backup imediatamente e substitua o disco.</p>
-                `
-            },
-            {
-                id: 'sfc_dism',
-                title: 'SFC & DISM — Integridade do Sistema',
-                body: `
-                    <h3>O que fazem</h3>
-                    <p>São suas ferramentas principais para corrigir arquivos corrompidos do Windows.</p>
-                    <ul class="list-compact">
-                        <li><strong>SFC (System File Checker):</strong> Verifica e repara arquivos de sistema protegidos do Windows (ex: .dll, .exe).</li>
-                        <li><strong>DISM (Deployment Image Servicing and Management):</strong> Repara a "imagem" do Windows (o repositório de componentes) que o SFC usa para fazer os reparos.</li>
-                    </ul>
-                    <p><strong>Regra de ouro:</strong> Sempre execute o DISM primeiro. Se a "fonte" (imagem) estiver corrompida, o SFC falhará.</p>
-                    
-                    <h3>Cenário 1: No Windows (Online)</h3>
-                    <p>Execute no CMD como Administrador.</p>
-                    <div class="code-container"><pre class="code">rem 1. Repara a imagem online usando o Windows Update
-Dism /Online /Cleanup-Image /RestoreHealth
-
-rem 2. Após o DISM, execute o SFC
-sfc /scannow</pre></div>
-
-                    <h3>Cenário 2: No WinPE / WinRE (Offline)</h3>
-                    <p>Este é o cenário mais técnico. Você precisa dizer ao DISM e ao SFC onde a instalação do Windows está (ex: <code>C:\Windows</code>) e, opcionalmente, onde está a "fonte" de reparo (ex: um pendrive de instalação em <code>D:</code>).</p>
-                    <div class="code-container"><pre class="code">rem 1. Descubra as letras (ex: Windows está em C:, pendrive em D:)
-diskpart
-list volume
-exit
-
-rem 2. Execute DISM apontando para o Windows offline (C:) e usando o install.wim do pendrive (D:) como fonte
-Dism /Image:C:\ /Cleanup-Image /RestoreHealth /Source:D:\sources\install.wim
-
-rem 3. Execute SFC apontando para os diretórios offline
-sfc /scannow /offbootdir=C:\ /offwindir=C:\Windows</pre></div>
-                `
-            },
-            {
-                id: 'bcd',
-                title: 'Reparar Inicialização (BOOTREC & BCD)',
-                body: `
-                    <h3>Quando usar</h3>
-                    <p>Quando o Windows não inicia e exibe erros como "BCD error", "BOOTMGR is missing", "No bootable device found", ou tela preta com cursor piscando.</p>
-                    <p>A correção depende do seu sistema: <strong>Legacy (MBR)</strong> ou <strong>UEFI (GPT)</strong>. Use <code>diskpart</code> → <code>list disk</code> para ver se há um <code>*</code> na coluna "Gpt". Se sim, você está em UEFI.</p>
-                    
-                    <h3>Cenário 1: Reparo Legacy (MBR)</h3>
-                    <p>Estes comandos são mais antigos e geralmente funcionam em discos MBR.</p>
-                    <div class="code-container"><pre class="code">bootrec /fixmbr    // Recria o Master Boot Record
-bootrec /fixboot   // Grava um novo setor de inicialização (pode falhar em UEFI)
-bootrec /scanos    // Varre instalações do Windows
-bootrec /rebuildbcd // Adiciona instalações encontradas ao BCD</pre></div>
-
-                    <h3>Cenário 2: Reparo UEFI (GPT) — O Método Correto</h3>
-                    <p>Em sistemas UEFI, o boot falha se a partição EFI (geralmente FAT32, ~100-500MB) estiver corrompida ou sem letra. O comando <code>bcdboot</code> é a ferramenta correta.</p>
-                    <p>O objetivo é recriar os arquivos de boot na partição EFI.</p>
-                    
-                    <div class="code-container"><pre class="code">rem 1. Identifique a partição EFI e a partição do Windows
-diskpart
-list disk
-select disk 0      // Selecione o disco com o Windows
-list volume        // Procure o volume FAT32 (ex: "Volume 2") e o volume do Windows (ex: "Volume 3")
-
-rem 2. Atribua uma letra temporária à partição EFI (ex: V)
-select volume 2    // Selecione o volume EFI (FAT32)
-assign letter=V:   // Atribui a letra V:
-list volume        // Confirme se a partição do Windows (ex: C:) e a EFI (V:) têm letras
-exit
-
-rem 3. Use BCDboot para recriar os arquivos de boot
-rem Sintaxe: bcdboot [Caminho do Windows] /s [Letra da EFI] /f [Firmware]
-bcdboot C:\Windows /s V: /f UEFI</pre></div>
-                    <p>Este comando copia os arquivos de inicialização de <code>C:\Windows</code> para a partição EFI em <code>V:</code>, formatando-os para UEFI. Isso resolve 90% dos problemas de boot UEFI.</p>
-                `
-            },
-            {
-                id: 'memtest',
-                title: 'Teste de Memória (RAM)',
-                body: `
-                    <h3>Sinais de RAM ruim</h3>
-                    <p>Falhas na RAM são a principal causa de problemas "fantasma": travamentos aleatórios, telas azuis (BSOD) com códigos diferentes a cada vez, e falhas durante a instalação do Windows (especialmente em porcentagens fixas como 70-90%).</p>
-                    <h3>Métodos</h3>
-                    <ul class="list-compact">
-                        <li><strong>Windows Memory Diagnostic (MDSched):</strong>
-                            <ul>
-                                <li>No Windows: Execute <code>mdsched.exe</code> e escolha "Reiniciar agora e verificar".</li>
-                                <li>No WinRE: Pode estar disponível nas Opções Avançadas.</li>
-                            </ul>
-                        </li>
-                        <li><strong>Memtest86+ / Memtest86:</strong>
-                            <ul>
-                                <li><strong>Recomendado.</strong> É uma ferramenta mais profunda e confiável.</li>
-                                <li>Crie um pendrive bootável com o Memtest86 e deixe-o rodar por várias horas (ou "passes").</li>
-                            </ul>
-                        </li>
-                    </ul>
-                    <p class="muted">Qualquer erro (mesmo que seja 1) reportado pelo Memtest significa que o pente de RAM está defeituoso e deve ser trocado. Se houver múltiplos pentes, teste um de cada vez para isolar o defeituoso.</p>
-                `
-            },
-            {
-                id: 'safemode',
-                title: 'Modo de Segurança (Via CMD)',
-                body: `
-                    <h3>O que é</h3>
-                    <p>O Modo de Segurança inicia o Windows com o mínimo de drivers e serviços. Essencial para remover malware, desinstalar drivers problemáticos (ex: GPU) ou reverter atualizações que falharam.</p>
-                    <h3>Como forçar (do WinRE / Prompt)</h3>
-                    <p>Se o Windows não inicia normalmente, você pode forçar a próxima inicialização em Modo de Segurança usando <code>bcdedit</code>.</p>
-                    
-                    <div class="code-container"><pre class="code">rem Identificador {default} geralmente funciona
-rem Modo de Segurança (Mínimo)
-bcdedit /set {default} safeboot minimal
-
-rem Modo de Segurança (com Rede)
-bcdedit /set {default} safeboot network
-
-rem Após terminar, desative o modo de segurança
-bcdedit /deletevalue {default} safeboot</pre></div>
-                    <p>Após executar o comando <code>/set</code>, reinicie o computador (<code>shutdown /r /t 0</code>). O Windows tentará iniciar diretamente no Modo de Segurança.</p>
-                `
-            },
-            {
-                id: 'restore',
-                title: 'Restauração do Sistema (Via CMD)',
-                body: `
-                    <h3>O que é</h3>
-                    <p>Reverte o estado do sistema (drivers, registro, programas instalados) para um "Ponto de Restauração" anterior. Não afeta arquivos pessoais.</p>
-                    <h3>Quando usar</h3>
-                    <p>Use quando um problema começou a ocorrer imediatamente após uma instalação de driver, atualização do Windows ou instalação de software suspeito.</p>
-                    
-                    <h3>Como iniciar (do WinRE / Prompt)</h3>
-                    <p>O utilitário gráfico da Restauração do Sistema pode ser iniciado diretamente, mesmo do WinRE.</p>
-                    <div class="code-container"><pre class="code">rstrui.exe</pre></div>
-                    <p>Isso abrirá a interface gráfica. Se houver pontos de restauração disponíveis, você poderá selecionar um e iniciar o processo.</p>
-                    <p class="muted">Se o comando falhar, pode ser necessário primeiro navegar para <code>C:\Windows\System32</code>.</p>
-                `
-            },
-            {
-                id: 'wmic_powershell',
-                title: 'WMIC & PowerShell (Info Rápida)',
-                body: `
-                    <h3>O que são</h3>
-                    <p>Ferramentas para consultar rapidamente o status do hardware e software via linha de comando.</p>
-                    <p class="muted"><code>WMIC</code> está sendo descontinuado. <strong>PowerShell</strong> é o substituto moderno. Você pode iniciar o PowerShell digitando <code>powershell</code> no CMD.</p>
-
-                    <h3>Status SMART do Disco (Previsão de Falha)</h3>
-                    <div class="code-container"><pre class="code">rem Método antigo (WMIC)
-wmic diskdrive get status
-
-rem Método novo (PowerShell)
-Get-PhysicalDisk | Format-Table DeviceID, Model, HealthStatus, MediaType</pre></div>
-                    
-                    <h3>Informações de CPU e Memória</h3>
-                    <div class="code-container"><pre class="code">rem CPU (PowerShell)
-Get-CimInstance Win32_Processor | Select Name, NumberOfCores, MaxClockSpeed
-
-rem Memória (PowerShell) - Lista pentes e capacidade
-Get-CimInstance Win32_PhysicalMemory | Format-Table DeviceLocator, Capacity, Speed</pre></div>
-                    <p>Se o <code>HealthStatus</code> do disco não for "Healthy" (ou o <code>status</code> do WMIC não for "OK"), o disco está falhando (Pred Fail) e precisa ser substituído.</p>
-                `
-            },
-            {
-                id: 'bsod',
-                title: 'Análise de BSOD (Tela Azul)',
-                body: `
-                    <h3>O que é</h3>
-                    <p>BSOD (Blue Screen of Death) ocorre quando o Windows encontra um erro crítico e desliga para evitar danos. O mais importante é o <strong>código de parada</strong> (ex: <code>DRIVER_IRQL_NOT_LESS_OR_EQUAL</code>) e o <strong>arquivo</strong> que falhou (ex: <code>nvlddmkm.sys</code>).</p>
-                    <h3>Como analisar (Rápido)</h3>
-                    <p>Você não precisa ser um expert em WinDbg. Use ferramentas portáteis em um pendrive para ler os arquivos de "dump" (despejo de memória) que o Windows cria.</p>
-                    <ul class="list-compact">
-                        <li><strong>Ferramenta:</strong> BlueScreenView (da NirSoft).</li>
-                        <li><strong>O que fazer:</strong> Execute o BlueScreenView (em um Windows funcional ou no WinRE, se tiver a versão portátil). Ele varrerá <code>C:\Windows\Minidump</code>.</li>
-                        <li><strong>O que procurar:</strong> A ferramenta mostrará o arquivo que causou o crash na coluna "Caused By Driver". Se o mesmo arquivo (ex: <code>rtwlanu.sys</code>) aparecer em múltiplos crashes, você encontrou o culpado (neste exemplo, o driver da placa de rede Realtek).</li>
-                    </ul>
-                    <p>Uma vez identificado o driver, a solução é desinstalá-lo (via Modo de Segurança) ou atualizá-lo.</p>
-                `
-            },
-            {
-                id: 'drivers',
-                title: 'Drivers — Listar e Identificar',
-                body: `
-                    <h3>Objetivo</h3>
-                    <p>Às vezes, a instalação do Windows não "vê" o SSD (especialmente NVMe ou RAID) porque falta o driver da controladora de armazenamento (ex: Intel RST).</p>
-                    <h3>Comandos (Listar)</h3>
-                    <p>Liste todos os drivers carregados. Útil para ver se há algo estranho ou faltando.</p>
-                    <div class="code-container"><pre class="code">driverquery /fo table
-driverquery /fo csv > C:\drivers.csv</pre></div>
-                    <h3>Carregando Drivers na Instalação</h3>
-                    <p>Na tela de seleção de disco da instalação do Windows, se o seu disco não aparecer:</p>
-                    <ul class="list-compact">
-                        <li>Clique em "Carregar driver".</li>
-                        <li>Navegue até o pendrive onde você baixou os drivers da controladora (geralmente do site da fabricante do notebook/placa-mãe).</li>
-                        <li>Procure pelo arquivo <code>.inf</code> (ex: <code>iaStorAC.inf</code> para Intel RST).</li>
-                        <li>Se for o driver correto, o disco deverá aparecer na lista.</li>
-                    </ul>
-                `
-            },
-            {
-                id: 'event',
-                title: 'Logs — Visualizador de Eventos',
-                body: `
-                    <h3>O que é</h3>
-                    <p>O log de eventos do Windows registra tudo que acontece no sistema. É a "caixa preta" do computador.</p>
-                    <h3>Como abrir (no Windows)</h3>
-                    <div class="code-container"><pre class="code">eventvwr.msc</pre></div>
-                    <h3>O que verificar</h3>
-                    <p>Não se assuste com a quantidade de "Avisos". Foque em "Erros" e "Críticos" que ocorreram no momento do travamento.</p>
-                    <ul class="list-compact">
-                        <li><strong>Logs do Windows → Sistema:</strong> Verifique esta seção primeiro.
-                            <ul>
-                                <li>Procure por IDs de evento como <code>Event ID 7</code> ou <code>Event ID 11</code> (Erros de disco).</li>
-                                <li><code>Event ID 41 (Kernel-Power)</code>: Indica que o sistema foi reiniciado inesperadamente (ex: queda de energia, botão de reset, travamento total).</li>
-                            </ul>
-                        </li>
-                        <li><strong>Logs do Windows → Aplicativo:</strong> Erros de programas específicos.</li>
-                    </ul>
-                    <p class="muted">Filtre o log por "Crítico" e "Erro" para limpar a visualização e foque nos eventos que ocorreram minutos antes da falha.</p>
-                `
-            },
-            {
-                id: 'network',
-                title: 'Rede — Diagnóstico Básico',
-                body: `
-                    <h3>Quando usar</h3>
-                    <p>Problemas de ativação do Windows, falha em baixar atualizações, ou quando a instalação (que requer internet) falha.</p>
-                    <h3>Comandos Essenciais</h3>
-                    <div class="code-container"><pre class="code">rem 1. Verificar se você tem um IP válido
-ipconfig /all
-
-rem 2. Testar conectividade com um servidor externo (Google)
-ping 8.8.8.8
-
-rem 3. Testar resolução de DNS (Se o ping 8.8.8.8 funciona, mas este não, é DNS)
-ping www.google.com
-
-rem 4. Resetar a pilha de rede (Executar como admin no Windows)
-netsh int ip reset
-netsh winsock reset</pre></div>
-                    <p>Após os comandos de <code>reset</code>, reinicie o computador.</p>
-                `
-            },
-            {
-                id: 'recap',
-                title: 'Recapitulando — Fluxo de Ação',
-                body: `
-                    <h3>Resumo do Diagnóstico</h3>
-                    <p>Use esta lista como um fluxo mental rápido para isolar problemas.</p>
-                    <div class="code-container"><pre class="code">1. O disco aparece na BIOS/UEFI?
-   -> Não: Checagem Física (Cabo/Encaixe).
-   -> Sim: Próximo passo.
-
-2. O disco aparece no `diskpart` -> `list disk`?
-   -> Não: Falta driver de controladora (Intel RST, etc). Carregue na instalação.
-   -> Sim: Próximo passo.
-
-3. O boot falha com erro de BCD/BOOTMGR?
-   -> Sistema UEFI: Reparo com `bcdboot` (Cenário 2 da seção BCD).
-   -> Sistema Legacy: Reparo com `bootrec /fixmbr` e `/rebuildbcd`.
-
-4. A instalação/Windows trava aleatoriamente?
-   -> Teste de Memória (`mdsched` ou Memtest86).
-   -> Verifique temperatura (HWiNFO).
-
-5. O Windows inicia mas está corrompido?
-   -> `Dism /Online /Cleanup-Image /RestoreHealth`
-   -> `sfc /scannow`
-   -> Se falhar, execute as versões Offline (do WinRE).</pre></div>
-                `
-            }
-        ];
-
-
-        // --- Renderização ---
-        const contentEl = document.getElementById('content');
-        const tocEl = document.getElementById('toc');
-        const select = document.getElementById('sectionSelect');
-        const qInput = document.getElementById('q');
-        const tocList = document.createElement('ul');
-        tocEl.appendChild(tocList);
-
-        /**
-         * Adiciona um botão "Copiar" a um bloco de código
-         * @param {HTMLElement} codeBlock - O elemento <pre class="code">
-         */
-        function addCopyButton(codeBlock) {
-            const container = document.createElement('div');
-            container.className = 'code-container';
-            
-            // Insere o container antes do codeBlock e move o codeBlock para dentro dele
-            codeBlock.parentNode.insertBefore(container, codeBlock);
-            container.appendChild(codeBlock);
-            
-            const btn = document.createElement('button');
-            btn.className = 'copy-btn';
-            btn.textContent = 'Copiar';
-            
-            btn.onclick = () => {
-                navigator.clipboard.writeText(codeBlock.innerText).then(() => {
-                    btn.textContent = 'Copiado!';
-                    setTimeout(() => { btn.textContent = 'Copiar'; }, 2000);
-                }).catch(err => {
-                    btn.textContent = 'Erro';
-                    console.error('Falha ao copiar:', err);
+        // --- LÓGICA DO MENU EXPANSÍVEL ---
+        document.querySelectorAll('.submenu-toggle').forEach(button => {
+            button.addEventListener('click', () => {
+                const submenu = button.nextElementSibling;
+                // Fecha outros submenus abertos
+                document.querySelectorAll('.submenu').forEach(otherSubmenu => {
+                    if (otherSubmenu !== submenu) {
+                        otherSubmenu.style.maxHeight = null;
+                    }
                 });
-            };
-            
-            container.appendChild(btn);
-        }
-
-        /**
-         * Renderiza todas as seções
-         */
-        function renderAll() {
-            contentEl.innerHTML = '';
-            tocList.innerHTML = '';
-            select.innerHTML = '<option value="all">Todas as seções</option>';
-
-            sections.forEach(s => {
-                // Criar link do TOC (Menu lateral)
-                const li = document.createElement('li');
-                const a = document.createElement('a');
-                a.href = '#sec-' + s.id;
-                a.textContent = s.title;
-                a.dataset.id = s.id;
-                a.onclick = (e) => {
-                    e.preventDefault();
-                    showSection(s.id);
-                };
-                li.appendChild(a);
-                tocList.appendChild(li);
-
-                // Criar opção do Select
-                const opt = document.createElement('option');
-                opt.value = s.id;
-                opt.textContent = s.title;
-                select.appendChild(opt);
-
-                // Renderizar conteúdo principal
-                const sec = document.createElement('section');
-                sec.className = 'section';
-                sec.id = 'sec-' + s.id;
-                // Usamos <pre class="code">...</pre> nos blocos de código
-                sec.innerHTML = `<h2>${s.title}</h2>${s.body.replace(/<div class="code">/g, '<pre class="code">').replace(/<\/div> /g, '</pre>')}`;
-                contentEl.appendChild(sec);
-                
-                // Adicionar botões de cópia aos blocos <pre class="code">
-                sec.querySelectorAll('.code').forEach(addCopyButton);
-            });
-        }
-
-        /**
-         * Mostra uma seção específica e atualiza o menu
-         * @param {string} id - O ID da seção a mostrar
-         */
-        function showSection(id) {
-            if (id === 'all') {
-                document.querySelectorAll('.section').forEach(e => e.style.display = 'block');
-                document.querySelectorAll('#toc a').forEach(a => a.classList.remove('active'));
-                select.value = 'all';
-                qInput.value = '';
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-                return;
-            }
-            
-            // Oculta todas
-            document.querySelectorAll('.section').forEach(e => e.style.display = 'none');
-            
-            // Mostra a selecionada
-            const el = document.getElementById('sec-' + id);
-            if (el) {
-                el.style.display = 'block';
-                // Rola para o elemento
-                window.scrollTo({ top: el.offsetTop - 80, behavior: 'smooth' });
-            }
-            
-            // Atualiza menu
-            document.querySelectorAll('#toc a').forEach(a => a.classList.remove('active'));
-            const activeLink = document.querySelector(`#toc a[data-id="${id}"]`);
-            if (activeLink) {
-                activeLink.classList.add('active');
-            }
-        }
-        
-        /**
-         * Remove tags HTML de uma string
-         * @param {string} html
-         */
-        function stripHtml(html) {
-            const tmp = document.createElement('div');
-            tmp.innerHTML = html.replace(/<pre[^>]*>/g, '\n').replace(/<\/pre>/g, '\n'); // Preserva quebras de linha do código
-            return tmp.textContent || tmp.innerText || '';
-        }
-
-        /**
-         * Executa a pesquisa
-         */
-        function doSearch() {
-            const q = qInput.value.trim().toLowerCase();
-            const sel = select.value;
-            let firstMatch = null;
-
-            document.querySelectorAll('.section').forEach(sec => {
-                const id = sec.id.replace('sec-', '');
-                const s = sections.find(x => x.id === id);
-                if (!s) return;
-
-                const content = (s.title + ' ' + stripHtml(s.body)).toLowerCase();
-                const matchesQ = !q || content.includes(q);
-                const matchesSel = sel === 'all' || sel === id;
-                
-                const show = matchesQ && matchesSel;
-                sec.style.display = show ? 'block' : 'none';
-                
-                if(show && !firstMatch) {
-                    firstMatch = sec;
+                // Abre ou fecha o submenu clicado
+                if (submenu.style.maxHeight) {
+                    submenu.style.maxHeight = null;
+                } else {
+                    submenu.style.maxHeight = submenu.scrollHeight + "px";
                 }
             });
-            
-            // Atualiza menu
-            document.querySelectorAll('#toc a').forEach(a => a.classList.remove('active'));
-            if(sel !== 'all') {
-                 const activeLink = document.querySelector(`#toc a[data-id="${sel}"]`);
-                 if(activeLink) activeLink.classList.add('active');
-            }
-            
-            // Rola para o primeiro resultado (se não for "todos" e houver pesquisa)
-            if (firstMatch && (q || sel !== 'all')) {
-                window.scrollTo({ top: firstMatch.offsetTop - 80, behavior: 'smooth' });
-            }
-        }
-
-        // --- Event Listeners ---
-        document.getElementById('btnSearch').addEventListener('click', doSearch);
-        qInput.addEventListener('keyup', e => {
-            if (e.key === 'Enter') doSearch();
-        });
-        select.addEventListener('change', doSearch);
-
-        // Exportar TXT
-        document.getElementById('btnExport').addEventListener('click', () => {
-            let txt = `GUIA DE CAMPO: DIAGNÓSTICO WINDOWS (TÉCNICO)\n${'='.repeat(50)}\n\n`;
-            sections.forEach(s => {
-                txt += `\n--- ${s.title.toUpperCase()} ---\n\n`;
-                txt += stripHtml(s.body).replace(/^\s*[\r\n]/gm, '\n'); // Limpa linhas em branco extras
-                txt += `\n${'-'.repeat(50)}\n`;
-            });
-            
-            const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'guia_diagnostico_windows.txt';
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            URL.revokeObjectURL(url);
         });
 
-        // Imprimir
-        document.getElementById('btnPrint').addEventListener('click', () => window.print());
+        // --- LÓGICA DA PESQUISA ---
+        const searchBox = document.getElementById('search-box');
+        const clearBtn = document.getElementById('clear-btn');
+        const searchResults = document.getElementById('search-results');
 
-        // --- Inicialização ---
-        renderAll();
+        const searchData = [
+            { title: 'Comando ipconfig', url: '#cmd_ipconfig', tags: 'ipconfig rede ip dns' },
+            { title: 'Comando ping', url: '#cmd_ping', tags: 'ping rede conectividade latencia' },
+            { title: 'Comando sfc /scannow', url: '#cmd_sfc', tags: 'sfc sistema arquivos corrompidos scannow' },
+            { title: 'Comando chkdsk', url: '#cmd_chkdsk', tags: 'chkdsk disco rigido hd ssd erros setores' },
+            { title: 'Comando netstat', url: '#cmd_netstat', tags: 'netstat rede portas conexoes malware' },
+            { title: 'Problema: Fila de Impressão Travada', url: '#prob_impressora', tags: 'impressora spooler net stop' },
+            { title: 'Problema: Computador Lento', url: '#prob_lentidao', tags: 'lentidao travando devagar' },
+            { title: 'Problema: Não Conecta à Internet', url: '#prob_internet', tags: 'internet rede sem acesso dns' },
+            { title: 'Tutorial: Formatar e Instalar Windows 11', url: '#tut_formatar_win11', tags: 'formatar instalacao windows 11 pendrive boot' },
+            { title: 'Ferramentas Essenciais', url: '#ferramentas', tags: 'software programas ferramentas malwarebytes rufus' }
+        ];
+
+        searchBox.addEventListener('input', () => {
+            const query = searchBox.value.toLowerCase();
+            clearBtn.style.display = query.length > 0 ? 'block' : 'none';
+            if (query.length < 3) {
+                searchResults.innerHTML = '';
+                return;
+            }
+            const filteredData = searchData.filter(item => 
+                item.title.toLowerCase().includes(query) || item.tags.toLowerCase().includes(query)
+            );
+            searchResults.innerHTML = '';
+            if (filteredData.length > 0) {
+                filteredData.forEach(item => {
+                    const link = document.createElement('a');
+                    link.href = item.url;
+                    link.textContent = item.title;
+                    searchResults.appendChild(link);
+                });
+            } else {
+                searchResults.innerHTML = '<a href="#">Nenhum resultado encontrado</a>';
+            }
+        });
         
-        // Foco inicial
-        qInput.focus();
+        clearBtn.addEventListener('click', () => {
+            searchBox.value = '';
+            searchResults.innerHTML = '';
+            clearBtn.style.display = 'none';
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!searchBox.contains(event.target)) {
+                searchResults.innerHTML = '';
+            }
+        });
     </script>
 </body>
 </html>
