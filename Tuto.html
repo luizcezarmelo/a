@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tutorial Diagnóstico Windows</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#f6f8fa;--card:#ffffff;--muted:#6b7280;--accent:#0ea5a4;--border:#e6e9ee;--mono:SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
+    *{box-sizing:border-box;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,'Noto Sans',sans-serif}
+    body{margin:0;background:var(--bg);color:#0f1724;min-height:100vh;padding:28px}
+    .container{max-width:1100px;margin:0 auto}
+    header{display:flex;align-items:center;justify-content:space-between;gap:16px}
+    h1{font-size:20px;margin:0}
+    p.lead{margin:4px 0 0;color:var(--muted);font-size:13px}
+    .topbar{display:flex;gap:12px;margin:18px 0}
+    .search{flex:1;display:flex;gap:8px}
+    input[type="search"],select{background:#fff;border:1px solid var(--border);padding:10px 12px;border-radius:8px;color:inherit;outline:none}
+    button{background:var(--accent);border:none;padding:10px 12px;border-radius:8px;color:white;font-weight:600;cursor:pointer}
+    .grid{display:grid;grid-template-columns:280px 1fr;gap:18px}
+    aside{background:var(--card);padding:14px;border-radius:12px;border:1px solid var(--border);min-height:520px}
+    main{background:var(--card);border-radius:12px;padding:18px;min-height:520px;border:1px solid var(--border)}
+    .section{padding:14px;border-radius:10px;margin-bottom:12px;background:linear-gradient(180deg,#fff,#fbfdff)}
+    .section h2{margin:0 0 8px;font-size:16px}
+    .meta{color:var(--muted);font-size:13px;margin-bottom:8px}
+    .code{background:#0b1220;color:#e6eef6;padding:12px;border-radius:8px;font-family:var(--mono);font-size:13px;overflow:auto}
+    .label{display:inline-block;background:#eef2f7;color:#0f1724;padding:4px 8px;border-radius:6px;font-weight:600;font-size:12px;margin-right:6px}
+    .list-compact{margin:8px 0;padding-left:18px}
+    footer{margin-top:18px;color:var(--muted);font-size:13px}
+    .btn-small{padding:6px 8px;border-radius:8px;font-weight:600}
+    .kbd{background:#0b1220;color:#e6eef6;padding:4px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.04);font-family:var(--mono);font-size:12px}
+    .row{display:flex;gap:8px;align-items:center}
+    .copy{background:#111827;color:#fff;border-radius:6px;padding:6px 8px;border:none;cursor:pointer}
+    .muted{color:var(--muted)}
+    @media (max-width:880px){.grid{grid-template-columns:1fr;}.search{flex-direction:column}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>Tutorial Diagnóstico Windows</h1>
+        <p class="lead">Versão interativa, pronta para executar localmente (funciona em WinPE / Prompt do instalador / Windows). Cada comando tem explicação, objetivo e riscos.</p>
+      </div>
+      <div style="text-align:right">
+        <div class="meta">Formato: HTML estático — roda direto do código</div>
+      </div>
+    </header>
+
+    <div class="topbar">
+      <div class="search">
+        <input id="q" type="search" placeholder="Pesquisar (ex: chkdsk, diskpart, memoria)"/>
+        <select id="sectionSelect">
+          <option value="all">Todas as seções</option>
+        </select>
+        <button id="btnSearch">Pesquisar</button>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button id="btnExport">Exportar .TXT</button>
+        <button id="btnPrint">Imprimir</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <aside>
+        <div style="font-weight:700;margin-bottom:8px">Índice</div>
+        <div id="toc"></div>
+        <div style="margin-top:16px;color:var(--muted);font-size:13px">Atalhos úteis</div>
+        <div style="margin-top:8px">
+          <div style="margin-bottom:6px"><span class="label">Prompt</span> <span class="kbd">Shift + F10</span></div>
+          <div style="margin-bottom:6px"><span class="label">Tarefas</span> <span class="kbd">Ctrl + Shift + Esc</span></div>
+          <div style="margin-bottom:6px"><span class="label">Reinício</span> <span class="kbd">shutdown /r /t 0</span></div>
+        </div>
+      </aside>
+
+      <main>
+        <div id="content"></div>
+        <footer>
+          <div class="muted">Use com cuidado: comandos como <code>clean</code> e <code>format</code> apagam dados. Leia as explicações antes de executar.</div>
+        </footer>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // --- Conteúdo detalhado das seções ---
+    const sections = [
+      {
+        id: 'access', title: 'Acesso rápido ao Prompt',
+        body: `
+          <h3>O que é</h3>
+          <p>O Prompt (CMD) permite executar utilitários de diagnóstico em ambientes WinPE, instalador do Windows (Shift+F10) ou sistema já instalado.</p>
+          <h3>Comandos / Atalhos</h3>
+          <div class="code">// Abrir prompt durante instalação: Shift + F10\n// Executar como administrador no Windows: botão direito → Executar como administrador</div>
+          <h3>Observações</h3>
+          <p class="muted">No ambiente do instalador alguns utilitários gráficos não estarão disponíveis — use comandos CLI ou ferramentas portáteis via pendrive.</p>
+        `
+      },
+
+      {
+        id: 'diskpart', title: 'DiskPart — Gerenciamento de discos',
+        body: `
+          <h3>O que faz</h3>
+          <p>DiskPart é o utilitário de particionamento e formatação. Use para limpar, criar partições, converter entre MBR/GPT e atribuir letras.</p>
+          <h3>Risco</h3>
+          <p class="muted">Comando <code>clean</code> apaga todas as partições — execute apenas se tiver certeza.</p>
+          <h3>Comandos essenciais (ex.: preparar disco para instalação)</h3>
+          <div class="code">diskpart\nlist disk              &nbsp; // lista discos\nselect disk 0          &nbsp; // seleciona disco 0\nclean                  &nbsp; // apaga tabela de partições (perigoso)\nconvert gpt            &nbsp; // para UEFI\ncreate partition primary\nformat fs=ntfs quick\nassign letter=C\nexit</div>
+          <h3>Exemplo prático</h3>
+          <p>Usado quando a instalação não encontra partições ou há tabela corrompida. Se disco for NVMe, confirme que aparece em <code>list disk</code>.</p>
+        `
+      },
+
+      {
+        id: 'chkdsk', title: 'CHKDSK — Verificar e reparar disco',
+        body: `
+          <h3>O que faz</h3>
+          <p>CHKDSK checa integridade do sistema de arquivos e setores físicos. Útil quando instalação trava em porcentagem fixa ou arquivos não copiam.</p>
+          <h3>Comandos</h3>
+          <div class="code">chkdsk C: /f     &nbsp; // corrige erros lógicos\nchkdsk C: /r     &nbsp; // localiza setores defeituosos e recupera informações (lento)\nchkdsk D: /scan  &nbsp; // varredura online no Windows</div>
+          <h3>Quando usar</h3>
+          <p>Rode <code>/f</code> se houver erros; rode <code>/r</code> se suspeitar de setores defeituosos (hd ruidoso, instalação trava frequentemente).</p>
+        `
+      },
+
+      {
+        id: 'sfc', title: 'SFC & DISM — Integridade do sistema',
+        body: `
+          <h3>O que fazem</h3>
+          <p>SFC (System File Checker) verifica e corrige arquivos do Windows. DISM repara a imagem do Windows (útil antes de SFC ou quando SFC falha).</p>
+          <h3>Comandos</h3>
+          <div class="code">sfc /scannow\n// Se estiver no WinRE (offline):\nsfc /scannow /offbootdir=C:\ /offwindir=C:\Windows\n// DISM (no Windows):\nDism /Online /Cleanup-Image /RestoreHealth</div>
+          <h3>Dicas</h3>
+          <p>Execute DISM primeiro se SFC não estiver corrigindo arquivos; sempre rode como administrador.</p>
+        `
+      },
+
+      {
+        id: 'memtest', title: 'Teste de memória (RAM)',
+        body: `
+          <h3>O que é</h3>
+          <p>Falhas na RAM causam travamentos em pontos fixos durante instalação. Teste para confirmar defeito.</p>
+          <h3>Métodos</h3>
+          <ul class="list-compact">
+            <li><strong>Windows Memory Diagnostic</strong>: execute <code>mdsched.exe</code> e escolha reiniciar e verificar.</li>
+            <li><strong>Memtest86+</strong>: melhor para testes profundos — crie pendrive bootável e deixe rodar por várias passagens.</li>
+          </ul>
+          <h3>Sinais de RAM ruim</h3>
+          <p>Erros esporádicos, telas azuis, travas em 70%/82%/99% durante instalação.</p>
+        `
+      },
+
+      {
+        id: 'drivers', title: 'Drivers — Verificar e identificar',
+        body: `
+          <h3>Objetivo</h3>
+          <p>Identificar quais drivers estão carregados e se há drivers faltando que possam travar a instalação (ex.: controladoras de armazenamento).</p>
+          <h3>Comandos</h3>
+          <div class="code">driverquery /fo table /v\n// Exportar:\ndriverquery /fo csv > C:\drivers.csv</div>
+          <h3>Ferramentas adicionais</h3>
+          <p>DriverView (NirSoft) em pendrive mostra arquivo do driver, fornecedor e versão — útil para cruzar com dispositivo listado em Disk Management ou Device Manager.</p>
+        `
+      },
+
+      {
+        id: 'bcd', title: 'Reparar inicialização (BOOTREC & BCD)',
+        body: `
+          <h3>Quando usar</h3>
+          <p>Sistema não inicializa, exibe erro de BCD, ou o processo de boot é interrompido.</p>
+          <h3>Comandos</h3>
+          <div class="code">bootrec /fixmbr\nbootrec /fixboot\nbootrec /scanos\nbootrec /rebuildbcd</div>
+          <h3>Observações</h3>
+          <p>Em sistemas UEFI, pode ser necessário recriar a partição EFI via DiskPart e copiar arquivos de boot. Sempre cheque o modo (UEFI vs Legacy) na BIOS.</p>
+        `
+      },
+
+      {
+        id: 'wmic', title: 'WMIC — Informações rápidas do disco e hardware',
+        body: `
+          <h3>Comandos úteis</h3>
+          <div class="code">wmic diskdrive get status          &nbsp; // OK ou Pred Fail\nwmic diskdrive get model,size\nwmic cpu get name\nwmic memorychip get capacity,speed,manufacturer</div>
+          <h3>Uso</h3>
+          <p>Rápido status SMART (simples). Para relatório completo use ferramentas do fabricante ou CrystalDiskInfo em outro computador.</p>
+        `
+      },
+
+      {
+        id: 'event', title: 'Logs — Visualizador de Eventos',
+        body: `
+          <h3>O que verificar</h3>
+          <p>Erros de disco e drivers ficam em <strong>Windows Logs → System</strong>. Erros de aplicativo em <strong>Application</strong>.</p>
+          <h3>Abrir</h3>
+          <div class="code">eventvwr.msc</div>
+          <h3>Dica</h3>
+          <p>Use timestamps para correlacionar o momento do travamento com eventos registrados. Procure por Event IDs recorrentes.</p>
+        `
+      },
+
+      {
+        id: 'network', title: 'Rede — Diagnóstico básico',
+        body: `
+          <h3>Comandos essenciais</h3>
+          <div class="code">ipconfig /all\nping 8.8.8.8\nping www.google.com\nnetsh int ip reset\nnetsh winsock reset</div>
+          <h3>Quando usar</h3>
+          <p>Problemas de ativação do Windows, drivers de rede, ou quando a instalação tenta baixar updates e trava.</p>
+        `
+      },
+
+      {
+        id: 'export', title: 'Exportar relatórios — colecionar evidências',
+        body: `
+          <h3>Por que</h3>
+          <p>Exportar informações facilita compartilhar com o cliente ou central de suporte.</p>
+          <h3>Comandos</h3>
+          <div class="code">systeminfo > C:\relatorio_sistema.txt\ndriverquery /fo list /v > C:\drivers.txt\nwmic logicaldisk get name,freespace,size > C:\discos.txt</div>
+          <h3>Observação</h3>
+          <p>Salve em pendrive ou servidor de arquivos. Use nomes com data para rastreabilidade.</p>
+        `
+      },
+
+      {
+        id: 'usb', title: 'Verificar pendrive e portas USB',
+        body: `
+          <h3>Problema comum</h3>
+          <p>Pendrive corrompido ou porta com problema impede boot; testes simples detectam isso.</p>
+          <h3>Comandos</h3>
+          <div class="code">diskpart\nlist disk\nlist volume\nselect disk X\ndetail disk</div>
+          <h3>Dica prática</h3>
+          <p>Tente trocar porta (evitar hubs), use portas traseiras (desktop) e, se possível, crie o pendrive com a Media Creation Tool (Windows) para maior compatibilidade.</p>
+        `
+      },
+
+      {
+        id: 'temp', title: 'Temperatura e sensores',
+        body: `
+          <h3>Ferramenta</h3>
+          <p>HWiNFO (portable) é a melhor opção para ver sensores em tempo real (CPU, GPU, SSD).</p>
+          <h3>Uso</h3>
+          <p>Execute HWiNFO64.exe em modo sensor e observe throttling ou temperaturas acima de limites seguros (ex.: CPU > 95°C em carga).</p>
+        `
+      },
+
+      {
+        id: 'bios', title: 'BIOS/UEFI — checagens rápidas',
+        body: `
+          <h3>O que verificar</h3>
+          <ul class="list-compact">
+            <li>Modo de boot: UEFI vs Legacy (compatível com pendrive criado)</li>
+            <li>Configuração SATA: AHCI vs RAID (drivers de armazenamento podem ser necessários)</li>
+            <li>Secure Boot: desative temporariamente se tiver problemas com pendrive</li>
+            <li>Atualize BIOS apenas se necessário — risco de brick</li>
+          </ul>
+          <h3>Atalho comum</h3>
+          <p>Entrar na BIOS: tecla DEL / F2 / F10 (depende do fabricante)</p>
+        `
+      },
+
+      {
+        id: 'recap', title: 'Recapitulando — Comandos-chave',
+        body: `
+          <div class="code">// Discos e partições: diskpart → list disk\n// Verificar disco: chkdsk C: /f ou /r\n// Sistema: sfc /scannow  &  Dism /Online /Cleanup-Image /RestoreHealth\n// Memória: mdsched.exe ou Memtest86+\n// Drivers: driverquery /v\n// Boot: bootrec /fixmbr ; /fixboot ; /rebuildbcd</div>
+          <p class="muted">Use esse bloco como referência rápida.</p>
+        `
+      }
+    ];
+
+    // --- Renderização ---
+    const contentEl = document.getElementById('content');
+    const tocEl = document.getElementById('toc');
+    const select = document.getElementById('sectionSelect');
+    const qInput = document.getElementById('q');
+
+    function renderAll(){
+      contentEl.innerHTML=''; tocEl.innerHTML=''; select.innerHTML='<option value="all">Todas as seções</option>';
+      sections.forEach(s=>{
+        const btn = document.createElement('button'); btn.className='btn-small'; btn.style.width='100%'; btn.style.marginBottom='8px'; btn.textContent=s.title; btn.onclick = ()=> showSection(s.id);
+        tocEl.appendChild(btn);
+        const opt = document.createElement('option'); opt.value = s.id; opt.textContent = s.title; select.appendChild(opt);
+
+        const sec = document.createElement('section'); sec.className='section'; sec.id='sec-'+s.id;
+        sec.innerHTML = `<h2>${s.title}</h2><div class="meta">Explicação completa com comandos e riscos</div>${s.body}`;
+        contentEl.appendChild(sec);
+      });
+    }
+
+    function showSection(id){
+      if(id==='all') return document.querySelectorAll('.section').forEach(e=>e.style.display='block');
+      document.querySelectorAll('.section').forEach(e=>e.style.display='none');
+      const el = document.getElementById('sec-'+id); if(el) el.style.display='block'; window.scrollTo({top:el.offsetTop-20,behavior:'smooth'});
+    }
+
+    function stripHtml(html){ const tmp = document.createElement('div'); tmp.innerHTML = html; return tmp.textContent || tmp.innerText || ''; }
+
+    function doSearch(){
+      const q = qInput.value.trim().toLowerCase(); const sel = select.value;
+      document.querySelectorAll('.section').forEach(sec=>{
+        const id = sec.id.replace('sec-',''); const s = sections.find(x=>x.id===id);
+        const matchesQ = !q || (s.title + ' ' + stripHtml(s.body)).toLowerCase().includes(q);
+        const matchesSel = sel==='all' || sel===id;
+        sec.style.display = (matchesQ && matchesSel) ? 'block' : 'none';
+      });
+    }
+
+    document.getElementById('btnSearch').addEventListener('click', doSearch);
+    qInput.addEventListener('keyup', e=>{ if(e.key==='Enter') doSearch(); });
+    select.addEventListener('change', doSearch);
+
+    renderAll();
+
+    // Export txt
+    document.getElementById('btnExport').addEventListener('click', ()=>{
+      let txt = 'TUTORIAL DIAGNOSTICO WINDOWS\n\n';
+      sections.forEach(s=>{ txt += s.title + '\n' + stripHtml(s.body) + '\n\n'; });
+      const blob = new Blob([txt], {type:'text/plain;charset=utf-8'});
+      const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'tutorial_diagnostico.txt'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    });
+
+    // Print
+    document.getElementById('btnPrint').addEventListener('click', ()=> window.print());
+
+    // Accessibility: focus search
+    qInput.focus();
+  </script>
+</body>
+</html>
