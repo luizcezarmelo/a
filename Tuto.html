@@ -805,22 +805,23 @@ netsh winsock reset</pre></div>
         tocEl.appendChild(tocList);
 
         /**
-         * Adiciona um botão "Copiar" a um bloco de código
-         * @param {HTMLElement} codeBlock - O elemento <pre class="code">
+         * Adiciona um botão "Copiar" a um contêiner de código
+         * @param {HTMLElement} container - O elemento <div class="code-container">
          */
-        function addCopyButton(codeBlock) {
-            const container = document.createElement('div');
-            container.className = 'code-container';
-            
-            // Insere o container antes do codeBlock e move o codeBlock para dentro dele
-            codeBlock.parentNode.insertBefore(container, codeBlock);
-            container.appendChild(codeBlock);
-            
+        function addCopyButtonToContainer(container) {
             const btn = document.createElement('button');
             btn.className = 'copy-btn';
             btn.textContent = 'Copiar';
-            
+
+            // Encontra o bloco de código DENTRO do contêiner
+            const codeBlock = container.querySelector('.code');
+            if (!codeBlock) {
+                console.error('Bloco .code não encontrado dentro de .code-container');
+                return;
+            }
+
             btn.onclick = () => {
+                // Usa o innerText do <pre> para copiar
                 navigator.clipboard.writeText(codeBlock.innerText).then(() => {
                     btn.textContent = 'Copiado!';
                     setTimeout(() => { btn.textContent = 'Copiar'; }, 2000);
@@ -829,7 +830,7 @@ netsh winsock reset</pre></div>
                     console.error('Falha ao copiar:', err);
                 });
             };
-            
+
             container.appendChild(btn);
         }
 
@@ -865,12 +866,14 @@ netsh winsock reset</pre></div>
                 const sec = document.createElement('section');
                 sec.className = 'section';
                 sec.id = 'sec-' + s.id;
-                // Usamos <pre class="code">...</pre> nos blocos de código
-                sec.innerHTML = `<h2>${s.title}</h2>${s.body.replace(/<div class="code">/g, '<pre class="code">').replace(/<\/div> /g, '</pre>')}`;
+                
+                // [CORREÇÃO]: Removemos o .replace() que estava quebrando o HTML.
+                // O s.body já está no formato correto.
+                sec.innerHTML = `<h2>${s.title}</h2>${s.body}`;
                 contentEl.appendChild(sec);
                 
-                // Adicionar botões de cópia aos blocos <pre class="code">
-                sec.querySelectorAll('.code').forEach(addCopyButton);
+                // [CORREÇÃO]: Iteramos sobre os '.code-container' e usamos a nova função
+                sec.querySelectorAll('.code-container').forEach(addCopyButtonToContainer);
             });
         }
 
@@ -913,7 +916,8 @@ netsh winsock reset</pre></div>
          */
         function stripHtml(html) {
             const tmp = document.createElement('div');
-            tmp.innerHTML = html.replace(/<pre[^>]*>/g, '\n').replace(/<\/pre>/g, '\n'); // Preserva quebras de linha do código
+            // Substitui <pre> por quebras de linha para preservar a formatação no .txt
+            tmp.innerHTML = html.replace(/<pre[^>]*>/g, '\n').replace(/<\/pre>/g, '\n');
             return tmp.textContent || tmp.innerText || '';
         }
 
