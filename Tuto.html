@@ -1,855 +1,1101 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resumo TI</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Kit do Técnico — Comandos Windows (Online/Firebase)</title>
     <style>
-        /* CSS Otimizado para Página Única */
-        :root {
-            --cor-primaria: #2c3e50;
-            --cor-secundaria: #34495e;
-            --cor-destaque: #3498db;
-            --cor-perigo: #e74c3c;
-            --cor-texto: #ecf0f1;
-            --cor-fundo: #f4f4f9;
-            --cor-conteudo: #ffffff;
-            --cor-borda: #dfe6e9;
+        :root{
+            --bg:#0f1720;
+            --card:#0b1220;
+            --muted:#9aa6b2;
+            --accent:#0ea5a4;
+            --accent-2:#7dd3fc;
+            --surface:#0b1226;
+            --glass: rgba(255,255,255,0.03);
+            --success:#16a34a;
+            --danger: #ef4444;
+            --highlight: rgba(14, 165, 164, 0.1);
         }
-        html {
-            scroll-behavior: smooth;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            background-color: var(--cor-fundo);
-            color: #333;
-        }
-        .container {
-            display: flex;
-        }
-        .sidebar {
-            width: 280px;
-            background-color: var(--cor-primaria);
-            color: var(--cor-texto);
-            height: 100vh;
-            position: fixed;
+        *{box-sizing:border-box;font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif}
+        body{margin:0;background:linear-gradient(180deg,#071024 0%, #071a2b 100%);color:#e6eef6}
+        .app{display:flex;min-height:100vh}
+        aside{
+            width:300px;
+            background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+            border-right:1px solid rgba(255,255,255,0.03);padding:20px;backdrop-filter: blur(6px);
+            max-height: 100vh;
             overflow-y: auto;
-            padding-top: 20px;
         }
-        .sidebar h2 {
-            text-align: center;
-            padding-bottom: 10px;
-            margin: 0;
-            border-bottom: 1px solid var(--cor-secundaria);
+        header.brand{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+        .logo{width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-weight:700;color:#012;}
+        h1{font-size:16px;margin:0}
+        p.sub{margin:4px 0 0;font-size:12px;color:var(--muted)}
+        nav{margin-top:18px}
+        .cat{display:block;padding:10px;border-radius:8px;color:var(--muted);text-decoration:none;margin-bottom:6px}
+        .cat:hover{background:var(--glass);color:#fff}
+        .cat.active{background:linear-gradient(90deg,var(--accent-2),var(--accent));color:#012;font-weight:600}
+        main{flex:1;padding:22px}
+        .top{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+        .search{
+            background:var(--surface);padding:8px;border-radius:10px;display:flex;align-items:center;gap:8px;
+            border:1px solid rgba(255,255,255,0.04);flex:1;min-width:260px;
+            max-width: 450px;
         }
-        .sidebar ul {
-            list-style: none;
-            padding: 0;
+        .search input{background:transparent;border:0;outline:0;color:#e6eef6;font-size:14px;padding:8px;width:100%}
+        .search .clear{background:transparent;border:0;color:var(--muted);cursor:pointer;padding:6px;border-radius:6px}
+        .info{font-size:13px;color:var(--muted)}
+        .grid{margin-top:18px;display:grid;grid-template-columns: 1fr 380px;gap:18px}
+        .list{
+            background:linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));padding:12px;
+            border-radius:12px;border:1px solid rgba(255,255,255,0.02);max-height:72vh;overflow:auto
         }
-        .sidebar .menu-item > a,
-        .sidebar .menu-item .submenu-toggle {
-            display: block;
-            padding: 12px 20px;
-            color: var(--cor-texto);
-            text-decoration: none;
-            cursor: pointer;
-            background-color: var(--cor-primaria);
-            border: none;
-            width: 100%;
-            text-align: left;
-            font-size: 16px;
-            transition: background-color 0.2s;
-        }
-        .sidebar .menu-item > a:hover,
-        .sidebar .menu-item .submenu-toggle:hover {
-            background-color: var(--cor-secundaria);
-        }
-        .submenu {
-            list-style: none;
-            padding-left: 0;
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
-            background-color: #233140;
-        }
-        .submenu a {
-            display: block;
-            padding: 10px 35px;
-            color: #bdc3c7;
-            text-decoration: none;
-        }
-        .submenu a:hover {
-            background-color: #465a70;
-            color: white;
-        }
-        .main-content {
-            margin-left: 280px;
-            padding: 20px 40px;
-            width: calc(100% - 360px);
-        }
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 20px;
-            border-bottom: 1px solid var(--cor-borda);
-        }
-        .search-container {
-            position: relative;
-            width: 50%;
-        }
-        .search-container input {
-            width: 100%;
-            padding: 10px 30px 10px 15px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-        .search-container .clear-search {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            display: none;
-        }
-        #search-results {
-            position: absolute;
-            background-color: white;
-            border: 1px solid #ccc;
-            width: 100%;
-            max-height: 300px;
-            overflow-y: auto;
-            z-index: 1000;
-        }
-        #search-results a {
-            display: block;
-            padding: 10px;
-            text-decoration: none;
-            color: #333;
-            border-bottom: 1px solid #eee;
-        }
-        #search-results a:hover {
-            background-color: #f0f0f0;
-        }
-        .content-section {
-            background-color: var(--cor-conteudo);
-            padding: 25px;
+        
+        /* --- ESTILOS DA ÁRVORE --- */
+        details {
+            background:linear-gradient(180deg, rgba(255,255,255,0.008), transparent);
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            margin-top: 30px;
-            scroll-margin-top: 20px; /* Espaço para o header ao rolar */
-        }
-        .content-section h2 {
-            color: var(--cor-primaria);
-            border-bottom: 3px solid var(--cor-destaque);
-            padding-bottom: 10px;
-            margin-top: 0;
-        }
-        .content-section h3 {
-            color: var(--cor-secundaria);
-            border-bottom: 1px solid #eee;
-            padding-bottom: 5px;
-        }
-        code {
-            background-color: #eef;
-            color: #d63384;
-            padding: 3px 7px;
-            border-radius: 4px;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 0.95em;
-        }
-        .summary-list {
-            border-left: 4px solid var(--cor-destaque);
-            padding: 15px 20px;
-            margin-top: 20px;
-            background-color: #f8f9fa;
-        }
-        .summary-list h4 {
-            margin-top: 0;
-            color: var(--cor-primaria);
-        }
-        .summary-list ul {
-            padding-left: 20px;
-            margin-bottom: 0;
-        }
-        .summary-list li {
             margin-bottom: 8px;
         }
-        ol li {
-            margin-bottom: 15px;
-            line-height: 1.6;
+        details[open] {
+            background:rgba(255,255,255,0.015);
         }
-        .warning-box {
-            background-color: #fbeaea;
-            border-left: 4px solid var(--cor-perigo);
-            padding: 15px;
-            margin: 20px 0;
+        summary {
+            list-style: none;
+            display: block;
+        }
+        summary::-webkit-details-marker { display: none; }
+        summary:focus {
+            outline: 1px dashed var(--accent);
+            outline-offset: 2px;
+        }
+        .card{
+            display:flex;align-items:center;justify-content:space-between;padding:10px;
+            border-radius:8px;
+            background:transparent;
+            transition: background .2s;
+        }
+        summary .card:hover {
+            background:rgba(255,255,255,0.02);
+        }
+        .card-parent {
+            cursor: pointer;
+        }
+        .card-parent .cmd::before {
+            content: '▸';
+            color: var(--accent-2);
+            margin-right: 8px;
+            display: inline-block;
+            transition: transform 0.2s;
+        }
+        details[open] .card-parent .cmd::before {
+            transform: rotate(90deg);
+        }
+        .sub-list {
+            padding-left: 32px;
+            border-left: 2px solid var(--surface);
+            margin: 0 0 8px 18px;
+        }
+        .sub-list .card {
+            margin-bottom: 6px;
+            background: rgba(0,0,0,0.1);
+        }
+        .sub-list .card:hover {
+            background: rgba(0,0,0,0.2);
+        }
+        .card.highlight-search {
+            background: var(--highlight) !important;
+            box-shadow: inset 2px 0 0 var(--accent);
+        }
+        /* --- FIM ESTILOS ÁRVORE --- */
+        
+        .cmd{font-family:Consolas,monospace;background:rgba(0,0,0,0.25);padding:6px 8px;border-radius:6px;font-size:13px}
+        .meta{color:var(--muted);font-size:13px;margin-left:10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
+        
+        .card-left {
+            display: flex;
+            align-items: center;
+            min-width: 0; /* (Importante para text-overflow) */
+            cursor: pointer;
+            flex: 1;
+        }
+        .card-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+            padding-left: 10px;
+        }
+        
+        .btncopy{
+            background:transparent;border:1px solid rgba(255,255,255,0.04);padding:6px 8px;border-radius:8px;
+            color:var(--accent-2);cursor:pointer;font-weight:600;
+        }
+        
+        /* (NOVO) Botões de ação */
+        .btn-action {
+            background: transparent;
+            border: 0;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 11px;
+            padding: 4px;
+            border-radius: 4px;
+        }
+        .btn-action:hover {
+            background: var(--surface);
+        }
+        .btn-edit:hover {
+            color: var(--accent-2);
+        }
+        .btn-delete:hover {
+            color: var(--danger);
+        }
+        /* (NOVO) Estilo para o botão Substituir */
+        .btn-override:hover {
+            color: var(--accent);
+        }
+        
+        .sidepanel{background:linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.02);max-height:72vh;overflow:auto}
+        .sidepanel h3{margin:0 0 8px 0;font-size:14px}
+        .group{margin-bottom:12px}
+        .small{font-size:13px;color:var(--muted);margin-top:6px}
+        
+        .toast{position:fixed;right:22px;bottom:22px;background:linear-gradient(90deg,var(--success),#10b981);padding:10px 14px;border-radius:10px;color:#022;box-shadow:0 6px 24px rgba(2,6,23,0.6);transform:translateY(8px);opacity:0;pointer-events:none;transition:all .28s}
+        .toast.show{opacity:1;transform:translateY(0);pointer-events:auto}
+        
+        .tag{font-size:12px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,0.02);color:var(--muted);border:1px solid rgba(255,255,255,0.02);margin-right:8px}
+        footer.foot{margin-top:12px;color:var(--muted);font-size:13px}
+        
+        .form-group { margin-bottom: 10px; }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+        .form-input, .form-select {
+            width: 100%;
+            background: var(--surface);
+            border: 1px solid rgba(255,255,255,0.04);
+            color: #e6eef6;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+        /* (NOVO) Estilo para campo 'cmd' bloqueado ao substituir */
+        .form-input[readonly] {
+            background: rgba(0,0,0,0.2);
+            color: var(--muted);
+            cursor: not-allowed;
+        }
+
+        .form-input::placeholder {
+            color: var(--muted);
+            opacity: 0.6;
+        }
+        .form-btn {
+            width: 100%;
+            padding: 10px;
+            border: 0;
+            border-radius: 6px;
+            background: var(--accent);
+            color: #012;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        .form-btn:hover { background: var(--accent-2); }
+        .form-btn:disabled {
+            background: var(--muted);
+            cursor: not-allowed;
+        }
+        .form-btn-danger { background: var(--danger); color: #fff; }
+        .form-btn-danger:hover { background: #f87171; }
+        .form-btn-secondary {
+            background: var(--surface);
+            color: var(--muted);
+        }
+        .form-btn-secondary:hover {
+            background: var(--glass);
+            color: #fff;
+        }
+        
+        /* (NOVO) Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            display: none; /* Alterado para 'flex' via JS */
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: var(--bg);
+            border: 1px solid var(--surface);
+            border-radius: 12px;
+            padding: 20px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .modal-content h3 {
+            margin: 0 0 16px 0;
+            font-size: 16px;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        @media (max-width:900px){
+            aside{display:none}
+            .grid{grid-template-columns:1fr}
+            .sidepanel{order:2}
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <nav class="sidebar">
-            <h2>Enciclopédia TI</h2>
-            <ul>
-                <li class="menu-item"><a href="#inicio">🏠 Início</a></li>
-                <li class="menu-item">
-                    <button class="submenu-toggle">▶️ Guia de Comandos</button>
-                    <ul class="submenu">
-                        <li><a href="#cmd_diskpart">diskpart</a></li>
-                        <li><a href="#cmd_dism">dism</a></li>
-                        <li><a href="#cmd_sfc">sfc /scannow</a></li>
-                        <li><a href="#cmd_chkdsk">chkdsk</a></li>
-                        <li><a href="#cmd_bootrec">bootrec</a></li>
-                        <li><a href="#cmd_ipconfig">ipconfig</a></li>
-                        <li><a href="#cmd_ping">ping</a></li>
-                        <li><a href="#cmd_netstat">netstat</a></li>
-                        <li><a href="#cmd_gpupdate">gpupdate</a></li>
-                        <li><a href="#cmd_shutdown">shutdown</a></li>
-                        <li><a href="#cmd_tracert">tracert</a></li>
-                        <li><a href="#cmd_nslookup">nslookup</a></li>
-                        <li><a href="#cmd_netsh">netsh</a></li>
-                        <li><a href="#cmd_arp">arp -a</a></li>
-                        <li><a href="#cmd_systeminfo">systeminfo</a></li>
-                        <li><a href="#cmd_taskkill">taskkill</a></li>
-                        <li><a href="#cmd_powercfg">powercfg</a></li>
-                        <li><a href="#cmd_powershell">PowerShell Essencial</a></li>
-                    </ul>
-                </li>
-                <li class="menu-item">
-                    <button class="submenu-toggle">🔧 Solução de Problemas</button>
-                    <ul class="submenu">
-                        <li><a href="#prob_impressora">Fila de Impressão Travada</a></li>
-                        <li><a href="#prob_lentidao">Computador Lento</a></li>
-                        <li><a href="#prob_internet">Não Conecta à Internet</a></li>
-                        <li><a href="#prob_nao_liga">Não Liga (Morto)</a></li>
-                        <li><a href="#prob_sem_video">Liga, mas não dá Vídeo</a></li>
-                        <li><a href="#prob_superaquecimento">Superaquecimento</a></li>
-                        <li><a href="#prob_bsod">Tela Azul (BSOD)</a></li>
-                    </ul>
-                </li>
-                <li class="menu-item">
-                    <button class="submenu-toggle">📖 Tutoriais Passo a Passo</button>
-                    <ul class="submenu">
-                        <li><a href="#tut_formatar_win11">Formatar e Instalar Windows 11</a></li>
-                    </ul>
-                </li>
-                <li class="menu-item">
-                    <button class="submenu-toggle">🧰 Ferramentas Essenciais</button>
-                    <ul class="submenu">
-                        <li><a href="#ferramentas">Lista de Softwares</a></li>
-                    </ul>
-                </li>
-            </ul>
-        </nav>
-        
-        <main class="main-content">
-            <header>
-                <h1>Central de Conhecimento</h1>
-                <div class="search-container">
-                    <input type="text" id="search-box" placeholder="Pesquisar (ex: 'diskpart', 'boot', 'sfc')...">
-                    <span class="clear-search" id="clear-btn">✖</span>
-                    <div id="search-results"></div>
+    <div class="app" role="application" aria-label="Kit do Técnico — comandos">
+        <aside>
+            <div class="brand">
+                <div class="logo">TK</div>
+                <div>
+                    <h1>Kit do Técnico</h1>
+                    <p class="sub">Comandos WR / DOS / PowerShell — Online</p>
                 </div>
-            </header>
-
-            <section id="inicio" class="content-section">
-                <h2>Bem-vindo!</h2>
-                <p>Esta é a sua central de referência para comandos, soluções e tutoriais de TI. Use o menu ou a pesquisa para encontrar rapidamente o que precisa.</p>
-            </section>
-
-            <section id="cmd_diskpart" class="content-section">
-                <h2>Utilitário: <code>diskpart</code></h2>
-                <h3>O que faz?</h3>
-                <p>O <code>diskpart</code> é um interpretador de comandos em modo texto que permite gerenciar discos, partições e volumes do seu computador. É uma ferramenta extremamente poderosa para preparação de discos para instalação de sistemas operacionais, recuperação de partições e outras tarefas de baixo nível.</p>
-                <div class="warning-box">
-                    <strong>ATENÇÃO:</strong> O <code>diskpart</code> é uma ferramenta destrutiva. Comandos como <code>clean</code> apagam TODAS as informações do disco selecionado de forma irrecuperável. Tenha 100% de certeza do disco que está selecionando.
-                </div>
-                <h3>Para qual ocasião usar?</h3>
-                <ul>
-                    <li>Preparar um pendrive para ser bootável (formatação limpa).</li>
-                    <li>Limpar completamente um HD/SSD antes de uma nova instalação do Windows.</li>
-                    <li>Converter um disco entre os estilos de partição MBR e GPT.</li>
-                    <li>Criar, excluir e gerenciar partições que não são visíveis pelo Windows.</li>
-                </ul>
-                <h3>Exemplo Prático: Preparando um Disco (HD/SSD/Pendrive) do Zero</h3>
-                <p>Este procedimento apaga tudo no disco selecionado e cria uma única partição primária, formatando-a em NTFS.</p>
-                <ol>
-                    <li>Abra o Prompt de Comando (CMD) como <b>Administrador</b>.</li>
-                    <li>Digite <code>diskpart</code> e pressione Enter para iniciar a ferramenta.</li>
-                    <li><code>list disk</code> - Lista todos os discos conectados ao computador. Identifique o disco correto pelo tamanho!</li>
-                    <li><code>select disk X</code> - Substitua 'X' pelo número do disco que você quer gerenciar (ex: <code>select disk 1</code>).</li>
-                    <li><code>clean</code> - <b>(CUIDADO!)</b> Remove todas as partições e informações do disco selecionado.</li>
-                    <li><code>create partition primary</code> - Cria uma nova partição primária ocupando todo o espaço do disco.</li>
-                    <li><code>format fs=ntfs quick</code> - Formata a nova partição no sistema de arquivos NTFS de forma rápida.</li>
-                    <li><code>assign</code> - Atribui a próxima letra de unidade disponível para a partição.</li>
-                    <li><code>active</code> - (Opcional) Marca a partição como ativa. Importante para discos de sistema MBR.</li>
-                    <li><code>exit</code> - Sai do diskpart.</li>
-                </ol>
-                <div class="summary-list">
-                    <h4>📋 Resumo Rápido (Comandos do diskpart)</h4>
-                    <ul>
-                        <li><b>Listar discos:</b> <code>list disk</code></li>
-                        <li><b>Selecionar um disco:</b> <code>select disk X</code></li>
-                        <li><b>APAGAR TUDO NO DISCO:</b> <code>clean</code></li>
-                        <li><b>Criar partição:</b> <code>create partition primary</code></li>
-                        <li><b>Formatar:</b> <code>format fs=ntfs quick</code></li>
-                        <li><b>Atribuir letra:</b> <code>assign</code></li>
-                    </ul>
-                </div>
-            </section>
-
-            <section id="cmd_dism" class="content-section">
-                <h2>Comando: <code>DISM</code></h2>
-                <h3>O que faz?</h3>
-                <p>O <b>DISM</b> (Deployment Image Servicing and Management) é uma ferramenta para montar e reparar imagens do Windows, incluindo a imagem do sistema em execução. É mais poderoso que o `sfc` e pode corrigir problemas que ele não consegue.</p>
-                <h3>Para qual ocasião usar?</h3>
-                <p>Use o DISM quando o <code>sfc /scannow</code> reportar que encontrou erros mas não pôde corrigi-los. Ele repara o "component store" do Windows, que o `sfc` usa como fonte para seus reparos. Execute sempre como Administrador.</p>
-                <h3>Comandos Essenciais (execute em ordem):</h3>
-                <ol>
-                    <li><code>DISM /Online /Cleanup-Image /CheckHealth</code> - Faz uma verificação rápida para ver se a imagem tem corrupções registradas.</li>
-                    <li><code>DISM /Online /Cleanup-Image /ScanHealth</code> - Faz uma varredura mais aprofundada da imagem em busca de corrupções.</li>
-                    <li><code>DISM /Online /Cleanup-Image /RestoreHealth</code> - Varre a imagem, encontra corrupções e tenta repará-las automaticamente usando o Windows Update como fonte.</li>
-                </ol>
-                <div class="summary-list">
-                    <h4>📋 Resumo Rápido</h4>
-                    <ul>
-                        <li><b>Se o `sfc` falhar:</b> Use o DISM.</li>
-                        <li><b>Verificação rápida:</b> <code>... /CheckHealth</code></li>
-                        <li><b>Verificação completa:</b> <code>... /ScanHealth</code></li>
-                        <li><b>COMANDO PRINCIPAL DE REPARO:</b> <code>... /RestoreHealth</code></li>
-                    </ul>
-                </div>
-            </section>
-
-            <section id="cmd_sfc" class="content-section">
-                <h2>Comando: <code>sfc /scannow</code></h2>
-                <h3>O que faz?</h3>
-                <p>O <b>SFC</b> (System File Checker) verifica a integridade de todos os arquivos de sistema protegidos do Windows e substitui versões corrompidas pelas versões corretas.</p>
-                <h3>Para qual ocasião usar?</h3>
-                <p>Quando o Windows apresenta comportamento estranho, erros inesperados ou telas azuis. É um dos primeiros passos para diagnosticar problemas de sistema. Deve ser executado em um Prompt de Comando como Administrador.</p>
-                <div class="summary-list">
-                    <h4>📋 Resumo Rápido</h4>
-                    <ul>
-                        <li><b>Problemas estranhos no Windows?</b> Use <code>sfc /scannow</code>.</li>
-                        <li><b>Objetivo:</b> Corrigir arquivos do sistema corrompidos.</li>
-                        <li><b>Requisito:</b> Sempre executar como <strong>Administrador</strong>.</li>
-                    </ul>
-                </div>
-            </section>
-
-            <section id="cmd_chkdsk" class="content-section">
-                <h2>Comando: <code>chkdsk</code></h2>
-                <h3>O que faz?</h3>
-                <p>O <b>Check Disk</b> verifica o sistema de arquivos de um disco em busca de erros lógicos e físicos e tenta corrigi-los.</p>
-                <h3>Para qual ocasião usar?</h3>
-                <p>Quando há suspeita de problemas no disco rígido (lentidão, arquivos que não abrem). Executar como Administrador.</p>
-                <h3>Parâmetros mais comuns:</h3>
-                <ul>
-                    <li><code>chkdsk c: /f</code>: Verifica o disco C: e corrige os erros encontrados. Geralmente precisa agendar para a próxima reinicialização.</li>
-                    <li><code>chkdsk c: /r</code>: Localiza setores defeituosos e tenta recuperar informações (inclui a função do /f). É mais demorado.</li>
-                </ul>
-                <div class="summary-list">
-                    <h4>📋 Resumo Rápido</h4>
-                    <ul>
-                        <li><b>Suspeita de erro no HD/SSD?</b> Use <code>chkdsk /f</code>.</li>
-                        <li><b>Análise completa (corrige erros e setores):</b> <code>chkdsk /r</code> (mais demorado).</li>
-                        <li><b>Importante:</b> Se o <code>chkdsk</code> encontrar muitos erros, considere fazer um backup imediato dos dados.</li>
-                    </ul>
-                </div>
-            </section>
-
-            <section id="cmd_bootrec" class="content-section">
-                <h2>Comando: <code>bootrec</code></h2>
-                <h3>O que faz?</h3>
-                <p>O <b>Boot Recovery</b> é usado para corrigir problemas de inicialização do Windows, como MBR (Master Boot Record) corrompido, setor de inicialização danificado ou BCD (Boot Configuration Data) ausente.</p>
-                <h3>Para qual ocasião usar?</h3>
-                <p>Quando o Windows não inicia e exibe erros como "Sistema operacional não encontrado" ou "Bootmgr is missing". Este comando deve ser executado a partir do <b>Ambiente de Recuperação do Windows (WinRE)</b>, acessado por um pendrive de instalação do Windows (na tela de instalar, clique em "Reparar o computador").</p>
-                <h3>Comandos Essenciais (execute no CMD do WinRE):</h3>
-                <ul>
-                    <li><code>bootrec /FixMbr</code>: Repara o Master Boot Record. Útil quando um vírus danificou o setor de inicialização.</li>
-                    <li><code>bootrec /FixBoot</code>: Grava um novo setor de inicialização na partição do sistema. Útil se o setor de boot foi corrompido.</li>
-                    <li><code>bootrec /ScanOs</code>: Varre todos os discos em busca de instalações do Windows compatíveis.</li>
-                    <li><code>bootrec /RebuildBcd</code>: Reconstrói completamente o Boot Configuration Data, permitindo que você adicione instalações encontradas pelo <code>/ScanOs</code> ao menu de boot.</li>
-                </ul>
-                <div class="summary-list">
-                    <h4>📋 Resumo Rápido</h4>
-                    <ul>
-                        <li><b>Windows não inicia?</b> Use <code>bootrec</code> no Ambiente de Recuperação.</li>
-                        <li><b>Reparar MBR:</b> <code>/FixMbr</code></li>
-                        <li><b>Reparar Setor de Boot:</b> <code>/FixBoot</code></li>
-                        <li><b>Reconstruir lista de SOs:</b> <code>/RebuildBcd</code></li>
-                    </ul>
-                </div>
-            </section>
-
-            <section id="cmd_ipconfig" class="content-section">
-                <h2>Comando: <code>ipconfig</code></h2>
-                <div class="summary-list">
-                    <h4>📋 Resumo Rápido</h4>
-                    <ul>
-                        <li><b>Ver seu IP:</b> <code>ipconfig</code></li>
-                        <li><b>Ver TUDO (MAC, DNS, etc):</b> <code>ipconfig /all</code></li>
-                        <li><b>Resolver conflito de IP:</b> <code>ipconfig /release</code> seguido de <code>ipconfig /renew</code></li>
-                        <li><b>Site não abre:</b> <code>ipconfig /flushdns</code></li>
-                    </ul>
-                </div>
-            </section>
-
-            <section id="cmd_ping" class="content-section">
-                <h2>Comando: <code>ping</code></h2>
-                <div class="summary-list">
-                    <h4>📋 Resumo Rápido</h4>
-                    <ul>
-                        <li><b>Saber se tem internet:</b> <code>ping 8.8.8.8</code></li>
-                        <li><b>Saber se o roteador responde:</b> <code>ping [IP do gateway]</code></li>
-                        <li><b>Verificar se o DNS funciona:</b> <code>ping [nome de um site]</code></li>
-                        <li><b>Monitorar quedas de conexão:</b> <code>ping -t [destino]</code></li>
-                    </ul>
-                </div>
-            </section>
-
-            <section id="cmd_netstat" class="content-section">
-                <h2>Comando: <code>netstat</code></h2>
-                <div class="summary-list">
-                    <h4>📋 Resumo Rápido</h4>
-                    <ul>
-                        <li><b>Ver todas as conexões de rede:</b> <code>netstat -an</code>.</li>
-                        <li><b>Descobrir qual processo usa uma porta:</b> <code>netstat -ano</code> (depois, use o PID no Gerenciador de Tarefas).</li>
-                        <li><b>Ver o nome do programa (.exe) da conexão:</b> <code>netstat -b</code> (como Admin).</li>
-                    </ul>
-                </div>
-            </section>
-
-            <section id="cmd_gpupdate" class="content-section">
-                <h2>Comando: <code>gpupdate</code></h2>
-                <h3>O que faz?</h3>
-                <p>Atualiza manualmente as configurações de Política de Grupo (Group Policy) aplicadas a um computador ou usuário.</p>
-                <h3>Para qual ocasião usar?</h3>
-                <p>Em ambientes corporativos, após um administrador de rede alterar uma política (GPO), este comando força a aplicação imediata da nova regra no computador cliente, sem precisar reiniciar ou esperar o ciclo de atualização automático.</p>
-                <ul>
-                    <li><code>gpupdate /force</code>: Reaplica todas as políticas, mesmo as que não foram alteradas.</li>
-                </ul>
-                <div class="summary-list">
-                    <h4>📋 Resumo Rápido</h4>
-                    <ul>
-                        <li><b>Trabalha em empresa?</b> Use <code>gpupdate /force</code> para aplicar novas regras de rede na hora.</li>
-                    </ul>
-                </div>
-            </section>
-
-            <section id="cmd_shutdown" class="content-section">
-                <h2>Comando: <code>shutdown</code></h2>
-                <h3>O que faz?</h3>
-                <p>Desliga, reinicia, hiberna ou faz logoff do computador local ou de um computador remoto na rede.</p>
-                <h3>Parâmetros úteis:</h3>
-                <ul>
-                    <li><code>shutdown /s /t 0</code>: Desliga o computador imediatamente.</li>
-                    <li><code>shutdown /r /t 0</code>: Reinicia o computador imediatamente.</li>
-                    <li><code>shutdown /r /o</code>: <b>(MUITO ÚTIL)</b> Reinicia o computador e abre o menu de "Opções de Inicialização Avançadas", de onde você pode acessar o Modo de Segurança, Prompt de Comando de Recuperação, etc.</li>
-                    <li><code>shutdown /a</code>: Aborta um desligamento agendado.</li>
-                </ul>
-                <div class="summary-list">
-                    <h4>📋 Resumo Rápido</h4>
-                    <ul>
-                        <li><b>Desligar agora:</b> <code>/s /t 0</code></li>
-                        <li><b>Reiniciar agora:</b> <code>/r /t 0</code></li>
-                        <li><b>Acessar Modo de Segurança e Reparo:</b> <code>/r /o</code></li>
-                        <li><b>Cancelar desligamento:</b> <code>/a</code></li>
-                    </ul>
-                </div>
-            </section>
-
-            <section id="cmd_tracert" class="content-section">
-                <h2>Comando: <code>tracert</code></h2>
-                <h3>O que faz?</h3>
-                <p>O <b>Traceroute</b> traça a rota (mostra os "saltos" por servidores e roteadores) que um pacote de dados leva do seu PC até um destino.</p>
-                <h3>Para qual ocasião usar?</h3>
-                <p>Quando o <code>ping</code> funciona, mas a conexão com um site está lenta ou instável. Ajuda a identificar onde está o gargalo na rede (se é na sua rede local, no seu provedor, ou além).</p>
-                <div class="summary-list">
-                    <h4>📋 Resumo Rápido</h4>
-                    <ul>
-                        <li><b>Identificar gargalo na rede:</b> <code>tracert google.com</code></li>
-                        <li><b>Análise:</b> Procure por saltos (hops) com latência (ms) muito alta.</li>
-                    </ul>
-                </div>
-            </section>
-
-            <section id="cmd_nslookup" class="content-section">
-                <h2>Comando: <code>nslookup</code></h2>
-                <h3>O que faz?</h3>
-                <p>Diagnostica o funcionamento do servidor DNS. Permite consultar qual endereço IP um nome de domínio (ex: <code>google.com</code>) está resolvendo.</p>
-                <h3>Para qual ocasião usar?</h3>
-                <p>Quando você não consegue acessar um site pelo nome, mas consegue acessá-lo pelo endereço de IP (ex: <code>8.8.8.8</code>). Isso indica um problema de DNS.</p>
-                <div class="summary-list">
-                    <h4>📋 Resumo Rápido</h4>
-                    <ul>
-                        <li><b>Testar DNS:</b> <code>nslookup google.com</code></li>
-                        <li><b>Se falhar:</b> O problema é o servidor DNS (tente trocar por <code>8.8.8.8</code> ou <code>1.1.1.1</code>).</li>
-                    </ul>
-                </div>
-            </section>
-
-            <section id="cmd_netsh" class="content-section">
-                <h2>Comando: <code>netsh</code></h2>
-                <h3>O que faz?</h3>
-                <p>O <b>Network Shell</b> é um "canivete suíço" para gerenciar quase qualquer aspecto da rede via linha de comando, como redefinir o stack de IP, configurar firewall, etc.</p>
-                <h3>Para qual ocasião usar?</h3>
-                <p>Muito usado para redefinir configurações de rede corrompidas, mas possui um comando "coringa" extremamente útil para o dia a dia.</p>
-                <div class="summary-list">
-                    <h4>📋 Comando Coringa (MUITO ÚTIL)</h4>
-                    <ul>
-                        <li><b>Para ver a senha de uma rede Wi-Fi salva:</b></li>
-                        <li><code>netsh wlan show profile "NomeDaRede" key=clear</code></li>
-                        <li>(Substitua "NomeDaRede" pelo nome da rede Wi-Fi. A senha aparecerá em "Conteúdo da Chave").</li>
-                    </ul>
-                </div>
-            </section>
-
-            <section id="cmd_arp" class="content-section">
-                <h2>Comando: <code>arp -a</code></h2>
-                <h3>O que faz?</h3>
-                <p>Exibe a tabela ARP (Address Resolution Protocol), que mapeia endereços IP para endereços MAC (endereço físico da placa de rede) na sua rede local.</p>
-                <h3>Para qual ocasião usar?</h3>
-                <p>Para diagnosticar conflitos de IP (quando dois dispositivos tentam usar o mesmo IP) ou para identificar qual dispositivo físico está usando um determinado IP na sua rede.</p>
-                <div class="summary-list">
-                    <h4>📋 Resumo Rápido</h4>
-                    <ul>
-                        <li><b>Ver tabela IP/MAC:</b> <code>arp -a</code></li>
-                        <li><b>Utilidade:</b> Descobrir quem é quem na rede local.</li>
-                    </ul>
-                </div>
-            </section>
+            </div>
             
-            <section id="cmd_systeminfo" class="content-section">
-                <h2>Comando: <code>systeminfo</code></h2>
-                <h3>O que faz?</h3>
-                <p>Exibe um resumo detalhado das configurações do hardware e software do computador.</p>
-                <h3>Para qual ocasião usar?</h3>
-                <p>No início de um atendimento para ter uma visão geral rápida da máquina sem precisar clicar em várias janelas. Mostra data de instalação do Windows, tempo de atividade (uptime), modelo do processador, quantidade de RAM e atualizações instaladas (hotfixes).</p>
-                <div class="summary-list">
-                    <h4>📋 Resumo Rápido</h4>
-                    <ul>
-                        <li><b>Raio-X rápido do PC:</b> <code>systeminfo</code></li>
-                        <li><b>Info útil:</b> Data da instalação, tempo de atividade, patches instalados.</li>
-                    </ul>
-                </div>
-            </section>
-
-            <section id="cmd_taskkill" class="content-section">
-                <h2>Comando: <code>taskkill</code></h2>
-                <h3>O que faz?</h3>
-                <p>A versão em linha de comando para forçar o fechamento de processos.</p>
-                <h3>Para qual ocasião usar?</h3>
-                <p>Quando um programa trava de tal forma que nem o Gerenciador de Tarefas consegue fechá-lo.</p>
-                <h3>Exemplos:</h3>
-                <ul>
-                    <li><code>taskkill /F /PID 1234</code>: Fecha pelo número do "Process ID" (visto no Gerenciador de Tarefas).</li>
-                    <li><code>taskkill /F /IM chrome.exe</code>: Fecha todas as instâncias do <code>chrome.exe</code>.</li>
-                </ul>
-                <div class="summary-list">
-                    <h4>📋 Resumo Rápido</h4>
-                    <ul>
-                        <li><b>Programa travou e não fecha?</b></li>
-                        <li><code>taskkill /F /IM nome_do_processo.exe</code></li>
-                        <li><code>/F</code> significa "Forçar".</li>
-                    </ul>
-                </div>
-            </section>
-
-            <section id="cmd_powercfg" class="content-section">
-                <h2>Comando: <code>powercfg</code></h2>
-                <h3>O que faz?</h3>
-                <p>Gerencia todas as configurações de energia do sistema, como planos de energia, hibernação e suspensão.</p>
-                <h3>Para qual ocasião usar?</h3>
-                <p>Muito útil para liberar espaço em disco (desativando a hibernação) e para diagnosticar problemas de bateria em notebooks.</p>
-                <div class="summary-list">
-                    <h4>📋 Comandos Coringa</h4>
-                    <ul>
-                        <li><b>Liberar espaço no C::</b> <code>powercfg /h off</code></li>
-                        <li>(Desativa a hibernação e apaga o arquivo <code>hiberfil.sys</code>, liberando vários GBs).</li>
-                        <li><b>Diagnosticar bateria:</b> <code>powercfg /energy</code></li>
-                        <li>(Gera um relatório HTML detalhado sobre o consumo de energia e a saúde da bateria).</li>
-                    </ul>
-                </div>
-            </section>
+            <nav aria-label="Categorias">
+                <a class="cat active" data-cat="Todas" href="#" onclick="return false;">Todas</a>
+                <a class="cat" data-cat="Sistema" href="#" onclick="return false;">Sistema</a>
+                <a class="cat" data-cat="Hardware" href="#" onclick="return false;">Hardware</a>
+                <a class="cat" data-cat="Disco & Arquivos" href="#" onclick="return false;">Disco & Arquivos</a>
+                <a class="cat" data-cat="Rede" href="#" onclick="return false;">Rede</a>
+                <a class="cat" data-cat="Serviços & Processos" href="#" onclick="return false;">Serviços & Processos</a>
+                <a class="cat" data-cat="Usuário & Grupo" href="#" onclick="return false;">Usuário & Grupo</a>
+                <a class="cat" data-cat="Logs & Diagnóstico" href="#" onclick="return false;">Logs & Diagnóstico</a>
+                <a class="cat" data-cat="Política & GPO" href="#" onclick="return false;">Política & GPO</a>
+                <a class="cat" data-cat="Boot & BCD" href="#" onclick="return false;">Boot & BCD</a>
+                <a class="cat" data-cat="PowerShell" href="#" onclick="return false;">PowerShell</a>
+                <a class="cat" data-cat="Utilitários GUI" href="#" onclick="return false;">Utilitários (MSC)</a>
+                <a class="cat" data-cat="Segurança" href="#" onclick="return false;">Segurança</a>
+            </nav>
             
-            <section id="cmd_powershell" class="content-section">
-                <h2>PowerShell Essencial</h2>
-                <h3>O que é?</h3>
-                <p>O PowerShell é o futuro do CMD, um shell de linha de comando muito mais moderno e poderoso. Muitos comandos são mais fáceis nele.</p>
-                
-                <h3>Pegar Número de Série (Serial Number)</h3>
-                <p>Perfeito para controle de inventário ou abrir chamados de garantia.</p>
-                <code>(Get-CimInstance -ClassName Win32_ComputerSystemProduct).IdentifyingNumber</code>
+            <footer class="foot">
+                <div style="margin-top:12px">Arquivo único — clique para copiar</div>
+                <div class="small">Sincronizado com Firebase RTDB.</div>
+            </footer>
+        </aside>
 
-                <h3>Testar Conexão e Porta (Ping Moderno)</h3>
-                <p>Um "ping" que também testa se uma porta específica está aberta, ótimo para diagnosticar problemas com firewalls.</p>
-                <code>Test-NetConnection google.com -Port 443</code>
-                
-                <div class="summary-list">
-                    <h4>📋 Resumo Rápido</h4>
-                    <ul>
-                        <li><b>Pegar Serial Number:</b> <code>(Get-CimInstance...IdentifyingNumber</code></li>
-                        <li><b>Testar porta de rede/firewall:</b> <code>Test-NetConnection [destino] -Port [porta]</code></li>
-                    </ul>
+        <main>
+            <div class="top">
+                <div class="search" role="search" aria-label="Pesquisar comandos">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="opacity:.7"><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <input id="q" placeholder="Pesquisar (comando ou descrição) — digite 3+ letras..." aria-label="Pesquisar comandos" />
+                    <button class="clear" id="clearBtn" title="Limpar pesquisa" aria-label="Limpar pesquisa">✕</button>
                 </div>
-            </section>
+                <div class="info">Clique no comando para copiar</div>
+            </div>
 
-            <section id="prob_impressora" class="content-section">
-                <h2>Problema: Fila de Impressão Travada</h2>
-                <div class="summary-list">
-                    <h4>📋 Resumo Rápido</h4>
-                    <ul>
-                        <li><b>Abra CMD como Admin.</b></li>
-                        <li><b>Pare o serviço:</b> <code>net stop spooler</code></li>
-                        <li><b>Limpe a pasta:</b> Apague o conteúdo de <code>C:\Windows\System32\spool\PRINTERS</code></li>
-                        <li><b>Inicie o serviço:</b> <code>net start spooler</code></li>
-                    </ul>
-                </div>
-            </section>
+            <div class="grid">
+                <div class="list" id="results" tabindex="0" aria-live="polite">
+                    </div>
 
-            <section id="prob_lentidao" class="content-section">
-                <h2>Problema: Computador Lento</h2>
-                <div class="summary-list">
-                    <h4>📋 Resumo Rápido</h4>
-                    <ul>
-                        <li><b>Analisar uso:</b> Gerenciador de Tarefas (CPU, Memória, Disco, Inicializar).</li>
-                        <li><b>Limpar arquivos:</b> Ferramenta "Limpeza de Disco" do Windows.</li>
-                        <li><b>Procurar vírus:</b> Windows Defender + Malwarebytes.</li>
-                        <li><b>Checar o disco:</b> <code>chkdsk /f</code> e CrystalDiskInfo.</li>
-                        <li><b>Corrigir o sistema:</b> <code>sfc /scannow</code> e <code>DISM /Online /Cleanup-Image /RestoreHealth</code>.</li>
-                    </ul>
-                </div>
-            </section>
+                <aside class="sidepanel" aria-label="Detalhes">
+                    <h3>Filtros & Dicas</h3>
+                    <div class="small">Clique nas categorias à esquerda para filtrar. A pesquisa busca por comando e descrição (case-insensitive). Pesquisa ativa apenas com 3+ caracteres.</div>
+                    
+                    <div class="group">
+                        <h3 style="margin-top:12px">Atalhos úteis</h3>
+                        <div class="small">
+                            <div style="margin-top:8px"><span class="tag">WR</span> abrir via Executar (Win + R)</div>
+                            <div style="margin-top:6px"><span class="tag">DOS</span> prompt (cmd.exe) — executar como Administrador quando necessário</div>
+                            <div style="margin-top:6px"><span class="tag">PowerShell</span> cmdlets do PowerShell moderno</div>
+                        </div>
+                    </div>
 
-            <section id="prob_internet" class="content-section">
-                <h2>Problema: Não Conecta à Internet</h2>
-                <div class="summary-list">
-                    <h4>📋 Resumo Rápido</h4>
-                    <ul>
-                        <li><b>Teste Básico:</b> Verifique outros dispositivos e reinicie o roteador.</li>
-                        <li><b>Diagnóstico Rápido (Ping):</b> Teste o gateway (roteador), um IP externo (8.8.8.8) e um domínio (google.com).</li>
-                        <li><b>Resetar Configurações (CMD Admin):</b> <code>ipconfig /release</code>, <code>/renew</code>, <code>/flushdns</code> e <code>netsh winsock reset</code>.</li>
-                        <li><b>Verificar Hardware:</b> Cheque os drivers do adaptador de rede.</li>
-                    </ul>
-                </div>
-            </section>
+                    <div class="group" style="margin-top: 16px;">
+                        <h3>Adicionar Novo Comando</h3>
+                        <div class="small" style="margin-bottom: 10px;">Comandos salvos online (Firebase).</div>
+                        <form id="addCommandForm">
+                            <div class="form-group">
+                                <label for="new_cmd">Comando (Pai)</label>
+                                <input type="text" id="new_cmd" class="form-input" placeholder="ex: sfc /scannow" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="new_type">Tipo</label>
+                                <select id="new_type" class="form-select" required>
+                                    <option value="DOS">DOS</option>
+                                    <option value="WR">WR</option>
+                                    <option value="PowerShell">PowerShell</option>
+                                    <option value="Utilitários GUI">Utilitários GUI</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="new_cat">Categoria</label>
+                                <select id="new_cat" class="form-select" required>
+                                    </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="new_desc">Descrição (Resumo)</label>
+                                <input type="text" id="new_desc" class="form-input" placeholder="ex: Verifica arquivos do sistema" required>
+                            </div>
+                            <button type="submit" class="form-btn" id="addBtn">Adicionar Comando</button>
+                            <button type="button" class="form-btn form-btn-secondary" id="cancelOverrideBtn" style="display: none; margin-top: 8px;">Cancelar Substituição</button>
+                        </form>
+                    </div>
 
-            <section id="prob_nao_liga" class="content-section">
-                <h2>Problema: O Computador não liga nada</h2>
-                <h3>Sintomas:</h3>
-                <p>Nenhuma luz acende, nenhum barulho de ventoinha, o computador está totalmente "morto".</p>
-                <h3>Diagnóstico:</h3>
-                <ul>
-                    <li><b>O Básico:</b> Verificar se o cabo de força está bem conectado na tomada e no PC. Testar em outra tomada.</li>
-                    <li><b>Interruptor:</b> Verificar o interruptor da fonte (I/O), se for um desktop.</li>
-                    <li><b>Teste de Cabo:</b> Substituir o cabo de força por um que você sabe que funciona (ex: o do monitor).</li>
-                    <li><b>Desktop:</b> Verificar as conexões internas dos cabos da fonte na placa-mãe (24 pinos e 4/8 pinos do CPU).</li>
-                </ul>
-                <h3>Causa Provável:</h3>
-                <p>Problema no cabo de força, fonte de alimentação queimada ou, em casos mais raros, um curto-circuito na placa-mãe.</p>
-            </section>
-            
-            <section id="prob_sem_video" class="content-section">
-                <h2>Problema: O Computador liga, mas não dá vídeo</h2>
-                <h3>Sintomas:</h3>
-                <p>Ventoinhas giram, luzes do gabinete acendem, mas o monitor fica preto ou em "Sem Sinal".</p>
-                <h3>Diagnóstico:</h3>
-                <ul>
-                    <li><b>Monitor:</b> Verificar se o monitor está ligado e na "entrada" (input) correta (HDMI, DisplayPort, VGA). Testar o cabo de vídeo.</li>
-                    <li><b>Placa de Vídeo Dedicada:</b> Se for um desktop, garantir que o cabo de vídeo está conectado na placa de vídeo, e não na saída da placa-mãe.</li>
-                    <li><b>Memória RAM (Causa mais comum):</b> Desligar o PC da tomada, abrir o gabinete e remover os pentes de memória RAM. Limpar os contatos dourados com uma <b>borracha branca</b> escolar e recolocá-los, garantindo que travem bem.</li>
-                    <li><b>Hardware:</b> Se a limpeza da RAM não funcionar, fazer o mesmo procedimento de remover e recolocar a placa de vídeo.</li>
-                    <li><b>Bipes da Placa-Mãe:</b> Ligar o PC sem nenhuma memória RAM e ouvir se a placa-mãe emite bipes de erro. Se bipar, é um bom sinal de que a placa-mãe e o CPU estão vivos.</li>
-                </ul>
-            </section>
-            
-            <section id="prob_superaquecimento" class="content-section">
-                <h2>Problema: Superaquecimento</h2>
-                <h3>Sintomas:</h3>
-                <p>O computador desliga sozinho durante jogos ou tarefas pesadas; o desempenho cai drasticamente após um tempo de uso (thermal throttling); as ventoinhas fazem muito barulho.</p>
-                <h3>Diagnóstico:</h3>
-                <ul>
-                    <li><b>Monitorar:</b> Usar o <b>HWMonitor</b> ou <b>HWiNFO64</b> para verificar as temperaturas do CPU e GPU.</li>
-                    <li><b>Parâmetros:</b> Em idle (parado), devem ficar baixas (~30-50°C). Em uso intenso, não devem passar de 85-90°C.</li>
-                    <li><b>Inspeção Física:</b> Verificar se as ventoinhas (CPU, GPU, gabinete) estão girando.</li>
-                </ul>
-                <h3>Solução:</h3>
-                <p>Desligar o PC, abrir e fazer uma limpeza completa da poeira nos coolers e dissipadores com um pincel e ar comprimido. Se o problema persistir em máquinas mais antigas (+3 anos), a <b>troca da pasta térmica</b> do processador (e GPU, se possível) é a solução.</p>
-            </section>
-            
-            <section id="prob_bsod" class="content-section">
-                <h2>Problema: Erros de Tela Azul (BSOD)</h2>
-                <h3>Sintomas:</h3>
-                <p>O sistema trava e exibe uma tela azul com um código de erro (ex: <code>IRQL_NOT_LESS_OR_EQUAL</code>, <code>PAGE_FAULT_IN_NONPAGED_AREA</code>).</p>
-                <h3>Diagnóstico:</h3>
-                <ul>
-                    <li><b>Análise Rápida:</b> O código de erro geralmente dá uma pista. Pesquisar o código no Google é o primeiro passo.</li>
-                    <li><b>Causas Comuns:</b> Drivers incompatíveis (principalmente de vídeo), problemas na memória RAM ou falhas no disco (HD/SSD).</li>
-                </ul>
-                <h3>Passos de Solução:</h3>
-                <ol>
-                    <li><b>Drivers:</b> Reverter ou atualizar o driver de vídeo.</li>
-                    <li><b>Sistema:</b> Executar os comandos <code>sfc /scannow</code> e <code>DISM /Online /Cleanup-Image /RestoreHealth</code>.</li>
-                    <li><b>Memória:</b> Executar o "Diagnóstico de Memória do Windows" (pesquisar <code>mdsched.exe</code> no menu Iniciar). Para um teste definitivo, usar o <b>MemTest86+</b> a partir de um pendrive.</li>
-                    <li><b>Disco:</b> Executar o comando <code>chkdsk c: /f</code>.</li>
-                    <li><b>Análise Avançada:</b> Usar o programa <b>BlueScreenView</b> para ler os arquivos de "dump" e ver qual driver ou arquivo causou o erro.</li>
-                </ol>
-            </section>
-
-            <section id="tut_formatar_win11" class="content-section">
-                <h2>Tutorial: Como Formatar e Instalar o Windows 11</h2>
-                <div class="summary-list">
-                    <h4>📋 Resumo Rápido</h4>
-                    <ul>
-                        <li><b>Preparação:</b> Faça backup de tudo e crie um pendrive bootável com a ferramenta da Microsoft.</li>
-                        <li><b>Inicialização:</b> Configure a BIOS/UEFI para dar boot pelo pendrive.</li>
-                        <li><b>Instalação:</b> Escolha a instalação "Personalizada", exclua as partições antigas e instale no espaço não alocado.</li>
-                        <li><b>Pós-Instalação:</b> Configure o Windows e, o mais importante, execute o Windows Update para instalar todos os drivers.</li>
-                    </ul>
-                </div>
-            </section>
-
-            <section id="ferramentas" class="content-section">
-                <h2>🧰 Ferramentas Essenciais</h2>
-                <p>Uma lista de softwares que todo técnico deveria ter em seu pendrive.</p>
-
-                <h3>Diagnóstico e Informação de Hardware</h3>
-                <ul>
-                    <li><strong>CPU-Z / GPU-Z:</strong> Padrão da indústria para identificar com precisão o modelo do processador, placa-mãe, memória RAM e placa de vídeo.</li>
-                    <li><strong>HWMonitor / HWiNFO64:</strong> Ferramentas essenciais para monitorar em tempo real as temperaturas, voltagens e velocidades dos coolers do hardware. Essencial para diagnosticar superaquecimento.</li>
-                    <li><strong>CrystalDiskInfo:</strong> Verifica o status de saúde (S.M.A.R.T.) de HDs e SSDs. Se estiver "Alerta" (Amarelo) ou "Ruim" (Vermelho), faça backup imediatamente.</li>
-                    <li><strong>WinDirStat (ou WizTree):</strong> Analisa o uso do disco e mostra de forma gráfica o que está ocupando mais espaço. Perfeito para quando o cliente diz "meu HD está cheio e não sei por quê".</li>
-                    <li><strong>Process Explorer (Suite Sysinternals):</strong> Um Gerenciador de Tarefas com superpoderes. Mostra em detalhes quais arquivos e chaves de registro cada processo está usando.</li>
-                </ul>
-
-                <h3>Utilitários para Pendrive Bootável</h3>
-                <ul>
-                    <li><strong>Ventoy:</strong> A ferramenta definitiva para criar um pendrive multi-boot. Basta copiar os arquivos ISO (Windows, Linux, Hiren's) para o pendrive e o Ventoy cria um menu de boot para você.</li>
-                    <li><strong>Rufus:</strong> Para criar pendrives bootáveis "clássicos", especialmente para Windows (permite remover requisitos do Win 11).</li>
-                    <li><strong>Hiren's BootCD PE:</strong> Um sistema Windows "PE" (Pré-instalação) que roda a partir de um pendrive, recheado de ferramentas para reparo de disco, remoção de malware, recuperação de dados e até reset de senhas do Windows.</li>
-                    <li><strong>MemTest86+:</strong> O padrão ouro para testar módulos de memória RAM em busca de erros. Essencial para diagnosticar telas azuis e travamentos aleatórios.</li>
-                </ul>
-                
-                <h3>Recuperação e Remoção de Malware</h3>
-                <ul>
-                    <li><strong>Malwarebytes:</strong> A melhor segunda opinião na remoção de malwares que o antivírus principal pode ter perdido.</li>
-                    <li><strong>AdwCleaner:</strong> Ferramenta leve e eficaz da Malwarebytes, focada em remover Adwares, barras de ferramentas indesejadas e outros "PUPs" (Programas Potencialmente Indesejados).</li>
-                    <li><strong>Recuva:</strong> Ferramenta simples da mesma empresa do CCleaner para recuperar arquivos deletados acidentalmente.</li>
-                </ul>
-
-                <h3>Configuração e Utilitários</h3>
-                <ul>
-                    <li><strong>Ninite:</strong> Um instalador em massa. Em ninite.com, você seleciona os programas que deseja (navegadores, 7-Zip, etc.), ele gera um único instalador que baixa e instala tudo de uma vez, sem barras de ferramentas ou adwares. Economiza um tempo absurdo.</li>
-                    <li><strong>7-Zip:</strong> Compactador/descompactador de arquivos leve, gratuito e que suporta todos os formatos.</li>
-                    <li><strong>ProduKey (NirSoft):</strong> Recupera chaves de produto (serial) do Windows e Office instalados.</li>
-                </ul>
-            </section>
+                </aside>
+            </div>
         </main>
     </div>
 
-    <script>
-        // --- LÓGICA DO MENU EXPANSÍVEL ---
-        document.querySelectorAll('.submenu-toggle').forEach(button => {
-            button.addEventListener('click', () => {
-                const submenu = button.nextElementSibling;
-                // Fecha outros submenus abertos
-                document.querySelectorAll('.submenu').forEach(otherSubmenu => {
-                    if (otherSubmenu !== submenu) {
-                        otherSubmenu.style.maxHeight = null;
-                    }
-                });
-                // Abre ou fecha o submenu clicado
-                if (submenu.style.maxHeight) {
-                    submenu.style.maxHeight = null;
-                } else {
-                    submenu.style.maxHeight = submenu.scrollHeight + "px";
-                }
-            });
+    <div id="toast" class="toast" role="status" aria-live="polite">Copiado</div>
+    
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-content">
+            <h3>Editar Comando</h3>
+            <form id="editCommandForm">
+                <input type="hidden" id="edit_id">
+                <div class="form-group">
+                    <label for="edit_cmd">Comando</label>
+                    <input type="text" id="edit_cmd" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit_type">Tipo</label>
+                    <select id="edit_type" class="form-select" required>
+                        <option value="DOS">DOS</option>
+                        <option value="WR">WR</option>
+                        <option value="PowerShell">PowerShell</option>
+                        <option value="Utilitários GUI">Utilitários GUI</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit_cat">Categoria</label>
+                    <select id="edit_cat" class="form-select" required>
+                         </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit_desc">Descrição (Resumo)</label>
+                    <input type="text" id="edit_desc" class="form-input" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="form-btn form-btn-secondary" id="editCancelBtn">Cancelar</button>
+                    <button type="submit" class="form-btn" id="editSaveBtn">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+<script type="module">
+    // Importe as funções do Firebase (update, remove)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+    import { getDatabase, ref, onValue, push, set, update, remove } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
+
+    // Sua configuração do Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyDQOGFiqafMZh0ha6XW62P1DpIKJE8TBYc",
+        authDomain: "agenda-online-7b71c.firebaseapp.com",
+        databaseURL: "https://agenda-online-7b71c-default-rtdb.firebaseio.com",
+        projectId: "agenda-online-7b71c",
+        storageBucket: "agenda-online-7b71c.firebasestorage.app",
+        messagingSenderId: "28125733214",
+        appId: "1:28125733214:web:162d1cce5d14f55c24afcf"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const dbRef = ref(db, 'techkit/commands');
+
+    /* Lista de comandos BASE (igual) */
+    const baseCommands = [
+        // Sistema / Informações
+        {cmd:"winver", type:"WR", desc:"Mostra versão do Windows (janela 'Sobre')", cat:"Sistema"},
+        {cmd:"msinfo32", type:"WR", desc:"Informações detalhadas do sistema (System Information)", cat:"Sistema"},
+        {cmd:"systeminfo", type:"DOS", desc:"Resumo do sistema (linha de comando)", cat:"Sistema"},
+        {cmd:"hostname", type:"DOS", desc:"Mostra o nome do computador", cat:"Sistema"},
+        {cmd:"set", type:"DOS", desc:"Mostra variáveis de ambiente", cat:"Sistema"},
+        {cmd:"echo %username%", type:"DOS", desc:"Mostra usuário atual (CMD)", cat:"Sistema"},
+        {cmd:"control /name Microsoft.System", type:"WR", desc:"Abre a janela clássica Sistema no Painel de Controle", cat:"Sistema"},
+        {cmd:"ms-settings:about", type:"WR", desc:"Abre Configurações → Sobre", cat:"Sistema"},
+        
+        // Usuário / Grupo / Políticas
+        { cmd:"net user", type:"DOS", desc:"Gerencia contas de usuário", cat:"Usuário & Grupo", sub: [
+            {cmd:"net user", type:"DOS", desc:"Lista todos os usuários locais", cat:"Usuário & Grupo"},
+            {cmd:"net user [username]", type:"DOS", desc:"Mostra detalhes de um usuário", cat:"Usuário & Grupo"},
+            {cmd:"net user [username] *", type:"DOS", desc:"Solicita nova senha para usuário", cat:"Usuário & Grupo"},
+            {cmd:"net user [username] /add", type:"DOS", desc:"Adiciona novo usuário (sem senha)", cat:"Usuário & Grupo"},
+            {cmd:"net user [username] [senha] /add", type:"DOS", desc:"Adiciona novo usuário com senha", cat:"Usuário & Grupo"},
+            {cmd:"net user [username] /delete", type:"DOS", desc:"Remove um usuário", cat:"Usuário & Grupo"},
+            {cmd:"net user [username] /active:yes", type:"DOS", desc:"Ativa conta de usuário", cat:"Usuário & Grupo"},
+            {cmd:"net user [username] /active:no", type:"DOS", desc:"Desativa conta de usuário", cat:"Usuário & Grupo"}
+        ]},
+        {cmd:"net localgroup Administradores", type:"DOS", desc:"Lista membros do grupo Administradores local", cat:"Usuário & Grupo"},
+        {cmd:"whoami", type:"DOS", desc:"Mostra usuário atual (inclui SID)", cat:"Usuário & Grupo"},
+        {cmd:"gpupdate /force", type:"DOS", desc:"Força atualização de GPO (Group Policy)", cat:"Política & GPO"},
+        {cmd:"gpresult /r", type:"DOS", desc:"Mostra RSoP / GPO aplicada no computador/usuário", cat:"Política & GPO"},
+        {cmd:"secedit /refreshpolicy machine_policy /enforce", type:"DOS", desc:"Reaplica políticas de segurança (legacy)", cat:"Política & GPO"},
+        
+        // GUI / MMC / Ferramentas WR (Win+R)
+        {cmd:"devmgmt.msc", type:"WR", desc:"Gerenciador de Dispositivos", cat:"Utilitários GUI"},
+        {cmd:"eventvwr.msc", type:"WR", desc:"Visualizador de Eventos (Event Viewer)", cat:"Utilitários GUI"},
+        {cmd:"services.msc", type:"WR", desc:"Serviços (gerenciar serviços do sistema)", cat:"Utilitários GUI"},
+        {cmd:"compmgmt.msc", type:"WR", desc:"Gerenciamento do Computador (console composto)", cat:"Utilitários GUI"},
+        {cmd:"diskmgmt.msc", type:"WR", desc:"Gerenciamento de Disco (Disk Management)", cat:"Utilitários GUI"},
+        {cmd:"perfmon", type:"WR", desc:"Monitor de Desempenho (Performance Monitor)", cat:"Utilitários GUI"},
+        {cmd:"taskschd.msc", type:"WR", desc:"Agendador de Taretas (Task Scheduler)", cat:"Utilitários GUI"},
+        {cmd:"rsop.msc", type:"WR", desc:"RSoP (Resultant Set of Policy) MMC", cat:"Utilitários GUI"},
+        {cmd:"certlm.msc", type:"WR", desc:"Gerenciador de certificados (computador local)", cat:"Utilitários GUI"},
+        
+        // Disco & Arquivos
+        {cmd:"chkdsk C: /f /r", type:"DOS", desc:"Verifica/soluciona erros no disco (pode exigir reinício)", cat:"Disco & Arquivos"},
+        {cmd:"sfc /scannow", type:"DOS", desc:"Verifica e repara arquivos protegidos do sistema", cat:"Disco & Arquivos"},
+        {cmd:"dism /online /cleanup-image /restorehealth", type:"DOS", desc:"Repara imagem do Windows (útil após SFC)", cat:"Disco & Arquivos"},
+        { cmd:"diskpart", type:"DOS", desc:"Utilitário de partição (interativo)", cat:"Disco & Arquivos", sub: [
+            {cmd:"list disk", type:"DOS", desc:"Lista discos físicos", cat:"Disco & Arquivos"},
+            {cmd:"select disk [n]", type:"DOS", desc:"Seleciona o disco 'n'", cat:"Disco & Arquivos"},
+            {cmd:"list partition", type:"DOS", desc:"Lista partições no disco selecionado", cat:"Disco & Arquivos"},
+            {cmd:"list volume", type:"DOS", desc:"Lista volumes (letras)", cat:"Disco & Arquivos"},
+            {cmd:"clean", type:"DOS", desc:"Limpa (apaga) o disco selecionado", cat:"Disco & Arquivos"},
+            {cmd:"create partition primary", type:"DOS", desc:"Cria partição primária", cat:"Disco & Arquivos"},
+            {cmd:"format fs=ntfs quick", type:"DOS", desc:"Formata partição selecionada", cat:"Disco & Arquivos"},
+            {cmd:"assign letter=X", type:"DOS", desc:"Atribui letra X à partição", cat:"Disco & Arquivos"}
+        ]},
+        {cmd:"format X: /FS:NTFS", type:"DOS", desc:"Formata a unidade X (atenção: apaga dados)", cat:"Disco & Arquivos"},
+        {cmd:"mountvol", type:"DOS", desc:"Gerencia pontos de montagem/volumes", cat:"Disco & Arquivos"},
+        {cmd:"robocopy <src> <dst> /MIR /Z /R:3 /W:5", type:"DOS", desc:"Cópia robusta de arquivos (Robocopy) — exemplo com espelhamento", cat:"Disco & Arquivos"},
+        {cmd:"fsutil fsinfo volumes", type:"DOS", desc:"Informações de volumes/FS", cat:"Disco & Arquivos"},
+
+        // Hardware / Drivers
+        {cmd:"pnputil /enum-drivers", type:"DOS", desc:"Lista drivers instalados", cat:"Hardware"},
+        {cmd:"pnputil /add-driver <inf> /install", type:"DOS", desc:"Instala driver a partir de .inf", cat:"Hardware"},
+        {cmd:"driverquery", type:"DOS", desc:"Lista drivers instalados e status", cat:"Hardware"},
+        {cmd:"wmic csproduct get name,identifyingnumber", type:"DOS", desc:"Mostra modelo e serial do produto (quando disponível)", cat:"Hardware"},
+        {cmd:"wmic bios get serialnumber", type:"DOS", desc:"Retorna serial do BIOS/placa-mãe", cat:"Hardware"},
+
+        // Rede — básicos
+        {cmd:"ipconfig", type:"DOS", desc:"Mostra configurações IP", cat:"Rede"},
+        {cmd:"ipconfig /all", type:"DOS", desc:"Mostra informações IP completas (inclui DNS, MAC)", cat:"Rede"},
+        {cmd:"ipconfig /release && ipconfig /renew", type:"DOS", desc:"Libera e renova endereço DHCP", cat:"Rede"},
+        {cmd:"ipconfig /flushdns", type:"DOS", desc:"Limpa cache DNS", cat:"Rede"},
+        {cmd:"ping 8.8.8.8", type:"DOS", desc:"Testa conectividade IP básica (ex.: Google DNS)", cat:"Rede"},
+        {cmd:"ping hostname", type:"DOS", desc:"Resolve nome e testa latência para hostname", cat:"Rede"},
+        {cmd:"tracert hostname", type:"DOS", desc:"Rastreia rota até host (traceroute)", cat:"Rede"},
+        {cmd:"pathping hostname", type:"DOS", desc:"Combina ping e tracert com estatísticas", cat:"Rede"},
+        { cmd:"nslookup", type:"DOS", desc:"Consulta DNS (interativo)", cat:"Rede", sub: [
+            {cmd:"nslookup [domain]", type:"DOS", desc:"Resolve IP de um domínio", cat:"Rede"},
+            {cmd:"server 8.8.8.8", type:"DOS", desc:"(Dentro do nslookup) Muda servidor DNS", cat:"Rede"},
+            {cmd:"set type=mx", type:"DOS", desc:"(Dentro do nslookup) Define tipo de registro (ex: MX, A, CNAME)", cat:"Rede"}
+        ]},
+        {cmd:"netstat -ano", type:"DOS", desc:"Mostra conexões de rede e portas (PID incluído)", cat:"Rede"},
+        {cmd:"arp -a", type:"DOS", desc:"Tabela ARP (IP ↔ MAC)", cat:"Rede"},
+        {cmd:"route print", type:"DOS", desc:"Tabela de rotas IP", cat:"Rede"},
+        {cmd:"netsh interface ip show config", type:"DOS", desc:"Configurações IP via netsh", cat:"Rede"},
+        {cmd:"netsh wlan show profiles", type:"DOS", desc:"Lista perfis WLAN salvos", cat:"Rede"},
+        {cmd:"netsh wlan show profile name=\"<perfil>\" key=clear", type:"DOS", desc:"Mostra senha de perfil Wi-Fi (administrador)", cat:"Rede"},
+
+        // Rede — avançado / interface
+        {cmd:"netsh interface reset all", type:"DOS", desc:"Reseta configurações de rede (útil para problemas)", cat:"Rede"},
+        {cmd:"netsh int ip reset", type:"DOS", desc:"Reseta stack TCP/IP", cat:"Rede"},
+        {cmd:"Get-NetIPAddress", type:"PowerShell", desc:"Lista endereços IP (PowerShell - NetTCPIP)", cat:"PowerShell"},
+        {cmd:"Get-NetAdapter", type:"PowerShell", desc:"Lista adaptadores de rede (PowerShell)", cat:"PowerShell"},
+        {cmd:"Test-Connection -ComputerName 8.8.8.8 -Count 4", type:"PowerShell", desc:"Ping em PowerShell (Test-Connection)", cat:"PowerShell"},
+        
+        // Serviços e processos
+        {cmd:"tasklist", type:"DOS", desc:"Lista processos em execução", cat:"Serviços & Processos"},
+        {cmd:"taskkill /PID 1234 /F", type:"DOS", desc:"Finaliza processo por PID", cat:"Serviços & Processos"},
+        { cmd:"sc", type:"DOS", desc:"Gerencia serviços (SC)", cat:"Serviços & Processos", sub: [
+            {cmd:"sc query", type:"DOS", desc:"Lista status de todos os serviços", cat:"Serviços & Processos"},
+            {cmd:"sc query [servicename]", type:"DOS", desc:"Mostra status de um serviço", cat:"Serviços & Processos"},
+            {cmd:"sc queryex [servicename]", type:"DOS", desc:"Mostra detalhes (inclui PID) de um serviço", cat:"Serviços & Processos"},
+            {cmd:"sc start [servicename]", type:"DOS", desc:"Inicia um serviço", cat:"Serviços & Processos"},
+            {cmd:"sc stop [servicename]", type:"DOS", desc:"Para um serviço", cat:"Serviços & Processos"},
+            {cmd:"sc config [servicename] start=auto", type:"DOS", desc:"Muda inicialização para Automático", cat:"Serviços & Processos"},
+            {cmd:"sc config [servicename] start=demand", type:"DOS", desc:"Muda inicialização para Manual", cat:"Serviços & ProcessOS"},
+            {cmd:"sc config [servicename] start=disabled", type:"DOS", desc:"Desativa o serviço", cat:"Serviços & Processos"}
+        ]},
+        {cmd:"powershell Get-Process", type:"PowerShell", desc:"Lista processos (PowerShell)", cat:"PowerShell"},
+        {cmd:"powershell Get-Service", type:"PowerShell", desc:"Lista serviços (PowerShell)", cat:"PowerShell"},
+
+        // Logs & Diagnóstico
+        {cmd:"wevtutil qe System /c:10 /f:text", type:"DOS", desc:"Consulta últimos 10 eventos do log System via linha de comando", cat:"Logs & Diagnóstico"},
+        {cmd:"Get-WinEvent -LogName System -MaxEvents 20", type:"PowerShell", desc:"Puxa últimos eventos do log System (PowerShell)", cat:"PowerShell"},
+        {cmd:"perfmon /report", type:"WR", desc:"Gera relatório de desempenho de sistema", cat:"Logs & Diagnóstico"},
+        {cmd:"resmon", type:"WR", desc:"Monitor de Recursos (Resource Monitor)", cat:"Logs & Diagnóstico"},
+
+        // Boot / BCD / Recuperação
+        {cmd:"bcdedit", type:"DOS", desc:"Mostra/edita BCD (boot configuration data) — use com cuidado", cat:"Boot & BCD"},
+        {cmd:"bcdedit /export C:\\bcdbackup", type:"DOS", desc:"Exporta BCD para backup", cat:"Boot & BCD"},
+        {cmd:"bootrec /fixmbr", type:"DOS", desc:"Repara MBR (uso em Ambiente de Recuperação)", cat:"Boot & BCD"},
+        {cmd:"bootrec /fixboot", type:"DOS", desc:"Regrava setor de boot (recuperação)", cat:"Boot & BCD"},
+        {cmd:"bootrec /rebuildbcd", type:"DOS", desc:"Reconstrói BCD (recuperação)", cat:"Boot & BCD"},
+
+        // Windows Update / Patches
+        {cmd:"wuauclt /detectnow", type:"DOS", desc:"Força verificação de atualização (legacy)", cat:"Sistema"},
+        {cmd:"usoclient StartScan", type:"DOS", desc:"Aciona verificação de atualização no Windows 10/11 (pode exigir privilégios)", cat:"Sistema"},
+        {cmd:"Get-WindowsUpdateLog", type:"PowerShell", desc:"Gera log consolidado de Windows Update", cat:"PowerShell"},
+        {cmd:"Get-HotFix", type:"PowerShell", desc:"Lista hotfixes/patches instalados", cat:"PowerShell"},
+
+        // Licença / Ativação
+        {cmd:"slmgr /xpr", type:"DOS", desc:"Mostra estado de ativação do Windows", cat:"Sistema"},
+        {cmd:"slmgr /ipk <chave>", type:"DOS", desc:"Instala chave de produto", cat:"Sistema"},
+        {cmd:"slmgr /ato", type:"DOS", desc:"Força ativação online", cat:"Sistema"},
+
+        // Admin remota / RDP / Firewall
+        {cmd:"mstsc", type:"WR", desc:"Conexão da Área de Trabalho Remota (mstsc.exe)", cat:"Rede"},
+        {cmd:"netsh advfirewall firewall show rule name=all", type:"DOS", desc:"Lista regras de firewall", cat:"Rede"},
+        {cmd:"netsh advfirewall set allprofiles state off", type:"DOS", desc:"Desativa firewall (não recomendado em produção)", cat:"Rede"},
+        {cmd:"powershell Enable-PSRemoting -Force", type:"PowerShell", desc:"Ativa PowerShell Remoting (WinRM)", cat:"PowerShell"},
+        
+        // Utilitários gerais
+        {cmd:"cmd", type:"WR", desc:"Abre Prompt de Comando", cat:"Utilitários GUI"},
+        {cmd:"powershell", type:"WR", desc:"Abre PowerShell", cat:"PowerShell"},
+        {cmd:"powershell Start-Process powershell -Verb runAs", type:"PowerShell", desc:"Abre PowerShell elevado (Admin)", cat:"PowerShell"},
+        {cmd:"taskmgr", type:"WR", desc:"Abre Gerenciador de Tarefas", cat:"Utilitários GUI"},
+        {cmd:"control", type:"WR", desc:"Abre Painel de Controle", cat:"Utilitários GUI"},
+
+        // Segurança / EDR / Antivirus
+        {cmd:"sc queryex Windefend", type:"DOS", desc:"Verifica serviço do Windows Defender", cat:"Segurança"},
+        { cmd:"mpcmdrun", type:"DOS", desc:"Utilitário Defender (executar de 'Program Files\\...)", cat:"Segurança", sub: [
+            {cmd:"MpCmdRun -Scan -ScanType 2", type:"DOS", desc:"Inicia scan completo do Defender", cat:"Segurança"},
+            {cmd:"MpCmdRun -SignatureUpdate", type:"DOS", desc:"Força atualização de definições", cat:"Segurança"},
+            {cmd:"MpCmdRun -RemoveDefinitions", type:"DOS", desc:"Remove definições (rollback)", cat:"Segurança"}
+        ]},
+
+        // Vários / Ajuda
+        {cmd:"help", type:"DOS", desc:"Ajuda básica no CMD", cat:"Utilitários GUI"},
+        {cmd:"getmac", type:"DOS", desc:"Mostra endereços MAC das interfaces", cat:"Rede"},
+        {cmd:"wmic logicaldisk get name,size,freespace,filesystem", type:"DOS", desc:"Informações de discos e espaço", cat:"Disco & Arquivos"}
+    ];
+    
+
+    // --- LÓGICA DE UI E FIREBASE --- //
+    
+    // Variáveis globais
+    const resultsEl = document.getElementById('results');
+    const qEl = document.getElementById('q');
+    const clearBtn = document.getElementById('clearBtn');
+    const toast = document.getElementById('toast');
+    const cats = Array.from(document.querySelectorAll('.cat'));
+    
+    const addForm = document.getElementById('addCommandForm');
+    const addBtn = document.getElementById('addBtn');
+    const newCatSelect = document.getElementById('new_cat');
+    const newCmdInput = document.getElementById('new_cmd');
+    const cancelOverrideBtn = document.getElementById('cancelOverrideBtn');
+    
+    // (NOVO)
+    const editModal = document.getElementById('editModal');
+    const editForm = document.getElementById('editCommandForm');
+    const editCancelBtn = document.getElementById('editCancelBtn');
+    const editCatSelect = document.getElementById('edit_cat');
+    
+    const editIdInput = document.getElementById('edit_id');
+    const editCmdInput = document.getElementById('edit_cmd');
+    const editTypeInput = document.getElementById('edit_type');
+    const editDescInput = document.getElementById('edit_desc');
+
+    let activeCategory = "Todas";
+    let customCommands = []; // APENAS comandos do Firebase
+    let commands = []; // Lista mesclada (Base + Custom)
+
+    
+    /**
+     * Cria um card (linha de comando)
+     * (*** ALTERADO PARA ADICIONAR BOTÃO "SUBSTITUIR" ***)
+     */
+    function renderCard(it, isSubItem = false) {
+        const card = document.createElement('div');
+        card.className = 'card';
+
+        const left = document.createElement('div');
+        left.className = 'card-left';
+
+        const cmdSpan = document.createElement('div');
+        cmdSpan.className = 'cmd';
+        cmdSpan.textContent = it.cmd;
+
+        const meta = document.createElement('div');
+        meta.className = 'meta';
+        meta.innerHTML = `<span style="font-weight:600">${it.type}</span> — ${it.desc}`;
+
+        left.appendChild(cmdSpan);
+        left.appendChild(meta);
+        left.onclick = (ev) => {
+            copyCommand(it.cmd);
+        };
+
+        const right = document.createElement('div');
+        right.className = 'card-right';
+
+        // Botões de Ação
+        if (it.id && !isSubItem) { // É um comando CUSTOM (do Firebase)
+            const editBtn = document.createElement('button');
+            editBtn.className = 'btn-action btn-edit';
+            editBtn.textContent = 'Editar';
+            editBtn.setAttribute('aria-label', `Editar comando: ${it.cmd}`);
+            editBtn.onclick = (e) => {
+                e.stopPropagation();
+                handleShowEditModal(it);
+            };
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'btn-action btn-delete';
+            deleteBtn.textContent = 'Excluir';
+            deleteBtn.setAttribute('aria-label', `Excluir comando: ${it.cmd}`);
+            deleteBtn.onclick = (e) => {
+                e.stopPropagation();
+                handleDeleteCommand(it);
+            };
+
+            right.appendChild(editBtn);
+            right.appendChild(deleteBtn);
+            
+        } else if (!it.id && !isSubItem) { // (NOVO) É um comando BASE (do código)
+            const overrideBtn = document.createElement('button');
+            overrideBtn.className = 'btn-action btn-override';
+            overrideBtn.textContent = 'Substituir';
+            overrideBtn.setAttribute('aria-label', `Substituir comando: ${it.cmd}`);
+            overrideBtn.onclick = (e) => {
+                e.stopPropagation();
+                prefillAddForm(it); // Chama a nova função
+            };
+            right.appendChild(overrideBtn);
+        }
+
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'btncopy';
+        copyBtn.textContent = 'Copiar';
+        copyBtn.setAttribute('aria-label', `Copiar comando: ${it.cmd}`);
+        copyBtn.onclick = (e) => {
+            e.stopPropagation();
+            copyCommand(it.cmd);
+        };
+        right.appendChild(copyBtn);
+
+        card.appendChild(left);
+        card.appendChild(right);
+        
+        // Adiciona destaque de pesquisa (se aplicável)
+        const term = qEl.value.trim().toLowerCase();
+        if (term.length >= 3 && (it.cmd.toLowerCase().includes(term) || it.desc.toLowerCase().includes(term))) {
+            card.classList.add('highlight-search');
+        }
+
+        return card;
+    }
+
+    /**
+     * Renderiza a lista de comandos (árvore)
+     * (*** LÓGICA DE DESTAQUE MOVIDA PARA DENTRO DE renderCard ***)
+     */
+    function renderList(filterText = "") {
+        resultsEl.innerHTML = "";
+        const term = filterText.trim().toLowerCase();
+        const useSearch = term.length >= 3;
+
+        // 1. Filtra os comandos pais
+        const filtered = commands.filter(item => {
+            const inCat = (activeCategory === "Todas") || (item.cat === activeCategory);
+            if (!inCat) return false;
+            
+            if (!useSearch) return true;
+            
+            // Se a busca bate no PAI
+            if (item.cmd.toLowerCase().includes(term) || item.desc.toLowerCase().includes(term)) {
+                return true;
+            }
+            
+            // Se a busca bate em algum FILHO
+            if (item.sub && item.sub.length > 0) {
+                return item.sub.some(subItem => 
+                    subItem.cmd.toLowerCase().includes(term) || subItem.desc.toLowerCase().includes(term)
+                );
+            }
+            
+            return false;
         });
 
-        // --- LÓGICA DA PESQUISA ---
-        const searchBox = document.getElementById('search-box');
-        const clearBtn = document.getElementById('clear-btn');
-        const searchResults = document.getElementById('search-results');
+        filtered.sort((a, b) => a.cmd.localeCompare(b.cmd));
 
-        // Banco de dados da pesquisa (ATUALIZADO)
-        const searchData = [
-            { title: 'Utilitário diskpart', url: '#cmd_diskpart', tags: 'diskpart disco particao formatar clean gpt mbr' },
-            { title: 'Comando DISM', url: '#cmd_dism', tags: 'dism sfc reparo imagem restorehealth' },
-            { title: 'Comando sfc /scannow', url: '#cmd_sfc', tags: 'sfc sistema arquivos corrompidos scannow' },
-            { title: 'Comando chkdsk', url: '#cmd_chkdsk', tags: 'chkdsk disco rigido hd ssd erros setores' },
-            { title: 'Comando bootrec', url: '#cmd_bootrec', tags: 'bootrec boot inicializacao bcd mbr reparo' },
-            { title: 'Comando ipconfig', url: '#cmd_ipconfig', tags: 'ipconfig rede ip dns' },
-            { title: 'Comando ping', url: '#cmd_ping', tags: 'ping rede conectividade latencia' },
-            { title: 'Comando netstat', url: '#cmd_netstat', tags: 'netstat rede portas conexoes malware' },
-            { title: 'Comando gpupdate', url: '#cmd_gpupdate', tags: 'gpupdate gpo politica de grupo corporate' },
-            { title: 'Comando shutdown', url: '#cmd_shutdown', tags: 'shutdown desligar reiniciar modo de seguranca' },
-            // Novos comandos
-            { title: 'Comando tracert', url: '#cmd_tracert', tags: 'tracert rede rota lentidao gargalo' },
-            { title: 'Comando nslookup', url: '#cmd_nslookup', tags: 'nslookup dns ip dominio resolver' },
-            { title: 'Comando netsh', url: '#cmd_netsh', tags: 'netsh wlan wifi senha rede key clear' },
-            { title: 'Comando arp -a', url: '#cmd_arp', tags: 'arp -a mac ip conflito rede local' },
-            { title: 'Comando systeminfo', url: '#cmd_systeminfo', tags: 'systeminfo informacoes sistema hotfix uptime' },
-            { title: 'Comando taskkill', url: '#cmd_taskkill', tags: 'taskkill travar fechar processo pid im' },
-            { title: 'Comando powercfg', url: '#cmd_powercfg', tags: 'powercfg energia hibernacao hiberfil bateria' },
-            { title: 'PowerShell Essencial', url: '#cmd_powershell', tags: 'powershell serial number test-netconnection porta' },
-            // Problemas
-            { title: 'Problema: Fila de Impressão Travada', url: '#prob_impressora', tags: 'impressora spooler net stop' },
-            { title: 'Problema: Computador Lento', url: '#prob_lentidao', tags: 'lentidao travando devagar' },
-            { title: 'Problema: Não Conecta à Internet', url: '#prob_internet', tags: 'internet rede sem acesso dns' },
-            // Novos problemas
-            { title: 'Problema: Não Liga (Morto)', url: '#prob_nao_liga', tags: 'nao liga morto fonte energia cabo' },
-            { title: 'Problema: Liga, mas não dá Vídeo', url: '#prob_sem_video', tags: 'sem video tela preta memoria ram borracha' },
-            { title: 'Problema: Superaquecimento', url: '#prob_superaquecimento', tags: 'superaquecimento esquentando desliga pasta termica hwmonitor' },
-            { title: 'Problema: Tela Azul (BSOD)', url: '#prob_bsod', tags: 'bsod tela azul erro dump driver memtest' },
-            // Tutoriais e Ferramentas
-            { title: 'Tutorial: Formatar Windows 11', url: '#tut_formatar_win11', tags: 'formatar instalacao windows 11 pendrive boot' },
-            { title: 'Ferramentas Essenciais', url: '#ferramentas', tags: 'software programas ferramentas cpu-z hwmonitor ventoy hirens ninite recuva adwcleaner' }
-        ];
+        if (filtered.length === 0) {
+            resultsEl.innerHTML = '<div class="small" style="padding:14px;color:var(--muted)">Nenhum comando encontrado.</div>';
+            return;
+        }
 
-        searchBox.addEventListener('input', () => {
-            const query = searchBox.value.toLowerCase();
-            clearBtn.style.display = query.length > 0 ? 'block' : 'none';
-
-            if (query.length < 3) {
-                searchResults.innerHTML = '';
+        // 2. Renderiza os itens filtrados
+        filtered.forEach(it => {
+            
+            // Se NÃO tem sub-comandos, renderiza um card simples
+            if (!it.sub || it.sub.length === 0) {
+                const card = renderCard(it, false);
+                resultsEl.appendChild(card);
                 return;
             }
 
-            const filteredData = searchData.filter(item => 
-                item.title.toLowerCase().includes(query) || 
-                item.tags.toLowerCase().includes(query)
-            );
+            // Se TEM sub-comandos, renderiza como <details> (árvore)
+            const details = document.createElement('details');
+            const summary = document.createElement('summary');
+            
+            const parentCard = renderCard(it, false);
+            parentCard.classList.add('card-parent');
+            
+            summary.appendChild(parentCard);
+            
+            const subList = document.createElement('div');
+            subList.className = 'sub-list';
 
-            searchResults.innerHTML = '';
-            if (filteredData.length > 0) {
-                filteredData.forEach(item => {
-                    const link = document.createElement('a');
-                    link.href = item.url;
-                    link.textContent = item.title;
-                    searchResults.appendChild(link);
+            let isOpen = false;
+
+            // Abre o <details> se a busca bater no PAI ou em algum FILHO
+            if (useSearch) {
+                const parentMatches = it.cmd.toLowerCase().includes(term) || it.desc.toLowerCase().includes(term);
+                const childMatches = it.sub.some(subItem => 
+                    subItem.cmd.toLowerCase().includes(term) || subItem.desc.toLowerCase().includes(term)
+                );
+                
+                if (parentMatches || childMatches) {
+                    isOpen = true;
+                }
+            }
+            details.open = isOpen;
+
+            // Renderiza sub-itens
+            it.sub.forEach(subItem => {
+                const subCard = renderCard(subItem, true);
+                subList.appendChild(subCard);
+            });
+
+            details.appendChild(summary);
+            details.appendChild(subList);
+            resultsEl.appendChild(details);
+        });
+    }
+
+    /**
+     * Copia o comando e mostra o toast
+     */
+    function copyCommand(text) {
+        if (!text) return;
+        navigator.clipboard.writeText(text)
+            .then(() => showToast(`Copiado: ${text}`))
+            .catch(err => showToast("Erro ao copiar"));
+    }
+
+    /**
+     * Mostra o toast
+     */
+    function showToast(msg = "Copiado") {
+        toast.textContent = msg;
+        toast.classList.add('show');
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 2000);
+    }
+
+    /**
+     * (NOVO) Preenche o formulário de ADIÇÃO para substituir um comando BASE
+     */
+    function prefillAddForm(baseCommand) {
+        newCmdInput.value = baseCommand.cmd;
+        newCmdInput.readOnly = true; // Bloqueia o campo 'cmd'
+        newCmdInput.focus();
+        document.getElementById('new_type').value = baseCommand.type;
+        document.getElementById('new_cat').value = baseCommand.cat;
+        document.getElementById('new_desc').value = baseCommand.desc;
+        
+        addBtn.textContent = 'Substituir Comando Base';
+        addBtn.style.background = 'var(--accent)';
+        cancelOverrideBtn.style.display = 'block';
+    }
+
+    /**
+     * (NOVO) Limpa o formulário de adição (usado ao cancelar override)
+     */
+    function clearAddForm(resetOverride = true) {
+        addForm.reset();
+        if (resetOverride) {
+            newCmdInput.readOnly = false;
+            addBtn.textContent = 'Adicionar Comando';
+            addBtn.style.background = ''; // Volta ao normal
+            cancelOverrideBtn.style.display = 'none';
+        }
+    }
+
+    /**
+     * (NOVO) Mostra o modal de edição
+     */
+    function handleShowEditModal(command) {
+        editIdInput.value = command.id; // ID do Firebase
+        editCmdInput.value = command.cmd;
+        editTypeInput.value = command.type;
+        editCatSelect.value = command.cat;
+        editDescInput.value = command.desc;
+        editModal.style.display = 'flex';
+        editCmdInput.focus();
+    }
+
+    /**
+     * (NOVO) Esconde o modal de edição
+     */
+    function handleHideEditModal() {
+        editModal.style.display = 'none';
+        editForm.reset();
+    }
+
+    /**
+     * (NOVO) Handle de exclusão
+     */
+    function handleDeleteCommand(command) {
+        if (!command.id) return;
+        
+        const confirmation = confirm(`Tem certeza que deseja excluir o comando:\n\n${command.cmd}\n\nEsta ação não pode ser desfeita.`);
+        
+        if (confirmation) {
+            const commandRef = ref(db, `techkit/commands/${command.id}`);
+            remove(commandRef)
+                .then(() => {
+                    showToast("Comando excluído!");
+                    // O onValue() vai recarregar a lista automaticamente
+                })
+                .catch(err => {
+                    console.error("Erro ao excluir:", err);
+                    showToast("Erro ao excluir comando.");
                 });
+        }
+    }
+
+    /**
+     * (NOVO) Handle do form de Adição/Substituição
+     */
+    addForm.onsubmit = (e) => {
+        e.preventDefault();
+        addBtn.disabled = true;
+        addBtn.textContent = 'Salvando...';
+
+        const isOverride = newCmdInput.readOnly;
+        const cmdKey = newCmdInput.value.trim();
+
+        const newCommand = {
+            cmd: cmdKey,
+            type: document.getElementById('new_type').value,
+            cat: newCatSelect.value,
+            desc: document.getElementById('new_desc').value.trim(),
+        };
+
+        // Se for override, adicionamos uma flag 'overrides'
+        // O 'id' (chave) no Firebase será o próprio comando base
+        if (isOverride) {
+            newCommand.overrides = cmdKey;
+        }
+
+        // Determina a referência do DB
+        let dbPushRef;
+        if (isOverride) {
+            // Se é override, a chave (ID) é o próprio comando base
+            dbPushRef = ref(db, `techkit/commands/${cmdKey}`);
+        } else {
+            // Se é novo, usa push() para ID aleatório
+            dbPushRef = push(dbRef); 
+        }
+
+        set(dbPushRef, newCommand)
+            .then(() => {
+                showToast(isOverride ? "Comando substituído!" : "Comando adicionado!");
+                clearAddForm(true); // Limpa o form (e o estado de override)
+            })
+            .catch(err => {
+                console.error("Erro ao salvar:", err);
+                showToast("Erro ao salvar comando.");
+            })
+            .finally(() => {
+                addBtn.disabled = false;
+                // O texto do botão é resetado pelo clearAddForm
+            });
+    };
+
+    /**
+     * (NOVO) Handle do form de Edição
+     */
+    editForm.onsubmit = (e) => {
+        e.preventDefault();
+        const id = editIdInput.value;
+        if (!id) {
+            showToast("Erro: ID do comando não encontrado.");
+            return;
+        }
+
+        const updatedCommand = {
+            cmd: editCmdInput.value.trim(),
+            type: editTypeInput.value,
+            cat: editCatSelect.value,
+            desc: editDescInput.value.trim(),
+        };
+
+        // (Importante) Verifica se o comando editado é um 'override'
+        // Se for, precisamos manter a flag 'overrides'
+        const originalCommand = customCommands.find(c => c.id === id);
+        if (originalCommand && originalCommand.overrides) {
+            updatedCommand.overrides = originalCommand.overrides;
+        }
+
+        const commandRef = ref(db, `techkit/commands/${id}`);
+        
+        update(commandRef, updatedCommand)
+            .then(() => {
+                showToast("Comando atualizado!");
+                handleHideEditModal();
+            })
+            .catch(err => {
+                console.error("Erro ao atualizar:", err);
+                showToast("Erro ao atualizar comando.");
+            });
+    };
+
+    /**
+     * (NOVO) Botão de cancelar override
+     */
+    cancelOverrideBtn.onclick = () => {
+        clearAddForm(true);
+    };
+
+    /**
+     * (NOVO) Botão de cancelar edição (modal)
+     */
+    editCancelBtn.onclick = () => {
+        handleHideEditModal();
+    };
+
+
+    /**
+     * Filtro de pesquisa (input)
+     */
+    let searchTimeout;
+    qEl.oninput = () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            renderList(qEl.value);
+        }, 150); // Debounce de 150ms
+    };
+
+    /**
+     * Limpar pesquisa
+     */
+    clearBtn.onclick = () => {
+        qEl.value = "";
+        renderList("");
+        qEl.focus();
+    };
+
+    /**
+     * Filtro de categoria (links da sidebar)
+     */
+    cats.forEach(c => {
+        c.onclick = () => {
+            activeCategory = c.dataset.cat;
+            cats.forEach(el => el.classList.remove('active'));
+            c.classList.add('active');
+            renderList(qEl.value);
+        };
+    });
+
+    /**
+     * Popula os <select> de categoria
+     */
+    function populateCategoryDropdowns() {
+        const categories = [
+            "Sistema", "Hardware", "Disco & Arquivos", "Rede", 
+            "Serviços & Processos", "Usuário & Grupo", "Logs & Diagnóstico",
+            "Política & GPO", "Boot & BCD", "PowerShell", "Utilitários GUI",
+            "Segurança"
+        ].sort();
+
+        // Limpa (caso seja chamado de novo)
+        newCatSelect.innerHTML = '';
+        editCatSelect.innerHTML = '';
+        
+        categories.forEach(catName => {
+            const option = new Option(catName, catName);
+            newCatSelect.add(option.cloneNode(true));
+            editCatSelect.add(option.cloneNode(true));
+        });
+    }
+
+    /**
+     * (*** ALTERADO PARA SUPORTAR 'OVERRIDE' ***)
+     * Mescla comandos base e comandos customizados (do Firebase)
+     * A lógica de 'override' acontece aqui.
+     */
+    function mergeCommands(base, custom) {
+        const mergedMap = new Map();
+
+        // 1. Adiciona todos os comandos base ao Map, usando 'cmd' como chave
+        base.forEach(b => {
+            mergedMap.set(b.cmd, { ...b }); // Clona o objeto base
+        });
+
+        // 2. Itera sobre os comandos customizados
+        custom.forEach(c => {
+            // A chave é 'overrides' (se existir) ou o 'id' (que é o cmd se for override) ou o 'cmd'
+            const key = c.overrides || c.id; 
+            
+            if (mergedMap.has(key) && c.overrides) {
+                // É um OVERRIDE. Substitui o comando base
+                // Mantém os sub-comandos do base, se o custom não tiver
+                const baseCmd = mergedMap.get(key);
+                mergedMap.set(key, { 
+                    ...c, // Dados do custom (id, type, desc, cat)
+                    sub: (baseCmd && baseCmd.sub) ? baseCmd.sub : null // (Importante) Preserva os sub-itens do base
+                }); 
             } else {
-                searchResults.innerHTML = '<a href="#">Nenhum resultado encontrado</a>';
+                // É um COMANDO NOVO (não é override)
+                mergedMap.set(c.cmd, { ...c }); // Adiciona o comando custom
             }
         });
 
-        clearBtn.addEventListener('click', () => {
-            searchBox.value = '';
-            searchResults.innerHTML = '';
-            clearBtn.style.display = 'none';
-        });
+        // Converte o Map de volta para um array
+        return Array.from(mergedMap.values());
+    }
 
-        // Fecha a caixa de resultados ao clicar fora
-        document.addEventListener('click', (event) => {
-            if (!searchBox.contains(event.target)) {
-                searchResults.innerHTML = '';
-            }
-        });
-    </script>
+
+    /**
+     * Ponto de entrada: Ouve o Firebase e renderiza
+     */
+    onValue(dbRef, (snapshot) => {
+        const data = snapshot.val();
+        customCommands = [];
+        
+        if (data) {
+            // Transforma o objeto do Firebase (com chaves aleatórias ou chaves=cmd) em array
+            customCommands = Object.keys(data).map(key => ({
+                id: key, // O 'id' é a chave do Firebase
+                ...data[key]
+            }));
+        }
+
+        // Mescla os comandos base com os do Firebase (com lógica de override)
+        commands = mergeCommands(baseCommands, customCommands);
+        
+        // Renderiza a lista com o filtro/busca atual
+        renderList(qEl.value);
+
+    }, (error) => {
+        console.error("Erro ao ler dados:", error);
+        resultsEl.innerHTML = '<div class="small" style="padding:14px;color:var(--danger)">Erro ao conectar com o Firebase. Verifique a configuração.</div>';
+        // Tenta renderizar pelo menos os comandos base
+        commands = [...baseCommands];
+        renderList(qEl.value);
+    });
+
+    // Inicialização
+    populateCategoryDropdowns();
+
+</script>
 </body>
 </html>
