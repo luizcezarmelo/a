@@ -1040,7 +1040,7 @@
         }
 
         // ==================================================================
-        // ============ FUNÇÃO setAlarm MODIFICADA ============
+        // ============ FUNÇÃO setAlarm (Versão Robusta) ============
         // ==================================================================
         function setAlarm(id, silent = false) {
             const msgEl = document.getElementById(`alarmMessage${id}`);
@@ -1048,9 +1048,15 @@
             const msg = msgEl.value.trim();
             const time = timeEl.value;
 
-            // Pega o elemento de feedback e limpa
+            // Pega o elemento de feedback
             const feedbackEl = document.getElementById('alarm-feedback');
-            feedbackEl.textContent = '';
+            
+            // --- ALTERAÇÃO DE ROBUSTEZ ---
+            // Limpa o feedback SÓ SE o elemento existir
+            if (feedbackEl) {
+                feedbackEl.textContent = '';
+            }
+            // --- FIM DA ALTERAÇÃO ---
 
             if (!msg || !time) {
                 if (!silent) alert("Preencha a frase e o horário do alarme " + id);
@@ -1074,9 +1080,9 @@
 
             const diff = alarm.getTime() - now.getTime();
 
-            // --- NOVO CÓDIGO INSERIDO ---
-            // Só mostra o feedback se não for silencioso (carregamento da página)
-            if (!silent) {
+            // --- ALTERAÇÃO DE ROBUSTEZ ---
+            // Só mostra o feedback se não for silencioso E o elemento existir
+            if (!silent && feedbackEl) { // <--- Adicionado "&& feedbackEl"
                 const totalMinutes = Math.floor(diff / (1000 * 60));
                 const hours = Math.floor(totalMinutes / 60);
                 const minutes = totalMinutes % 60;
@@ -1085,16 +1091,19 @@
 
                 // Limpa a mensagem após 4 segundos
                 setTimeout(() => {
-                    feedbackEl.textContent = '';
+                    // Limpa de novo, SÓ SE o elemento existir
+                    if (feedbackEl) {
+                        feedbackEl.textContent = '';
+                    }
                 }, 4000);
             }
-            // --- FIM DO NOVO CÓDIGO ---
+            // --- FIM DA ALTERAÇÃO ---
 
             alarmTimeouts[id] = setTimeout(() => triggerAlarm(msg, id), diff);
         }
 
         // ==================================================================
-        // ============ FUNÇÃO clearAlarm MODIFICADA ============
+        // ============ FUNÇÃO clearAlarm (Versão Robusta) ============
         // ==================================================================
         function clearAlarm(id) {
             if (alarmTimeouts[id]) {
@@ -1105,10 +1114,13 @@
             document.getElementById(`alarmTime${id}`).value = '';
             database.ref(`alarms/${id}`).remove();
 
-            // --- NOVO CÓDIGO INSERIDO ---
-            // Limpa a mensagem de feedback se houver alguma
-            document.getElementById('alarm-feedback').textContent = '';
-            // --- FIM DO NOVO CÓDIGO ---
+            // --- ALTERAÇÃO DE ROBUSTEZ ---
+            // Limpa a mensagem de feedback SÓ SE o elemento existir
+            const feedbackEl = document.getElementById('alarm-feedback');
+            if (feedbackEl) {
+                feedbackEl.textContent = '';
+            }
+            // --- FIM DA ALTERAÇÃO ---
         }
 
         function triggerAlarm(message, id) {
@@ -1129,12 +1141,8 @@
 
             database.ref(`alarms/${id}`).remove();
             
-            // ==================================================================
-            // ============ CORREÇÃO ADICIONADA AQUI ============
-            // Limpa os campos da UI para refletir que o alarme foi consumido
             document.getElementById(`alarmMessage${id}`).value = '';
             document.getElementById(`alarmTime${id}`).value = '';
-            // ==================================================================
         }
 
         function stopAlarmBlink() {
