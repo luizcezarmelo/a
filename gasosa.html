@@ -1,279 +1,427 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Controle de Abastecimento</title>
-  <style>
-    body {
-      font-family: "Segoe UI", Arial, sans-serif;
-      background: linear-gradient(180deg, #f9fafb 0%, #e9ecef 100%);
-      margin: 0;
-      padding: 20px;
-      color: #333;
-    }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Controle de Abastecimento</title>
+    <style>
+        :root {
+            --cor-primaria: #007bff;
+            --cor-primaria-foco: #007bff40;
+            --cor-perigo: #dc3545;
+            --cor-perigo-hover: #c82333;
+            --cor-sucesso: #28a745;
+            --cor-fundo: #f4f7f6;
+            --cor-cartao: #ffffff;
+            --cor-texto: #343a40;
+            --cor-borda: #dee2e6;
+        }
 
-    h2 {
-      text-align: center;
-      font-weight: 600;
-      color: #222;
-      margin-bottom: 20px;
-    }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+                Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
+                sans-serif;
+            background-color: var(--cor-fundo);
+            margin: 0;
+            padding: 20px;
+            color: var(--cor-texto);
+        }
 
-    .container {
-      max-width: 900px;
-      margin: auto;
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      overflow: hidden;
-      padding: 15px;
-    }
+        h2 {
+            text-align: center;
+            font-weight: 600;
+            color: var(--cor-texto);
+            margin-bottom: 24px;
+        }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 15px;
-    }
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: var(--cor-cartao);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            padding: 20px;
+        }
 
-    th {
-      background: #007bff;
-      color: white;
-      padding: 10px;
-      font-weight: 500;
-    }
+        .top-buttons {
+            text-align: right;
+            margin-bottom: 15px;
+        }
 
-    td {
-      border-bottom: 1px solid #eee;
-      text-align: center;
-      padding: 8px;
-    }
+        .btn {
+            background: var(--cor-perigo);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 9px 16px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
 
-    input[type="number"], input[type="date"] {
-      width: 90%;
-      padding: 6px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      text-align: center;
-      font-size: 14px;
-      transition: 0.2s;
-    }
+        .btn:hover {
+            background: var(--cor-perigo-hover);
+        }
 
-    input:focus {
-      outline: none;
-      border-color: #007bff;
-      background: #eef6ff;
-    }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 15px;
+        }
 
-    #aviso {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: #28a745;
-      color: white;
-      padding: 10px 16px;
-      border-radius: 8px;
-      font-size: 14px;
-      display: none;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-      opacity: 0.95;
-      animation: fadeInOut 2s ease-in-out;
-      z-index: 1000;
-    }
+        th {
+            background: var(--cor-primaria);
+            color: white;
+            padding: 12px 10px;
+            font-weight: 500;
+            text-align: center;
+        }
 
-    @keyframes fadeInOut {
-      0% { opacity: 0; transform: translateY(10px); }
-      10% { opacity: 1; transform: translateY(0); }
-      90% { opacity: 1; }
-      100% { opacity: 0; transform: translateY(10px); }
-    }
+        /* Arredondar cantos do cabeçalho */
+        th:first-child {
+            border-top-left-radius: 8px;
+        }
+        th:last-child {
+            border-top-right-radius: 8px;
+        }
 
-    .top-buttons {
-      text-align: right;
-      margin-bottom: 10px;
-    }
+        td {
+            border-bottom: 1px solid var(--cor-borda);
+            text-align: center;
+            padding: 8px;
+        }
 
-    .btn {
-      background: #dc3545;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 8px 16px;
-      cursor: pointer;
-      font-weight: 500;
-      transition: 0.2s;
-    }
+        tr:last-child td {
+            border-bottom: none;
+        }
 
-    .btn:hover {
-      background: #c82333;
-    }
+        input[type="number"],
+        input[type="date"] {
+            width: 95%;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid var(--cor-borda);
+            text-align: center;
+            font-size: 14px;
+            box-sizing: border-box; /* Importante para o padding não quebrar o layout */
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
 
-    /* Responsivo */
-    @media (max-width: 700px) {
-      table, thead, tbody, th, td, tr { display: block; }
-      thead { display: none; }
-      tr {
-        background: white;
-        margin-bottom: 10px;
-        border-radius: 10px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-        padding: 10px;
-      }
-      td {
-        border: none;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 6px 4px;
-      }
-      td::before {
-        content: attr(data-label);
-        font-weight: 600;
-        color: #007bff;
-      }
-      .top-buttons {
-        text-align: center;
-        margin-bottom: 15px;
-      }
-    }
-  </style>
+        input:focus {
+            outline: none;
+            border-color: var(--cor-primaria);
+            box-shadow: 0 0 0 3px var(--cor-primaria-foco);
+        }
+
+        /* Remove setas do input number */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        #aviso {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--cor-sucesso);
+            color: white;
+            padding: 12px 18px;
+            border-radius: 8px;
+            font-size: 15px;
+            display: none;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s, transform 0.3s;
+            z-index: 1000;
+        }
+
+        #aviso.show {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Responsivo */
+        @media (max-width: 700px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 10px;
+            }
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+            thead {
+                display: none; /* Cabeçalho original oculto */
+            }
+            tr {
+                background: var(--cor-cartao);
+                margin-bottom: 10px;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+                border: 1px solid var(--cor-borda);
+            }
+            td {
+                border: none;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px;
+                border-bottom: 1px dashed var(--cor-borda);
+            }
+            td:last-child {
+                border-bottom: none;
+            }
+            td::before {
+                content: attr(data-label);
+                font-weight: 600;
+                color: var(--cor-primaria);
+                margin-right: 10px;
+            }
+            input[type="number"],
+            input[type="date"] {
+                width: 50%; /* Ajuste para caber ao lado do label */
+            }
+            .top-buttons {
+                text-align: center;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <h2>🚗 Controle de Abastecimento</h2>
+    <h2>🚗 Controle de Abastecimento</h2>
 
-  <div class="container">
-    <div class="top-buttons">
-      <button class="btn" id="limparTudo">🧹 Limpar Tudo</button>
+    <div class="container">
+        <div class="top-buttons">
+            <button class="btn" id="limparTudo">🧹 Limpar Tudo</button>
+        </div>
+        <table id="tabela">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Data</th>
+                    <th>KM</th>
+                    <th>Litros</th>
+                    <th>Valor (R$)</th>
+                    <th>Consumo (Km/L)</th>
+                </tr>
+            </thead>
+            <tbody id="tabela-corpo">
+                </tbody>
+        </table>
     </div>
 
-    <table id="tabela">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Data</th>
-          <th>KM</th>
-          <th>Litros</th>
-          <th>Valor (R$)</th>
-          <th>Consumo (Km/L)</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+    <div id="aviso">Salvo</div>
 
-  <div id="aviso">✅ Salvo</div>
+    <script type="module">
+        // Importações do Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import {
+            getDatabase,
+            ref,
+            set,
+            get,
+            remove
+        } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
-  <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+        // Configuração do Firebase (APENAS UMA VEZ)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDQOGFiqafMZh0ha6XW62P1DpIKJE8TBYc",
+            authDomain: "agenda-online-7b71c.firebaseapp.com",
+            databaseURL: "https://agenda-online-7b71c-default-rtdb.firebaseio.com",
+            projectId: "agenda-online-7b71c",
+            storageBucket: "agenda-online-7b71c.firebasestorage.app",
+            messagingSenderId: "28125733214",
+            appId: "1:28125733214:web:162d1cce5d14f55c24afcf"
+        };
 
-// Configuração do Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyDQOGFiqafMZh0ha6XW62P1DpIKJE8TBYc",
-  authDomain: "agenda-online-7b71c.firebaseapp.com",
-  databaseURL: "https://agenda-online-7b71c-default-rtdb.firebaseio.com",
-  projectId: "agenda-online-7b71c",
-  storageBucket: "agenda-online-7b71c.firebasestorage.app",
-  messagingSenderId: "28125733214",
-  appId: "1:28125733214:web:162d1cce5d14f55c24afcf"
-};
+        // Inicializa Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const dbRef = ref(db, "controle_abastecimento");
 
-// Inicializa Firebase
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+        // Elementos do DOM
+        const tbody = document.getElementById("tabela-corpo");
+        const aviso = document.getElementById("aviso");
+        const btnLimparTudo = document.getElementById("limparTudo");
 
-// Teste de salvamento
-set(ref(db, "teste"), { ok: true })
-  .then(() => console.log("✅ Salvou no Firebase!"))
-  .catch(e => console.error("❌ Erro ao salvar:", e));
+        const NUM_LINHAS = 10;
 
+        // --- FUNÇÕES PRINCIPAIS ---
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDQOGFiqafMZh0ha6XW62P1DpIKJE8TBYc",
-      authDomain: "agenda-online-7b71c.firebaseapp.com",
-      databaseURL: "https://agenda-online-7b71c-default-rtdb.firebaseio.com",
-      projectId: "agenda-online-7b71c",
-      storageBucket: "agenda-online-7b71c.firebasestorage.app",
-      messagingSenderId: "28125733214",
-      appId: "1:28125733214:web:162d1cce5d14f55c24afcf"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const tbody = document.querySelector("#tabela tbody");
-    const aviso = document.getElementById("aviso");
-
-    // cria 10 linhas vazias
-    for (let i = 1; i <= 10; i++) {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td data-label="#">${i}</td>
-        <td data-label="Data"><input type="date" id="data${i}"></td>
-        <td data-label="KM"><input type="number" id="km${i}" placeholder="KM"></td>
-        <td data-label="Litros"><input type="number" id="litros${i}" step="0.01" placeholder="L"></td>
-        <td data-label="Valor"><input type="number" id="valor${i}" step="0.01" placeholder="R$"></td>
-        <td data-label="Consumo" id="consumo${i}">-</td>
-      `;
-      tbody.appendChild(tr);
-    }
-
-    function mostrarAviso() {
-      aviso.style.display = "block";
-      setTimeout(() => (aviso.style.display = "none"), 2000);
-    }
-
-    async function salvarAuto() {
-      const dados = [];
-      for (let i = 1; i <= 10; i++) {
-        const km = parseFloat(document.getElementById(`km${i}`).value) || 0;
-        const litros = parseFloat(document.getElementById(`litros${i}`).value) || 0;
-        const valor = parseFloat(document.getElementById(`valor${i}`).value) || 0;
-        const data = document.getElementById(`data${i}`).value || "";
-
-        dados.push({ km, litros, valor, data });
-      }
-
-      // cálculo correto de consumo
-      for (let i = 2; i <= 10; i++) {
-        const kmAtual = dados[i - 1].km;
-        const kmAnt = dados[i - 2].km;
-        const litros = dados[i - 1].litros;
-        const consumo = litros > 0 && kmAnt > 0 ? ((kmAtual - kmAnt) / litros).toFixed(2) : "-";
-        document.getElementById(`consumo${i}`).textContent = consumo;
-      }
-
-      try {
-        await set(ref(db, "controle_abastecimento"), dados);
-        mostrarAviso();
-      } catch (e) {
-        console.error("Erro ao salvar no Firebase:", e);
-      }
-    }
-
-    // autosalvamento
-    document.querySelectorAll("input").forEach(inp => {
-      inp.addEventListener("input", () => {
-        const id = inp.id.replace("km", "");
-        if (inp.id.startsWith("km") && !document.getElementById(`data${id}`).value) {
-          document.getElementById(`data${id}`).value = new Date().toISOString().split("T")[0];
+        /**
+         * Gera as linhas vazias na tabela
+         */
+        function gerarLinhas() {
+            for (let i = 1; i <= NUM_LINHAS; i++) {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td data-label="#">${i}</td>
+                    <td data-label="Data"><input type="date" id="data${i}"></td>
+                    <td data-label="KM"><input type="number" id="km${i}" placeholder="KM Total"></td>
+                    <td data-label="Litros"><input type="number" id="litros${i}" step="0.01" placeholder="Litros"></td>
+                    <td data-label="Valor"><input type="number" id="valor${i}" step="0.01" placeholder="R$"></td>
+                    <td data-label="Consumo" id="consumo${i}">-</td>
+                `;
+                tbody.appendChild(tr);
+            }
         }
-        salvarAuto();
-      });
-    });
 
-    // botão limpar tudo
-    document.getElementById("limparTudo").addEventListener("click", async () => {
-      if (!confirm("Tem certeza que deseja limpar todos os dados?")) return;
-      for (let i = 1; i <= 10; i++) {
-        document.getElementById(`data${i}`).value = "";
-        document.getElementById(`km${i}`).value = "";
-        document.getElementById(`litros${i}`).value = "";
-        document.getElementById(`valor${i}`).value = "";
-        document.getElementById(`consumo${i}`).textContent = "-";
-      }
-      await remove(ref(db, "controle_abastecimento"));
-      mostrarAviso();
-    });
-  </script>
+        /**
+         * Mostra o aviso de notificação
+         */
+        function mostrarAviso(mensagem) {
+            aviso.textContent = mensagem;
+            aviso.classList.add("show");
+            setTimeout(() => {
+                aviso.classList.remove("show");
+            }, 2000);
+        }
+
+        /**
+         * Calcula o consumo para todas as linhas e atualiza a UI
+         */
+        function calcularConsumo() {
+            for (let i = 2; i <= NUM_LINHAS; i++) {
+                const kmAtual = parseFloat(document.getElementById(`km${i}`).value) || 0;
+                const kmAnt = parseFloat(document.getElementById(`km${i - 1}`).value) || 0;
+                const litros = parseFloat(document.getElementById(`litros${i}`).value) || 0;
+
+                let consumo = "-";
+                if (litros > 0 && kmAtual > kmAnt) {
+                    consumo = ((kmAtual - kmAnt) / litros).toFixed(2);
+                }
+                document.getElementById(`consumo${i}`).textContent = consumo;
+            }
+        }
+
+        /**
+         * Lê todos os dados da tabela, calcula o consumo e salva no Firebase
+         */
+        async function salvarDados() {
+            // 1. Calcula o consumo e atualiza a UI
+            calcularConsumo();
+
+            // 2. Monta o array de dados para salvar
+            const dados = [];
+            for (let i = 1; i <= NUM_LINHAS; i++) {
+                const data = document.getElementById(`data${i}`).value || "";
+                const km = parseFloat(document.getElementById(`km${i}`).value) || 0;
+                const litros = parseFloat(document.getElementById(`litros${i}`).value) || 0;
+                const valor = parseFloat(document.getElementById(`valor${i}`).value) || 0;
+                const consumo = document.getElementById(`consumo${i}`).textContent;
+
+                dados.push({ data, km, litros, valor, consumo });
+            }
+
+            // 3. Salva no Firebase
+            try {
+                await set(dbRef, dados);
+                mostrarAviso("✅ Dados salvos!");
+            } catch (e) {
+                console.error("Erro ao salvar no Firebase:", e);
+                mostrarAviso("❌ Erro ao salvar.");
+            }
+        }
+
+        /**
+         * Carrega os dados do Firebase ao iniciar a página
+         */
+        async function carregarDados() {
+            try {
+                const snapshot = await get(dbRef);
+                if (snapshot.exists()) {
+                    const dados = snapshot.val();
+                    
+                    // Garante que 'dados' seja um array
+                    if (Array.isArray(dados)) {
+                        dados.forEach((linha, index) => {
+                            const i = index + 1;
+                            if (i <= NUM_LINHAS) {
+                                document.getElementById(`data${i}`).value = linha.data || "";
+                                document.getElementById(`km${i}`).value = linha.km || "";
+                                document.getElementById(`litros${i}`).value = linha.litros || "";
+                                document.getElementById(`valor${i}`).value = linha.valor || "";
+                                // O consumo será recalculado abaixo
+                            }
+                        });
+                    }
+                }
+                // Calcula o consumo com base nos dados carregados
+                calcularConsumo();
+                console.log("Dados carregados com sucesso.");
+
+            } catch (e) {
+                console.error("Erro ao carregar dados:", e);
+                mostrarAviso("❌ Erro ao carregar dados.");
+            }
+        }
+
+        /**
+         * Limpa todos os campos da UI e remove do Firebase
+         */
+        async function limparTudo() {
+            if (!confirm("Tem certeza que deseja limpar todos os dados? Esta ação não pode ser desfeita.")) {
+                return;
+            }
+
+            // Limpa UI
+            for (let i = 1; i <= NUM_LINHAS; i++) {
+                document.getElementById(`data${i}`).value = "";
+                document.getElementById(`km${i}`).value = "";
+                document.getElementById(`litros${i}`).value = "";
+                document.getElementById(`valor${i}`).value = "";
+                document.getElementById(`consumo${i}`).textContent = "-";
+            }
+
+            // Limpa Firebase
+            try {
+                await remove(dbRef);
+                mostrarAviso("🧹 Dados limpos!");
+            } catch (e) {
+                console.error("Erro ao limpar dados:", e);
+                mostrarAviso("❌ Erro ao limpar dados.");
+            }
+        }
+
+        // --- INICIALIZAÇÃO E EVENTOS ---
+
+        // 1. Gera as linhas da tabela na tela
+        gerarLinhas();
+
+        // 2. Adiciona o listener para salvar (usando 'change' e delegação de evento)
+        tbody.addEventListener("change", (e) => {
+            // Verifica se o evento foi disparado por um input
+            if (e.target.tagName === "INPUT") {
+                // Feature: Preenche data automaticamente ao digitar KM
+                const idNum = e.target.id.replace(/\D/g, ""); // Pega só o número do ID
+                if (e.target.id.startsWith("km") && idNum) {
+                    const dataInput = document.getElementById(`data${idNum}`);
+                    if (!dataInput.value) {
+                        dataInput.value = new Date().toISOString().split("T")[0];
+                    }
+                }
+                
+                // Salva os dados
+                salvarDados();
+            }
+        });
+
+        // 3. Adiciona o listener para o botão de limpar
+        btnLimparTudo.addEventListener("click", limparTudo);
+
+        // 4. Carrega os dados existentes assim que a página é carregada
+        document.addEventListener("DOMContentLoaded", carregarDados);
+
+    </script>
 </body>
 </html>
