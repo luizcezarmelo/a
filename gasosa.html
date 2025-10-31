@@ -6,13 +6,13 @@
     <title>Controle de Consumo de Combustível</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Inter', Arial, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 20px 10px;
             background-color: #f4f4f9;
         }
         .container {
-            max-width: 600px;
+            max-width: 700px;
             margin: 0 auto;
             background: #fff;
             padding: 20px;
@@ -26,6 +26,8 @@
         }
         .header-controls {
             display: flex;
+            flex-wrap: wrap; /* Permite que os botões quebrem a linha em telas pequenas */
+            gap: 10px; /* Espaçamento entre botões */
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
@@ -33,17 +35,33 @@
         button {
             padding: 10px 15px;
             cursor: pointer;
-            background-color: #007bff;
             color: white;
             border: none;
             border-radius: 6px;
-            font-size: 16px;
-            transition: background-color 0.2s;
+            font-size: 14px;
+            transition: background-color 0.2s, transform 0.1s;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            flex-grow: 1;
         }
-        button:hover {
+        #btnLimpar {
+            background-color: #dc3545;
+        }
+        #btnLimpar:hover {
+            background-color: #c82333;
+        }
+        #btnAddRow {
+            background-color: #28a745;
+        }
+        #btnAddRow:hover {
+            background-color: #1e7e34;
+        }
+        #btnAuthStatus {
+            background-color: #007bff;
+        }
+        #btnAuthStatus:hover {
             background-color: #0056b3;
         }
+
         table {
             width: 100%;
             border-collapse: separate;
@@ -54,14 +72,14 @@
         }
         th, td {
             border: 1px solid #e0e0e0;
-            padding: 8px;
+            padding: 8px 4px; /* Mais compacto para celular */
             text-align: center;
         }
         th {
             background-color: #3f51b5;
             color: white;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 13px;
         }
         input {
             width: 100%;
@@ -70,16 +88,15 @@
             border: 1px solid #ccc;
             border-radius: 4px;
             box-sizing: border-box; 
+            font-size: 14px;
         }
-        input[type="number"] {
-            /* Remove flechas em alguns navegadores */
-            -moz-appearance: textfield;
+        /* Ajustes de largura para telas grandes */
+        @media (min-width: 600px) {
+            th, td {
+                padding: 10px;
+            }
         }
-        input::-webkit-outer-spin-button,
-        input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
+
         .consumo-medio {
             font-weight: bold;
             color: #28a745;
@@ -88,7 +105,21 @@
             font-size: 12px;
             color: #666;
             text-align: right;
-            margin-top: 10px;
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+        /* Estilo para a célula de exclusão */
+        .delete-cell {
+            width: 40px; 
+            padding: 0;
+            cursor: pointer;
+            background-color: #fff;
+            color: #dc3545;
+            transition: color 0.2s;
+        }
+        .delete-cell:hover {
+            color: #c82333;
         }
     </style>
 </head>
@@ -99,7 +130,8 @@
     
     <div class="header-controls">
         <button id="btnLimpar">Limpar Tudo</button>
-        <div id="loadingIndicator" style="color: #007bff; font-weight: bold;">Carregando...</div>
+        <button id="btnAddRow">Adicionar Linha</button>
+        <div id="loadingIndicator" style="color: #007bff; font-weight: bold; padding: 10px;">Carregando...</div>
     </div>
 
     <table>
@@ -110,14 +142,14 @@
                 <th>Litros</th>
                 <th>Valor (R$)</th>
                 <th>Média (KM/L)</th>
+                <th>Ação</th> <!-- Nova coluna para botão de exclusão -->
             </tr>
         </thead>
         <tbody id="tabelaCorpo">
-            <!-- As 5 linhas de entrada serão geradas pelo JavaScript -->
         </tbody>
     </table>
 
-    
+    <p><strong>Observação:</strong> A média é calculada usando os dados da linha atual e a quilometragem da linha ANTERIOR (ou seja, a linha imediatamente acima).</p>
     
     <p class="user-info" id="userIdDisplay">Autenticando...</p>
 </div>
@@ -126,12 +158,12 @@
     // Importações obrigatórias do Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, collection, setDoc, query, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, doc, collection, setDoc, query, onSnapshot, deleteDoc, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    const NUM_LINHAS = 5;
     const corpoTabela = document.getElementById('tabelaCorpo');
     const btnLimpar = document.getElementById('btnLimpar');
+    const btnAddRow = document.getElementById('btnAddRow');
     const loadingIndicator = document.getElementById('loadingIndicator');
 
     // Váriaveis globais obrigatórias do ambiente Canvas
@@ -141,49 +173,9 @@
 
     let db, auth, userId, collectionRef;
     let isAuthReady = false;
+    let logsData = {}; // Objeto para armazenar dados do Firebase por ID (Chave: docId, Valor: {data, km, litros, valor, timestamp})
 
-    // --- CONFIGURAÇÃO E AUTENTICAÇÃO FIREBASE ---
-
-    if (firebaseConfig) {
-        const app = initializeApp(firebaseConfig);
-        db = getFirestore(app);
-        auth = getAuth(app);
-        setLogLevel('Debug'); // Para debug no console
-        
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                userId = user.uid;
-                document.getElementById('userIdDisplay').textContent = `Usuário (ID): ${userId}`;
-                collectionRef = collection(db, 'artifacts', appId, 'users', userId, 'abastecimentos');
-                isAuthReady = true;
-                loadingIndicator.style.display = 'none';
-                loadDataFromFirestore();
-            } else {
-                // Tenta autenticar
-                try {
-                    if (initialAuthToken) {
-                        await signInWithCustomToken(auth, initialAuthToken);
-                    } else {
-                        await signInAnonymously(auth);
-                    }
-                } catch (error) {
-                    console.error("Erro na autenticação:", error);
-                    userId = crypto.randomUUID();
-                    document.getElementById('userIdDisplay').textContent = `Erro Firebase. ID Local: ${userId}`;
-                    isAuthReady = true; 
-                    loadingIndicator.style.display = 'none';
-                }
-            }
-        });
-    } else {
-        // Fallback sem Firebase
-        userId = crypto.randomUUID();
-        document.getElementById('userIdDisplay').textContent = `Modo Offline. ID Local: ${userId}`;
-        isAuthReady = true;
-        loadingIndicator.style.display = 'none';
-    }
-    
-    // --- FUNÇÕES DE DATA E CÁLCULO ---
+    // --- UTILS ---
 
     function getDataAtualFormatada() {
         const hoje = new Date();
@@ -192,188 +184,302 @@
         const dd = String(hoje.getDate()).padStart(2, '0');
         return `${yyyy}-${mm}-${dd}`;
     }
-
-    // Função para atualizar a data no input KM e disparar o save/cálculo
-    function handleKmInput(inputElement, index) {
-        // 1. LÓGICA DE PREENCHIMENTO DE DATA
-        if (inputElement.id.startsWith('km-') && inputElement.value.length > 0) {
-            const dateInput = document.getElementById(`data-${index}`);
-            // Só preenche se estiver vazio (conforme solicitado)
-            if (!dateInput.value) {
-                dateInput.value = getDataAtualFormatada();
-            }
-        }
-        
-        // 2. CÁLCULO E PERSISTÊNCIA
-        calcularMedias();
-        saveRecord(index); 
-    }
-
-    function criarInput(type, id, index, placeholder) {
-        const input = document.createElement('input');
-        input.type = type;
-        input.id = id;
-        input.placeholder = placeholder;
-        
-        // Todos os inputs disparam o handleKmInput (que verifica qual input foi modificado)
-        input.addEventListener('input', (e) => handleKmInput(e.target, index));
-        return input;
-    }
-
-    function calcularMedias() {
-        // Esta função lê os dados da UI e calcula a média
-        for (let i = 0; i < NUM_LINHAS; i++) {
-            const kmInput = document.getElementById(`km-${i}`);
-            const litrosInput = document.getElementById(`litros-${i}`);
-            const celulaMedia = document.getElementById(`media-${i}`);
-            
-            const kmAtual = parseFloat(kmInput.value) || 0;
-            const litros = parseFloat(litrosInput.value) || 0;
-            
-            celulaMedia.textContent = '-';
-            celulaMedia.style.color = 'green';
-
-            if (i > 0 && litros > 0) {
-                const kmAnterior = parseFloat(document.getElementById(`km-${i-1}`).value) || 0;
-                
-                const distanciaRodada = kmAtual - kmAnterior;
-
-                if (distanciaRodada > 0 && litros > 0) {
-                    const media = (distanciaRodada / litros).toFixed(2);
-                    celulaMedia.textContent = media;
-                } else if (distanciaRodada <= 0 && kmAtual > 0) {
-                    celulaMedia.textContent = 'KM Errada';
-                    celulaMedia.style.color = 'red';
-                }
-            } else if (i === 0 && litros > 0) {
-                 celulaMedia.textContent = 'Ref. Inicial';
-            }
-        }
-    }
     
     // --- FUNÇÕES DE PERSISTÊNCIA FIREBASE ---
 
-    async function saveRecord(index) {
-        if (!isAuthReady || !collectionRef) return;
+    async function saveRecord(docId, record) {
+        if (!isAuthReady || !collectionRef) {
+            console.error("Firebase não está pronto para salvar.");
+            return;
+        }
 
-        const dataInput = document.getElementById(`data-${index}`);
-        const kmInput = document.getElementById(`km-${index}`);
-        const litrosInput = document.getElementById(`litros-${index}`);
-        const valorInput = document.getElementById(`valor-${index}`);
-
-        const record = {
-            data: dataInput.value,
-            km: parseFloat(kmInput.value) || 0,
-            litros: parseFloat(litrosInput.value) || 0,
-            valor: parseFloat(valorInput.value) || 0,
-            timestamp: Date.now()
-        };
-        
         // Se a linha estiver vazia (KM e Litros zerados), podemos deletar o registro
         if (record.km === 0 && record.litros === 0) {
              try {
-                await deleteDoc(doc(collectionRef, `log-${index}`));
+                // Apenas deleta se o registro realmente existir no cache local
+                if (logsData[docId]) {
+                    await deleteDoc(doc(collectionRef, docId));
+                }
             } catch (e) {
-                // Ignore silent error if doc doesn't exist
+                console.warn(`Erro ao deletar documento (pode não existir): ${e.message}`);
             }
             return;
         }
 
         try {
-            const docId = `log-${index}`;
             await setDoc(doc(collectionRef, docId), record);
+            console.log("Registro salvo/atualizado com sucesso:", docId);
         } catch (e) {
             console.error("Erro ao salvar o documento:", e);
         }
     }
 
-    function loadDataFromFirestore() {
-        if (!isAuthReady || !collectionRef) return;
-        
-        const q = query(collectionRef);
-        
-        // onSnapshot: escuta em tempo real e atualiza a UI se os dados mudarem em qualquer lugar
-        onSnapshot(q, (snapshot) => {
-            snapshot.docChanges().forEach((change) => {
-                const docId = change.doc.id;
-                const indexMatch = docId.match(/log-(\d+)/);
-                
-                if (indexMatch) {
-                    const index = parseInt(indexMatch[1], 10);
-                    const data = change.doc.data();
+    // --- FUNÇÕES DE UI E CÁLCULO ---
+    
+    function calcularMedias() {
+        // Converte o objeto de dados em um array, ordenando por KM total (para garantir que a média seja calculada corretamente em ordem crescente)
+        const sortedLogs = Object.values(logsData)
+            .filter(log => log.km > 0) // Ignora linhas sem KM
+            .sort((a, b) => a.km - b.km);
 
-                    if (index >= 0 && index < NUM_LINHAS) {
-                        // Popula UI
-                        document.getElementById(`data-${index}`).value = data.data || '';
-                        // Usamos string vazia para 0, para que os campos vazios fiquem limpos
-                        document.getElementById(`km-${index}`).value = data.km > 0 ? data.km : '';
-                        document.getElementById(`litros-${index}`).value = data.litros > 0 ? data.litros : '';
-                        document.getElementById(`valor-${index}`).value = data.valor > 0 ? data.valor : '';
-                    }
+        corpoTabela.querySelectorAll('tr').forEach(row => {
+            const docId = row.dataset.docId;
+            const log = logsData[docId] || { km: 0, litros: 0 };
+            
+            const celulaMedia = row.querySelector('.consumo-medio');
+            
+            // Encontra o log anterior (aquele com a KM imediatamente menor)
+            const logAnterior = sortedLogs.reduce((prev, current) => {
+                if (current.km < log.km && (!prev || current.km > prev.km)) {
+                    return current;
                 }
-            });
-            // Recalcula todas as médias após o carregamento ou atualização dos dados
-            calcularMedias(); 
+                return prev;
+            }, null);
+
+            celulaMedia.textContent = '-';
+            celulaMedia.style.color = '#28a745';
+
+            if (logAnterior && log.litros > 0) {
+                const kmAnterior = logAnterior.km;
+                const distanciaRodada = log.km - kmAnterior;
+
+                if (distanciaRodada > 0) {
+                    const media = (distanciaRodada / log.litros).toFixed(2);
+                    celulaMedia.textContent = media;
+                } else if (distanciaRodada <= 0) {
+                    celulaMedia.textContent = 'KM Inválida';
+                    celulaMedia.style.color = '#dc3545';
+                }
+            } else if (!logAnterior && log.litros > 0) {
+                // Primeira linha preenchida
+                 celulaMedia.textContent = 'Ref. Inicial';
+            }
         });
     }
 
-    async function limparCampos() {
-        if (!confirm('Tem certeza que deseja limpar todos os dados da tabela?')) {
-            return;
-        }
+    function criarInput(type, docId, field, placeholder, initialValue = '') {
+        const input = document.createElement('input');
+        input.type = type;
+        input.value = initialValue;
+        input.placeholder = placeholder;
         
-        // Limpar UI
-        for (let i = 0; i < NUM_LINHAS; i++) {
-            document.getElementById(`data-${i}`).value = '';
-            document.getElementById(`km-${i}`).value = '';
-            document.getElementById(`litros-${i}`).value = '';
-            document.getElementById(`valor-${i}`).value = '';
-            document.getElementById(`media-${i}`).textContent = '-';
-            document.getElementById(`media-${i}`).style.color = 'green';
-
-            // Deletar no Firebase
-            if (isAuthReady && collectionRef) {
-                try {
-                    await deleteDoc(doc(collectionRef, `log-${i}`));
-                } catch (e) {
-                    console.error(`Erro ao deletar log-${i}:`, e);
+        // Evento único de atualização
+        input.addEventListener('input', () => {
+            // 1. LÓGICA DE PREENCHIMENTO DE DATA (só KM preenche a data vazia)
+            if (field === 'km' && input.value.length > 0) {
+                const dateInput = document.querySelector(`tr[data-doc-id="${docId}"] input[data-field="data"]`);
+                if (dateInput && !dateInput.value) {
+                    dateInput.value = getDataAtualFormatada();
+                    logsData[docId].data = dateInput.value;
                 }
             }
+
+            // 2. ATUALIZA O LOGS DATA
+            if (!logsData[docId]) {
+                logsData[docId] = { km: 0, litros: 0, valor: 0, data: '' };
+            }
+            
+            const isNumber = ['km', 'litros', 'valor'].includes(field);
+            const value = isNumber ? (parseFloat(input.value) || 0) : input.value;
+            logsData[docId][field] = value;
+            logsData[docId].timestamp = Date.now(); // Atualiza timestamp para ordenação
+
+            // 3. RECÁLCULO E PERSISTÊNCIA
+            calcularMedias();
+            saveRecord(docId, logsData[docId]);
+        });
+        
+        input.setAttribute('data-field', field);
+        return input;
+    }
+
+    function criarLinha(docId, data = {}) {
+        const row = corpoTabela.insertRow();
+        row.setAttribute('data-doc-id', docId);
+
+        // Preenche valores padrão
+        const log = {
+            data: data.data || '',
+            km: data.km || 0,
+            litros: data.litros || 0,
+            valor: data.valor || 0,
+            timestamp: data.timestamp || Date.now() 
+        };
+        logsData[docId] = log; // Coloca no cache
+        
+        // Célula de Data
+        let celData = row.insertCell();
+        celData.appendChild(criarInput('date', docId, 'data', 'dd/mm/aaaa', log.data));
+
+        // Célula de KM
+        let celKm = row.insertCell();
+        celKm.appendChild(criarInput('number', docId, 'km', 'Km Total', log.km > 0 ? log.km : ''));
+        
+        // Célula de Litros
+        let celLitros = row.insertCell();
+        celLitros.appendChild(criarInput('number', docId, 'litros', 'Litros', log.litros > 0 ? log.litros : ''));
+        
+        // Célula de Valor
+        let celValor = row.insertCell();
+        celValor.appendChild(criarInput('number', docId, 'valor', 'R$', log.valor > 0 ? log.valor : ''));
+        
+        // Célula de Média (apenas para exibição)
+        let celMedia = row.insertCell();
+        celMedia.className = 'consumo-medio';
+        celMedia.textContent = '-';
+
+        // Célula de Exclusão (Nova)
+        let celAcao = row.insertCell();
+        celAcao.className = 'delete-cell';
+        celAcao.textContent = '❌';
+        celAcao.onclick = () => {
+            if (confirm(`Tem certeza que deseja apagar o registro KM ${log.km} (Data: ${log.data})?`)) {
+                deleteRecord(docId);
+            }
+        };
+
+        return row;
+    }
+    
+    async function deleteRecord(docId) {
+        if (!isAuthReady || !collectionRef) return;
+        
+        try {
+            await deleteDoc(doc(collectionRef, docId));
+        } catch (e) {
+            console.error("Erro ao deletar registro:", e);
+        }
+    }
+
+    function updateUI(logs) {
+        // 1. Limpa a UI
+        corpoTabela.innerHTML = '';
+        
+        // 2. Ordena os logs pelo timestamp ou KM (KM é mais estável)
+        const sortedLogs = Object.values(logs)
+            .sort((a, b) => a.km - b.km);
+
+        // 3. Cria as linhas na UI
+        sortedLogs.forEach(log => {
+            criarLinha(log.id, log);
+        });
+
+        // 4. Adiciona 5 linhas vazias se houver menos de 5 logs (para facilitar a entrada de novos dados)
+        const currentRowCount = sortedLogs.length;
+        const rowsToAdd = Math.max(0, 5 - currentRowCount);
+        
+        for (let i = 0; i < rowsToAdd; i++) {
+            // Cria um ID temporário único
+            criarLinha(`new-${Date.now()}-${i}`, {});
         }
         
         calcularMedias();
     }
     
-    // --- INICIALIZAÇÃO ---
+    // --- FUNÇÕES DE CONTROLE DE DADOS ---
 
-    function inicializarApp() {
-        // Cria a estrutura da tabela
-        for (let i = 0; i < NUM_LINHAS; i++) {
-            const linha = corpoTabela.insertRow();
+    function loadDataFromFirestore() {
+        if (!isAuthReady || !collectionRef) return;
+        
+        // Consulta Firestore: Pega todos os logs, ordenados por timestamp
+        const q = query(collectionRef); 
+        
+        onSnapshot(q, (snapshot) => {
+            logsData = {}; // Limpa o cache
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                logsData[doc.id] = { id: doc.id, ...data };
+            });
             
-            let celData = linha.insertCell();
-            celData.appendChild(criarInput('date', `data-${i}`, i, 'Selecione a Data'));
-
-            let celKm = linha.insertCell();
-            celKm.appendChild(criarInput('number', `km-${i}`, i, 'Km Total'));
-            
-            let celLitros = linha.insertCell();
-            celLitros.appendChild(criarInput('number', `litros-${i}`, i, 'Litros'));
-            
-            let celValor = linha.insertCell();
-            celValor.appendChild(criarInput('number', `valor-${i}`, i, 'R$'));
-            
-            let celMedia = linha.insertCell();
-            celMedia.id = `media-${i}`;
-            celMedia.className = 'consumo-medio';
-            celMedia.textContent = '-';
+            // Atualiza a interface
+            updateUI(logsData);
+        }, (error) => {
+            console.error("Erro ao receber dados do Firestore:", error);
+            loadingIndicator.textContent = "Erro de Conexão. Verifique as regras do Firebase.";
+            loadingIndicator.style.color = '#dc3545';
+        });
+    }
+    
+    async function limparCampos() {
+        if (!confirm('ATENÇÃO: Tem certeza que deseja limpar TODOS os dados da tabela? Isso apagará TODOS os registros no banco de dados para sempre.')) {
+            return;
         }
         
-        btnLimpar.addEventListener('click', limparCampos);
-        calcularMedias(); 
+        loadingIndicator.textContent = "Limpando...";
+        loadingIndicator.style.display = 'block';
+
+        // Coleta todos os IDs de documentos a serem deletados
+        const docIdsToDelete = Object.keys(logsData);
+
+        // Deleta no Firebase (paralelamente)
+        if (isAuthReady && collectionRef) {
+            const deletePromises = docIdsToDelete.map(docId => deleteDoc(doc(collectionRef, docId)));
+            await Promise.all(deletePromises);
+        }
+        
+        // A UI será atualizada automaticamente via onSnapshot
+    }
+    
+    function adicionarLinha() {
+        // Cria um ID temporário e adiciona uma linha vazia no topo da tabela
+        const newDocId = `new-${Date.now()}-${Object.keys(logsData).length}`;
+        criarLinha(newDocId, {});
+        // Garante que o scroll vá para a nova linha se a tabela for muito longa
+        corpoTabela.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }
 
-    document.addEventListener('DOMContentLoaded', inicializarApp);
+    // --- CONFIGURAÇÃO E AUTENTICAÇÃO FIREBASE ---
+
+    async function setupFirebase() {
+        if (!firebaseConfig) {
+            console.error("Firebase Configuração não encontrada.");
+            userId = crypto.randomUUID();
+            document.getElementById('userIdDisplay').textContent = `Modo Offline. ID Local: ${userId}`;
+            isAuthReady = true;
+            loadingIndicator.style.display = 'none';
+            // Se não houver Firebase, ainda permite a criação de 5 linhas vazias
+            for (let i = 0; i < 5; i++) { adicionarLinha(); }
+            return;
+        }
+
+        try {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            setLogLevel('Debug'); 
+            
+            let user;
+            
+            if (initialAuthToken) {
+                user = (await signInWithCustomToken(auth, initialAuthToken)).user;
+            } else {
+                user = (await signInAnonymously(auth)).user;
+            }
+
+            userId = user.uid;
+            document.getElementById('userIdDisplay').textContent = `Conectado. ID: ${userId}`;
+            collectionRef = collection(db, 'artifacts', appId, 'users', userId, 'abastecimentos');
+            isAuthReady = true;
+            loadingIndicator.style.display = 'none';
+            
+            loadDataFromFirestore(); // Inicia a escuta em tempo real
+
+        } catch (error) {
+            console.error("Erro FATAL de autenticação Firebase. O salvamento não funcionará.", error);
+            loadingIndicator.textContent = "ERRO: Falha na Conexão. Salvamento Desativado.";
+            loadingIndicator.style.color = '#dc3545';
+            
+            // Permite que o usuário use o app no modo offline (sem persistência)
+            isAuthReady = false; 
+            for (let i = 0; i < 5; i++) { adicionarLinha(); }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        setupFirebase();
+        btnLimpar.addEventListener('click', limparCampos);
+        btnAddRow.addEventListener('click', adicionarLinha);
+    });
 </script>
 
 </body>
