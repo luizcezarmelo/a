@@ -96,6 +96,18 @@
         tr:last-child td {
             border-bottom: none;
         }
+        
+        /* Estilo do Rodapé (Média Geral) */
+        tfoot td {
+            border-top: 2px solid var(--cor-primaria);
+            padding: 12px 10px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        tfoot td:first-child {
+            text-align: right;
+        }
 
         input[type="number"],
         input[type="date"] {
@@ -156,7 +168,7 @@
             .container {
                 padding: 10px;
             }
-            table, thead, tbody, th, td, tr {
+            table, thead, tbody, th, td, tr, tfoot {
                 display: block;
             }
             thead {
@@ -186,6 +198,23 @@
                 color: var(--cor-primaria);
                 margin-right: 10px;
             }
+            
+            /* Ajustes responsivos para o rodapé */
+            tfoot tr {
+                border-top: 2px solid var(--cor-primaria);
+                margin-top: 15px;
+            }
+            tfoot td {
+                border: none;
+                padding: 12px 10px;
+            }
+            tfoot td[data-label="Média Geral"]::before {
+                 content: "Média Geral (Km/L):";
+            }
+             tfoot td:first-child { /* Oculta o label duplicado */
+                display: none;
+            }
+
             input[type="number"],
             input[type="date"] {
                 width: 50%; /* Ajuste para caber ao lado do label */
@@ -217,6 +246,12 @@
             </thead>
             <tbody id="tabela-corpo">
                 </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="5" style="text-align: right;">Média Geral (Km/L):</td>
+                    <td id="media-geral" data-label="Média Geral">-</td>
+                </tr>
+            </tfoot>
         </table>
     </div>
 
@@ -253,6 +288,7 @@
         const tbody = document.getElementById("tabela-corpo");
         const aviso = document.getElementById("aviso");
         const btnLimparTudo = document.getElementById("limparTudo");
+        const mediaGeralEl = document.getElementById("media-geral");
 
         const NUM_LINHAS = 10;
 
@@ -288,16 +324,17 @@
         }
 
         /**
-         * Calcula o consumo para todas as linhas e atualiza a UI
+         * Calcula o consumo INDIVIDUAL para todas as linhas e atualiza a UI
          */
-        function calcularConsumo() {
+        function calcularConsumoIndividual() {
             for (let i = 2; i <= NUM_LINHAS; i++) {
                 const kmAtual = parseFloat(document.getElementById(`km${i}`).value) || 0;
                 const kmAnt = parseFloat(document.getElementById(`km${i - 1}`).value) || 0;
                 const litros = parseFloat(document.getElementById(`litros${i}`).value) || 0;
 
                 let consumo = "-";
-                if (litros > 0 && kmAtual > kmAnt) {
+                // Só calcula se tivermos KM anterior, KM atual maior e litros
+                if (litros > 0 && kmAtual > kmAnt && kmAnt > 0) {
                     consumo = ((kmAtual - kmAnt) / litros).toFixed(2);
                 }
                 document.getElementById(`consumo${i}`).textContent = consumo;
@@ -305,13 +342,65 @@
         }
 
         /**
-         * Lê todos os dados da tabela, calcula o consumo e salva no Firebase
+         * Calcula a MÉDIA GERAL de consumo
+         */
+        function calcularMediaGeral() {
+            let primeiroKm = 0;
+            let ultimoKm = 0;
+            let totalLitros = 0;
+            let primeiroKmIndex = -1;
+
+            // 1. Encontrar o primeiro e último KM válidos
+            for (let i = 1; i <= NUM_LINHAS; i++) {
+                const km = parseFloat(document.getElementById(`km${i}`).value) || 0;
+                if (km > 0) {
+                    if (primeiroKm === 0) {
+                        primeiroKm = km;
+                        primeiroKmIndex = i; // Guarda a linha do primeiro abastecimento
+                    }
+                    ultimoKm = km;
+                }
+            }
+
+            // 2. Se não houver pelo menos 2 registros de KM, não há como calcular
+            if (primeiroKmIndex === -1 || ultimoKm === primeiroKm) {
+                mediaGeralEl.textContent = "-";
+                return;
+            }
+
+            // 3. Somar todos os litros A PARTIR do SEGUNDO registro de KM
+            // (pois o primeiro abastecimento só "inicia" o tanque)
+            for (let i = primeiroKmIndex + 1; i <= NUM_LINHAS; i++) {
+                 const km = parseFloat(document.getElementById(`km${i}`).value) || 0;
+                 const litros = parseFloat(document.getElementById(`litros${i}`).value) || 0;
+                 
+                 // Só soma litros se houver um KM válido (para não contar litros de linhas vazias no meio)
+                 if (km > 0 && litros > 0) {
+                    totalLitros += litros;
+                 }
+            }
+            
+            // 4. Calcular e exibir
+            const totalKmRodado = ultimoKm - primeiroKm;
+            if (totalLitros > 0 && totalKmRodado > 0) {
+                const media = (totalKmRodado / totalLitros).toFixed(2);
+                mediaGeralEl.textContent = media;
+            } else {
+                mediaGeralEl.textContent = "-";
+            }
+        }
+
+        /**
+         * Lê todos os dados da tabela, calcula e salva no Firebase
          */
         async function salvarDados() {
-            // 1. Calcula o consumo e atualiza a UI
-            calcularConsumo();
+            // 1. Calcula o consumo individual
+            calcularConsumoIndividual();
+            
+            // 2. Calcula a média geral
+            calcularMediaGeral();
 
-            // 2. Monta o array de dados para salvar
+            // 3. Monta o array de dados para salvar
             const dados = [];
             for (let i = 1; i <= NUM_LINHAS; i++) {
                 const data = document.getElementById(`data${i}`).value || "";
@@ -320,10 +409,17 @@
                 const valor = parseFloat(document.getElementById(`valor${i}`).value) || 0;
                 const consumo = document.getElementById(`consumo${i}`).textContent;
 
-                dados.push({ data, km, litros, valor, consumo });
+                // Salva 0 como string vazia para limpar o campo
+                dados.push({
+                    data: data,
+                    km: km || "",
+                    litros: litros || "",
+                    valor: valor || "",
+                    consumo: consumo
+                });
             }
 
-            // 3. Salva no Firebase
+            // 4. Salva no Firebase
             try {
                 await set(dbRef, dados);
                 mostrarAviso("✅ Dados salvos!");
@@ -342,7 +438,6 @@
                 if (snapshot.exists()) {
                     const dados = snapshot.val();
                     
-                    // Garante que 'dados' seja um array
                     if (Array.isArray(dados)) {
                         dados.forEach((linha, index) => {
                             const i = index + 1;
@@ -351,13 +446,15 @@
                                 document.getElementById(`km${i}`).value = linha.km || "";
                                 document.getElementById(`litros${i}`).value = linha.litros || "";
                                 document.getElementById(`valor${i}`).value = linha.valor || "";
-                                // O consumo será recalculado abaixo
                             }
                         });
                     }
                 }
-                // Calcula o consumo com base nos dados carregados
-                calcularConsumo();
+                // Calcula o consumo individual com base nos dados carregados
+                calcularConsumoIndividual();
+                // Calcula a média geral com base nos dados carregados
+                calcularMediaGeral();
+                
                 console.log("Dados carregados com sucesso.");
 
             } catch (e) {
@@ -382,6 +479,7 @@
                 document.getElementById(`valor${i}`).value = "";
                 document.getElementById(`consumo${i}`).textContent = "-";
             }
+            mediaGeralEl.textContent = "-"; // Limpa a média geral também
 
             // Limpa Firebase
             try {
@@ -400,18 +498,20 @@
 
         // 2. Adiciona o listener para salvar (usando 'change' e delegação de evento)
         tbody.addEventListener("change", (e) => {
-            // Verifica se o evento foi disparado por um input
             if (e.target.tagName === "INPUT") {
                 // Feature: Preenche data automaticamente ao digitar KM
                 const idNum = e.target.id.replace(/\D/g, ""); // Pega só o número do ID
                 if (e.target.id.startsWith("km") && idNum) {
                     const dataInput = document.getElementById(`data${idNum}`);
                     if (!dataInput.value) {
-                        dataInput.value = new Date().toISOString().split("T")[0];
+                        // Formata a data para o fuso horário local
+                        const dataLocal = new Date();
+                        dataLocal.setMinutes(dataLocal.getMinutes() - dataLocal.getTimezoneOffset());
+                        dataInput.value = dataLocal.toISOString().split("T")[0];
                     }
                 }
                 
-                // Salva os dados
+                // Salva os dados (que agora recalcula tudo)
                 salvarDados();
             }
         });
