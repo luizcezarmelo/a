@@ -26,8 +26,8 @@
         }
         .header-controls {
             display: flex;
-            flex-wrap: wrap; /* Permite que os botões quebrem a linha em telas pequenas */
-            gap: 10px; /* Espaçamento entre botões */
+            flex-wrap: wrap; 
+            gap: 10px; 
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
@@ -55,11 +55,14 @@
         #btnAddRow:hover {
             background-color: #1e7e34;
         }
-        #btnAuthStatus {
-            background-color: #007bff;
-        }
-        #btnAuthStatus:hover {
-            background-color: #0056b3;
+        /* Nova área de status */
+        #statusIndicator {
+            color: #007bff; 
+            font-weight: bold; 
+            padding: 10px;
+            flex-grow: 2;
+            text-align: right;
+            font-size: 14px;
         }
 
         table {
@@ -72,7 +75,7 @@
         }
         th, td {
             border: 1px solid #e0e0e0;
-            padding: 8px 4px; /* Mais compacto para celular */
+            padding: 8px 4px; 
             text-align: center;
         }
         th {
@@ -131,7 +134,7 @@
     <div class="header-controls">
         <button id="btnLimpar">Limpar Tudo</button>
         <button id="btnAddRow">Adicionar Linha</button>
-        <div id="loadingIndicator" style="color: #007bff; font-weight: bold; padding: 10px;">Carregando...</div>
+        <div id="statusIndicator">Carregando Conexão...</div> <!-- Renomeado para statusIndicator -->
     </div>
 
     <table>
@@ -142,7 +145,7 @@
                 <th>Litros</th>
                 <th>Valor (R$)</th>
                 <th>Média (KM/L)</th>
-                <th>Ação</th> <!-- Nova coluna para botão de exclusão -->
+                <th>Ação</th> 
             </tr>
         </thead>
         <tbody id="tabelaCorpo">
@@ -164,11 +167,20 @@
     const corpoTabela = document.getElementById('tabelaCorpo');
     const btnLimpar = document.getElementById('btnLimpar');
     const btnAddRow = document.getElementById('btnAddRow');
-    const loadingIndicator = document.getElementById('loadingIndicator');
+    const statusIndicator = document.getElementById('statusIndicator'); // Usando o novo ID
 
     // Váriaveis globais obrigatórias do ambiente Canvas
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'fuel-log-default-app';
-    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+    
+    // Tentativa de parsing seguro. A variável pode ser uma string JSON ou null/undefined
+    let firebaseConfig = null;
+    try {
+        firebaseConfig = typeof __firebase_config !== 'undefined' && __firebase_config ? JSON.parse(__firebase_config) : null;
+    } catch (e) {
+        console.error("Erro ao parsear __firebase_config. A string JSON estava malformada.", e);
+        // Deixa como null para entrar em modo offline
+    }
+
     const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
     let db, auth, userId, collectionRef;
@@ -189,28 +201,44 @@
 
     async function saveRecord(docId, record) {
         if (!isAuthReady || !collectionRef) {
-            console.error("Firebase não está pronto para salvar.");
+            console.error("Firebase não está pronto para salvar (Modo Offline).");
             return;
         }
+        
+        // Exibe status de salvamento
+        statusIndicator.textContent = "Salvando...";
+        statusIndicator.style.color = '#007bff';
 
         // Se a linha estiver vazia (KM e Litros zerados), podemos deletar o registro
         if (record.km === 0 && record.litros === 0) {
              try {
                 // Apenas deleta se o registro realmente existir no cache local
-                if (logsData[docId]) {
+                if (logsData[docId] && !docId.startsWith('new-')) { 
                     await deleteDoc(doc(collectionRef, docId));
+                    statusIndicator.textContent = "Registro vazio removido.";
+                    statusIndicator.style.color = '#dc3545';
+                    setTimeout(() => { statusIndicator.textContent = ''; }, 2000);
                 }
             } catch (e) {
-                console.warn(`Erro ao deletar documento (pode não existir): ${e.message}`);
+                console.warn(`Erro ao deletar documento: ${e.message}`);
+                statusIndicator.textContent = "ERRO: Falha ao deletar. Verifique as regras de segurança.";
+                statusIndicator.style.color = '#dc3545';
             }
             return;
         }
 
         try {
-            await setDoc(doc(collectionRef, docId), record);
+            // Usa o docId como o nome do documento (se for temporário, o Firebase cria um novo)
+            await setDoc(doc(collectionRef, docId.startsWith('new-') ? undefined : docId), record);
             console.log("Registro salvo/atualizado com sucesso:", docId);
+            statusIndicator.textContent = "Salvo!";
+            statusIndicator.style.color = '#28a745';
+            setTimeout(() => { statusIndicator.textContent = ''; }, 2000); 
         } catch (e) {
             console.error("Erro ao salvar o documento:", e);
+            // Mensagem de erro explícita para o problema mais comum: Permissão
+            statusIndicator.textContent = "ERRO: Falha ao salvar. Verifique as Regras de Segurança do Firebase.";
+            statusIndicator.style.color = '#dc3545';
         }
     }
 
@@ -219,7 +247,7 @@
     function calcularMedias() {
         // Converte o objeto de dados em um array, ordenando por KM total (para garantir que a média seja calculada corretamente em ordem crescente)
         const sortedLogs = Object.values(logsData)
-            .filter(log => log.km > 0) // Ignora linhas sem KM
+            .filter(log => log.km > 0) 
             .sort((a, b) => a.km - b.km);
 
         corpoTabela.querySelectorAll('tr').forEach(row => {
@@ -260,7 +288,8 @@
     function criarInput(type, docId, field, placeholder, initialValue = '') {
         const input = document.createElement('input');
         input.type = type;
-        input.value = initialValue;
+        // Se for campo numérico, só coloca valor inicial se for maior que zero para evitar "0"
+        input.value = (type === 'number' && parseFloat(initialValue) === 0) ? '' : initialValue; 
         input.placeholder = placeholder;
         
         // Evento único de atualização
@@ -276,7 +305,7 @@
 
             // 2. ATUALIZA O LOGS DATA
             if (!logsData[docId]) {
-                logsData[docId] = { km: 0, litros: 0, valor: 0, data: '' };
+                logsData[docId] = { km: 0, litros: 0, valor: 0, data: '', id: docId };
             }
             
             const isNumber = ['km', 'litros', 'valor'].includes(field);
@@ -299,6 +328,7 @@
 
         // Preenche valores padrão
         const log = {
+            id: docId,
             data: data.data || '',
             km: data.km || 0,
             litros: data.litros || 0,
@@ -332,22 +362,31 @@
         let celAcao = row.insertCell();
         celAcao.className = 'delete-cell';
         celAcao.textContent = '❌';
+        
+        // Substituindo confirm() por console.warn e ação direta
         celAcao.onclick = () => {
-            if (confirm(`Tem certeza que deseja apagar o registro KM ${log.km} (Data: ${log.data})?`)) {
-                deleteRecord(docId);
-            }
+            console.warn(`Tentando apagar registro KM ${log.km} (Data: ${log.data}).`);
+            deleteRecord(docId); 
         };
 
         return row;
     }
     
     async function deleteRecord(docId) {
-        if (!isAuthReady || !collectionRef) return;
+        if (!isAuthReady || !collectionRef) {
+             console.error("Firebase não está pronto para deletar (Modo Offline).");
+             return;
+        }
         
         try {
             await deleteDoc(doc(collectionRef, docId));
+            statusIndicator.textContent = "Registro deletado!";
+            statusIndicator.style.color = '#dc3545';
+            setTimeout(() => { statusIndicator.textContent = ''; }, 2000);
         } catch (e) {
             console.error("Erro ao deletar registro:", e);
+             statusIndicator.textContent = "ERRO: Falha ao deletar. Verifique as regras de segurança do Firebase.";
+             statusIndicator.style.color = '#dc3545';
         }
     }
 
@@ -355,7 +394,7 @@
         // 1. Limpa a UI
         corpoTabela.innerHTML = '';
         
-        // 2. Ordena os logs pelo timestamp ou KM (KM é mais estável)
+        // 2. Ordena os logs por KM total
         const sortedLogs = Object.values(logs)
             .sort((a, b) => a.km - b.km);
 
@@ -364,7 +403,7 @@
             criarLinha(log.id, log);
         });
 
-        // 4. Adiciona 5 linhas vazias se houver menos de 5 logs (para facilitar a entrada de novos dados)
+        // 4. Adiciona 5 linhas vazias se houver menos de 5 logs 
         const currentRowCount = sortedLogs.length;
         const rowsToAdd = Math.max(0, 5 - currentRowCount);
         
@@ -381,7 +420,6 @@
     function loadDataFromFirestore() {
         if (!isAuthReady || !collectionRef) return;
         
-        // Consulta Firestore: Pega todos os logs, ordenados por timestamp
         const q = query(collectionRef); 
         
         onSnapshot(q, (snapshot) => {
@@ -393,51 +431,60 @@
             
             // Atualiza a interface
             updateUI(logsData);
+            statusIndicator.textContent = "Dados sincronizados.";
+            statusIndicator.style.color = '#28a745';
+            setTimeout(() => { statusIndicator.textContent = ''; }, 3000);
+
         }, (error) => {
             console.error("Erro ao receber dados do Firestore:", error);
-            loadingIndicator.textContent = "Erro de Conexão. Verifique as regras do Firebase.";
-            loadingIndicator.style.color = '#dc3545';
+            statusIndicator.textContent = "ERRO: Falha ao carregar dados. Regras de Leitura Negadas.";
+            statusIndicator.style.color = '#dc3545';
         });
     }
     
     async function limparCampos() {
-        if (!confirm('ATENÇÃO: Tem certeza que deseja limpar TODOS os dados da tabela? Isso apagará TODOS os registros no banco de dados para sempre.')) {
-            return;
-        }
+        // Substituindo confirm() por console.warn e ação direta
+        console.warn('Iniciando limpeza de TODOS os dados. Isso apagará todos os registros permanentes.');
         
-        loadingIndicator.textContent = "Limpando...";
-        loadingIndicator.style.display = 'block';
+        statusIndicator.textContent = "Limpando...";
+        statusIndicator.style.color = '#007bff';
 
-        // Coleta todos os IDs de documentos a serem deletados
-        const docIdsToDelete = Object.keys(logsData);
+        const docIdsToDelete = Object.keys(logsData).filter(id => !id.startsWith('new-'));
 
-        // Deleta no Firebase (paralelamente)
         if (isAuthReady && collectionRef) {
-            const deletePromises = docIdsToDelete.map(docId => deleteDoc(doc(collectionRef, docId)));
-            await Promise.all(deletePromises);
+            try {
+                const deletePromises = docIdsToDelete.map(docId => deleteDoc(doc(collectionRef, docId)));
+                await Promise.all(deletePromises);
+                statusIndicator.textContent = "Todos os dados limpos!";
+                statusIndicator.style.color = '#dc3545';
+                setTimeout(() => { statusIndicator.textContent = ''; }, 3000);
+            } catch(e) {
+                console.error("Erro ao limpar dados:", e);
+                statusIndicator.textContent = "ERRO: Falha ao limpar. Verifique as regras de segurança (escrita).";
+                statusIndicator.style.color = '#dc3545';
+            }
         }
         
         // A UI será atualizada automaticamente via onSnapshot
     }
     
     function adicionarLinha() {
-        // Cria um ID temporário e adiciona uma linha vazia no topo da tabela
         const newDocId = `new-${Date.now()}-${Object.keys(logsData).length}`;
         criarLinha(newDocId, {});
-        // Garante que o scroll vá para a nova linha se a tabela for muito longa
         corpoTabela.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }
 
     // --- CONFIGURAÇÃO E AUTENTICAÇÃO FIREBASE ---
 
     async function setupFirebase() {
-        if (!firebaseConfig) {
+        if (!firebaseConfig || Object.keys(firebaseConfig).length === 0) {
             console.error("Firebase Configuração não encontrada.");
             userId = crypto.randomUUID();
             document.getElementById('userIdDisplay').textContent = `Modo Offline. ID Local: ${userId}`;
             isAuthReady = true;
-            loadingIndicator.style.display = 'none';
-            // Se não houver Firebase, ainda permite a criação de 5 linhas vazias
+            statusIndicator.textContent = 'Modo Offline Ativo (Configuração Ausente).';
+            statusIndicator.style.color = '#f0ad4e';
+            // Permite uso offline
             for (let i = 0; i < 5; i++) { adicionarLinha(); }
             return;
         }
@@ -460,14 +507,14 @@
             document.getElementById('userIdDisplay').textContent = `Conectado. ID: ${userId}`;
             collectionRef = collection(db, 'artifacts', appId, 'users', userId, 'abastecimentos');
             isAuthReady = true;
-            loadingIndicator.style.display = 'none';
+            statusIndicator.textContent = "Conexão estabelecida, carregando dados...";
             
             loadDataFromFirestore(); // Inicia a escuta em tempo real
 
         } catch (error) {
             console.error("Erro FATAL de autenticação Firebase. O salvamento não funcionará.", error);
-            loadingIndicator.textContent = "ERRO: Falha na Conexão. Salvamento Desativado.";
-            loadingIndicator.style.color = '#dc3545';
+            statusIndicator.textContent = "ERRO FATAL: Falha de Autenticação. Salvamento Desativado.";
+            statusIndicator.style.color = '#dc3545';
             
             // Permite que o usuário use o app no modo offline (sem persistência)
             isAuthReady = false; 
