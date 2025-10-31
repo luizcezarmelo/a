@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Consumo de Combustível</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #1a1a1a;
+            margin-bottom: 20px;
+        }
+        .header-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 15px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: background-color 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 10px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            border: 1px solid #e0e0e0;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #3f51b5;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        input {
+            width: 100%;
+            padding: 6px;
+            margin: 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box; 
+        }
+        input[type="number"] {
+            /* Remove flechas em alguns navegadores */
+            -moz-appearance: textfield;
+        }
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .consumo-medio {
+            font-weight: bold;
+            color: #28a745;
+        }
+        .user-info {
+            font-size: 12px;
+            color: #666;
+            text-align: right;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Controle de Abastecimentos</h1>
+    
+    <div class="header-controls">
+        <button id="btnLimpar">Limpar Tudo</button>
+        <div id="loadingIndicator" style="color: #007bff; font-weight: bold;">Carregando...</div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>KM</th>
+                <th>Litros</th>
+                <th>Valor (R$)</th>
+                <th>Média (KM/L)</th>
+            </tr>
+        </thead>
+        <tbody id="tabelaCorpo">
+            <!-- As 5 linhas de entrada serão geradas pelo JavaScript -->
+        </tbody>
+    </table>
+
+    
+    
+    <p class="user-info" id="userIdDisplay">Autenticando...</p>
+</div>
+
+<script type="module">
+    // Importações obrigatórias do Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, collection, setDoc, query, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    const NUM_LINHAS = 5;
+    const corpoTabela = document.getElementById('tabelaCorpo');
+    const btnLimpar = document.getElementById('btnLimpar');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+
+    // Váriaveis globais obrigatórias do ambiente Canvas
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'fuel-log-default-app';
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+    let db, auth, userId, collectionRef;
+    let isAuthReady = false;
+
+    // --- CONFIGURAÇÃO E AUTENTICAÇÃO FIREBASE ---
+
+    if (firebaseConfig) {
+        const app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        auth = getAuth(app);
+        setLogLevel('Debug'); // Para debug no console
+        
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                userId = user.uid;
+                document.getElementById('userIdDisplay').textContent = `Usuário (ID): ${userId}`;
+                collectionRef = collection(db, 'artifacts', appId, 'users', userId, 'abastecimentos');
+                isAuthReady = true;
+                loadingIndicator.style.display = 'none';
+                loadDataFromFirestore();
+            } else {
+                // Tenta autenticar
+                try {
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                } catch (error) {
+                    console.error("Erro na autenticação:", error);
+                    userId = crypto.randomUUID();
+                    document.getElementById('userIdDisplay').textContent = `Erro Firebase. ID Local: ${userId}`;
+                    isAuthReady = true; 
+                    loadingIndicator.style.display = 'none';
+                }
+            }
+        });
+    } else {
+        // Fallback sem Firebase
+        userId = crypto.randomUUID();
+        document.getElementById('userIdDisplay').textContent = `Modo Offline. ID Local: ${userId}`;
+        isAuthReady = true;
+        loadingIndicator.style.display = 'none';
+    }
+    
+    // --- FUNÇÕES DE DATA E CÁLCULO ---
+
+    function getDataAtualFormatada() {
+        const hoje = new Date();
+        const yyyy = hoje.getFullYear();
+        const mm = String(hoje.getMonth() + 1).padStart(2, '0');
+        const dd = String(hoje.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+    }
+
+    // Função para atualizar a data no input KM e disparar o save/cálculo
+    function handleKmInput(inputElement, index) {
+        // 1. LÓGICA DE PREENCHIMENTO DE DATA
+        if (inputElement.id.startsWith('km-') && inputElement.value.length > 0) {
+            const dateInput = document.getElementById(`data-${index}`);
+            // Só preenche se estiver vazio (conforme solicitado)
+            if (!dateInput.value) {
+                dateInput.value = getDataAtualFormatada();
+            }
+        }
+        
+        // 2. CÁLCULO E PERSISTÊNCIA
+        calcularMedias();
+        saveRecord(index); 
+    }
+
+    function criarInput(type, id, index, placeholder) {
+        const input = document.createElement('input');
+        input.type = type;
+        input.id = id;
+        input.placeholder = placeholder;
+        
+        // Todos os inputs disparam o handleKmInput (que verifica qual input foi modificado)
+        input.addEventListener('input', (e) => handleKmInput(e.target, index));
+        return input;
+    }
+
+    function calcularMedias() {
+        // Esta função lê os dados da UI e calcula a média
+        for (let i = 0; i < NUM_LINHAS; i++) {
+            const kmInput = document.getElementById(`km-${i}`);
+            const litrosInput = document.getElementById(`litros-${i}`);
+            const celulaMedia = document.getElementById(`media-${i}`);
+            
+            const kmAtual = parseFloat(kmInput.value) || 0;
+            const litros = parseFloat(litrosInput.value) || 0;
+            
+            celulaMedia.textContent = '-';
+            celulaMedia.style.color = 'green';
+
+            if (i > 0 && litros > 0) {
+                const kmAnterior = parseFloat(document.getElementById(`km-${i-1}`).value) || 0;
+                
+                const distanciaRodada = kmAtual - kmAnterior;
+
+                if (distanciaRodada > 0 && litros > 0) {
+                    const media = (distanciaRodada / litros).toFixed(2);
+                    celulaMedia.textContent = media;
+                } else if (distanciaRodada <= 0 && kmAtual > 0) {
+                    celulaMedia.textContent = 'KM Errada';
+                    celulaMedia.style.color = 'red';
+                }
+            } else if (i === 0 && litros > 0) {
+                 celulaMedia.textContent = 'Ref. Inicial';
+            }
+        }
+    }
+    
+    // --- FUNÇÕES DE PERSISTÊNCIA FIREBASE ---
+
+    async function saveRecord(index) {
+        if (!isAuthReady || !collectionRef) return;
+
+        const dataInput = document.getElementById(`data-${index}`);
+        const kmInput = document.getElementById(`km-${index}`);
+        const litrosInput = document.getElementById(`litros-${index}`);
+        const valorInput = document.getElementById(`valor-${index}`);
+
+        const record = {
+            data: dataInput.value,
+            km: parseFloat(kmInput.value) || 0,
+            litros: parseFloat(litrosInput.value) || 0,
+            valor: parseFloat(valorInput.value) || 0,
+            timestamp: Date.now()
+        };
+        
+        // Se a linha estiver vazia (KM e Litros zerados), podemos deletar o registro
+        if (record.km === 0 && record.litros === 0) {
+             try {
+                await deleteDoc(doc(collectionRef, `log-${index}`));
+            } catch (e) {
+                // Ignore silent error if doc doesn't exist
+            }
+            return;
+        }
+
+        try {
+            const docId = `log-${index}`;
+            await setDoc(doc(collectionRef, docId), record);
+        } catch (e) {
+            console.error("Erro ao salvar o documento:", e);
+        }
+    }
+
+    function loadDataFromFirestore() {
+        if (!isAuthReady || !collectionRef) return;
+        
+        const q = query(collectionRef);
+        
+        // onSnapshot: escuta em tempo real e atualiza a UI se os dados mudarem em qualquer lugar
+        onSnapshot(q, (snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+                const docId = change.doc.id;
+                const indexMatch = docId.match(/log-(\d+)/);
+                
+                if (indexMatch) {
+                    const index = parseInt(indexMatch[1], 10);
+                    const data = change.doc.data();
+
+                    if (index >= 0 && index < NUM_LINHAS) {
+                        // Popula UI
+                        document.getElementById(`data-${index}`).value = data.data || '';
+                        // Usamos string vazia para 0, para que os campos vazios fiquem limpos
+                        document.getElementById(`km-${index}`).value = data.km > 0 ? data.km : '';
+                        document.getElementById(`litros-${index}`).value = data.litros > 0 ? data.litros : '';
+                        document.getElementById(`valor-${index}`).value = data.valor > 0 ? data.valor : '';
+                    }
+                }
+            });
+            // Recalcula todas as médias após o carregamento ou atualização dos dados
+            calcularMedias(); 
+        });
+    }
+
+    async function limparCampos() {
+        if (!confirm('Tem certeza que deseja limpar todos os dados da tabela?')) {
+            return;
+        }
+        
+        // Limpar UI
+        for (let i = 0; i < NUM_LINHAS; i++) {
+            document.getElementById(`data-${i}`).value = '';
+            document.getElementById(`km-${i}`).value = '';
+            document.getElementById(`litros-${i}`).value = '';
+            document.getElementById(`valor-${i}`).value = '';
+            document.getElementById(`media-${i}`).textContent = '-';
+            document.getElementById(`media-${i}`).style.color = 'green';
+
+            // Deletar no Firebase
+            if (isAuthReady && collectionRef) {
+                try {
+                    await deleteDoc(doc(collectionRef, `log-${i}`));
+                } catch (e) {
+                    console.error(`Erro ao deletar log-${i}:`, e);
+                }
+            }
+        }
+        
+        calcularMedias();
+    }
+    
+    // --- INICIALIZAÇÃO ---
+
+    function inicializarApp() {
+        // Cria a estrutura da tabela
+        for (let i = 0; i < NUM_LINHAS; i++) {
+            const linha = corpoTabela.insertRow();
+            
+            let celData = linha.insertCell();
+            celData.appendChild(criarInput('date', `data-${i}`, i, 'Selecione a Data'));
+
+            let celKm = linha.insertCell();
+            celKm.appendChild(criarInput('number', `km-${i}`, i, 'Km Total'));
+            
+            let celLitros = linha.insertCell();
+            celLitros.appendChild(criarInput('number', `litros-${i}`, i, 'Litros'));
+            
+            let celValor = linha.insertCell();
+            celValor.appendChild(criarInput('number', `valor-${i}`, i, 'R$'));
+            
+            let celMedia = linha.insertCell();
+            celMedia.id = `media-${i}`;
+            celMedia.className = 'consumo-medio';
+            celMedia.textContent = '-';
+        }
+        
+        btnLimpar.addEventListener('click', limparCampos);
+        calcularMedias(); 
+    }
+
+    document.addEventListener('DOMContentLoaded', inicializarApp);
+</script>
+
+</body>
+</html>
