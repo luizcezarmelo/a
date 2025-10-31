@@ -11,7 +11,6 @@
         /* ================================================================== */
         /* ============ INÍCIO DO NOVO CSS - VISUAL MELHORADO ============ */
         /* ================================================================== */
-
         /* --- Variáveis de Design para fácil customização --- */
         :root {
             --primary-color: #3b82f6; /* Azul moderno */
@@ -35,6 +34,7 @@
             margin: 0;
             padding: 0;
         }
+
         body {
             font-family: var(--font-family);
             background-color: var(--background-color);
@@ -57,6 +57,7 @@
             align-items: center;
             z-index: 1000;
         }
+
         #login-form {
             background-color: var(--surface-color);
             padding: 40px;
@@ -66,15 +67,18 @@
             width: 100%;
             max-width: 380px;
         }
+
         #login-form h2 {
             margin-bottom: 25px;
             font-weight: 600;
             color: var(--text-color);
         }
+
         #password-container {
             position: relative;
             margin-bottom: 15px;
         }
+
         #login-form input[type="password"] {
             padding: 12px 40px 12px 15px;
             width: 100%;
@@ -83,11 +87,13 @@
             font-size: 1rem;
             transition: border-color 0.2s, box-shadow 0.2s;
         }
+
         #login-form input[type="password"]:focus {
             outline: none;
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
         }
+
         #password-container button {
             position: absolute;
             right: 10px;
@@ -99,7 +105,9 @@
             font-size: 1.2rem;
             color: var(--subtle-text-color);
         }
-        #login-button, #set-password-button {
+
+        #login-button,
+        #set-password-button {
             background-color: var(--primary-color);
             color: white;
             border: none;
@@ -111,15 +119,19 @@
             width: 100%;
             transition: background-color 0.2s;
         }
-        #login-button:hover, #set-password-button:hover {
+
+        #login-button:hover,
+        #set-password-button:hover {
             background-color: var(--primary-hover);
         }
+
         #error-message {
             color: var(--danger-color);
             margin-top: 10px;
             font-size: 0.9em;
             display: none;
         }
+
         #setup-message p {
             color: var(--subtle-text-color);
             margin-bottom: 15px;
@@ -130,20 +142,25 @@
             display: none;
             flex-direction: column;
         }
+
         @media (min-width: 768px) {
             .container {
                 flex-direction: row;
                 min-height: 100vh;
             }
         }
-        .left-panel, .right-panel {
+
+        .left-panel,
+        .right-panel {
             padding: 25px; /* AJUSTE: Espaçamento diminuído */
         }
+
         .left-panel {
             flex: 2;
             background-color: var(--surface-color);
             border-right: 1px solid var(--border-color);
         }
+
         .right-panel {
             flex: 1;
             background-color: var(--background-color);
@@ -156,6 +173,7 @@
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 10px;
         }
+
         h3 {
             font-size: 1.1rem;
             font-weight: 600;
@@ -177,17 +195,22 @@
             font-size: 0.85em;
             color: var(--text-color);
         }
+
         button:hover {
             border-color: var(--primary-color);
             background-color: #f0f6ff;
             color: var(--primary-color);
         }
+
         button:active {
             transform: translateY(1px);
         }
 
         /* AJUSTE: Removido width: 100% daqui para permitir campos inline */
-        input[type="text"], input[type="date"], input[type="time"], textarea {
+        input[type="text"],
+        input[type="date"],
+        input[type="time"],
+        textarea {
             font-family: var(--font-family);
             padding: 8px; /* AJUSTE: Espaçamento diminuído */
             border: 1px solid var(--border-color);
@@ -196,7 +219,10 @@
             transition: border-color 0.2s, box-shadow 0.2s;
         }
 
-        input[type="text"]:focus, input[type="date"]:focus, input[type="time"]:focus, textarea:focus {
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        input[type="time"]:focus,
+        textarea:focus {
             outline: none;
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
@@ -204,7 +230,7 @@
 
         /* AJUSTE: Regras específicas para inputs que devem ocupar a linha toda */
         #login-form input[type="password"],
-        #alarmes input[type="text"], 
+        #alarmes input[type="text"],
         textarea#notasFixas {
             width: 100%;
         }
@@ -215,18 +241,26 @@
             color: white;
             border-color: var(--primary-color);
         }
+
         #novoBtn:hover {
             background-color: var(--primary-hover);
             border-color: var(--primary-hover);
             color: white;
         }
-        
-        #hojeBtn, #prevDayBtn, #nextDayBtn, .commitment button, .right-panel button[title] {
-             padding: 6px 10px;
+
+        #hojeBtn,
+        #prevDayBtn,
+        #nextDayBtn,
+        .commitment button,
+        .right-panel button[title] {
+            padding: 6px 10px;
         }
 
         /* --- Seção da Agenda (Painel Esquerdo) --- */
-        .calendar-section, .actions, .search-area, .day-nav {
+        .calendar-section,
+        .actions,
+        .search-area,
+        .day-nav {
             display: flex;
             gap: 8px;
             margin-bottom: 15px;
@@ -243,18 +277,21 @@
             border: 1px solid transparent;
             transition: background-color 0.2s, border-color 0.2s;
         }
-        
+
         /* CORREÇÃO: A regra :hover foi movida para DEPOIS de :nth-child para ter prioridade */
         .commitment:nth-child(even) {
-            background-color: #fdfdff; 
+            background-color: #fdfdff;
         }
+
         .commitment.checked {
             background-color: #e9f5ff;
             border-color: #a3d1ff;
         }
+
         .commitment:hover {
-             background-color: #e9f5ff;
+            background-color: #e9f5ff;
         }
+
         .commitment.checked .done {
             color: #999;
         }
@@ -267,26 +304,32 @@
             margin: 0 8px;
             border-radius: 4px;
         }
+
         .commitment input[type="text"]:focus {
             background: #f0f3f5;
             box-shadow: none;
         }
+
         .commitment input[type="checkbox"] {
             width: 16px;
             height: 16px;
             cursor: pointer;
         }
+
         .commitment button {
             padding: 4px 8px;
             font-size: 0.75em;
         }
+
         .commitment input[type="checkbox"] + button {
             margin-left: 4px;
         }
+
         .commitment button:last-of-type {
             border-color: #ffddd9;
             color: var(--danger-color);
         }
+
         .commitment button:last-of-type:hover {
             background-color: #fff4f2;
             border-color: var(--danger-color);
@@ -297,33 +340,41 @@
             color: var(--subtle-text-color);
             opacity: 0.8;
         }
+
         .destaque {
             background: var(--highlight-color);
             animation: fadeHighlight 2s ease-out;
         }
+
         @keyframes fadeHighlight {
-            from { background-color: var(--highlight-color); }
-            to { background-color: transparent; }
+            from {
+                background-color: var(--highlight-color);
+            }
+            to {
+                background-color: transparent;
+            }
         }
 
         /* --- Painel Direito (Widgets) --- */
         .right-panel > div {
             margin-bottom: 10px;
         }
-        
+
         /* (Estilos de CPF removidos para economizar espaço, mas ainda estão no seu código) */
         #cpfStatus.valid {
             color: var(--success-color);
             font-weight: 500;
         }
+
         #cpfStatus.invalid {
             color: var(--danger-color);
             font-weight: 500;
         }
-        
+
         /* AJUSTE: Faz o input do CPF e Pesquisa crescerem para preencher o espaço */
-        #cpf, #search { 
-            flex: 1; 
+        #cpf,
+        #search {
+            flex: 1;
             min-width: 100px; /* Garante que não fiquem pequenos demais */
         }
 
@@ -336,29 +387,43 @@
             overflow-y: auto;
             font-size: 0.85em;
         }
+
         .search-results div {
             cursor: pointer;
             padding: 6px 10px;
             border-radius: 6px;
             transition: background-color 0.2s;
         }
+
         .search-results div:hover {
             background-color: #e9f5ff;
             color: var(--primary-color);
         }
-        
+
         #alarmes > div {
             display: grid;
             grid-template-columns: 1fr auto auto auto;
             gap: 5px;
             align-items: center;
         }
-        
+
         /* --- Scrollbar Customizada --- */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #aaa; }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #aaa;
+        }
 
         /* ================================================================== */
         /* ============= FIM DO NOVO CSS - VISUAL MELHORADO ============= */
@@ -397,10 +462,12 @@
                 <input type="date" id="dataSelecionada">
                 <button id="hojeBtn" title="Hoje">📅</button>
             </div>
+
             <div class="day-nav">
                 <button id="prevDayBtn" title="Dia anterior">◀</button>
                 <button id="nextDayBtn" title="Próximo dia">▶</button>
             </div>
+
             <div class="actions">
                 <button id="novoBtn">Novo</button>
                 <button id="organizarBtn">Organizar</button>
@@ -411,9 +478,10 @@
 
             <div id="agenda"></div>
         </div>
+
         <div class="right-panel">
             <h2>Ferramentas</h2>
-            
+
             <h3>🔍 Pesquisa</h3>
             <div class="search-area">
                 <input type="text" id="search" placeholder="Pesquisar...">
@@ -422,6 +490,8 @@
             <div id="searchResults" class="search-results"></div>
 
             <h3>⏰ Alarmes</h3>
+            
+            <div id="alarm-feedback" style="font-size: 0.9em; color: var(--success-color); margin-bottom: 10px; text-align: center; font-weight: 500; min-height: 1.2em;"></div>
             <div id="alarmes" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
                 <div>
                     <input type="text" id="alarmMessage1" placeholder="Descrição do alarme 1">
@@ -446,14 +516,13 @@
             <h3>📝 Lembretes</h3>
             <textarea id="notasFixas" rows="20" style="width: 100%; resize: vertical;"></textarea>
 
-            </div>
+        </div>
     </div>
 
     <script>
         // --- LÓGICA DE LOGIN INSERIDA AQUI ---
         // NENHUMA ALTERAÇÃO FEITA NO JAVASCRIPT
         const PASSWORD_NODE = 'appPassword'; // Nome do nó no Firebase para armazenar a senha
-
         const mainContent = document.getElementById('main-content');
         const loginScreen = document.getElementById('login-screen');
         const passwordInput = document.getElementById('password-input');
@@ -474,13 +543,13 @@
         };
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
+
         let correctPassword = null;
 
         // Função para verificar a senha no Firebase
         async function loadPassword() {
             const snapshot = await database.ref(PASSWORD_NODE).once('value');
             correctPassword = snapshot.val();
-            
             if (correctPassword) {
                 setupMessage.style.display = 'none';
                 loginTitle.textContent = 'Acesso Restrito';
@@ -619,13 +688,12 @@
         function toUpperOnInput(e) {
             if (e.target.matches('input[type="text"], textarea')) {
                 const pos = e.target.selectionStart;
-                e.target.value = e.target.value.toUpperCase();
-                // Garante que o cursor volte para onde estava
+                e.target.value = e.target.value.toUpperCase(); // Garante que o cursor volte para onde estava
                 e.target.setSelectionRange(pos, pos);
             }
         }
         /* ------------------------------------------------- */
-        
+
         /* Carregar agenda do dia selecionado */
         async function carregarAgenda() {
             const data = dataInput.value;
@@ -634,7 +702,7 @@
             const section = document.createElement('div');
             section.className = 'date-section';
             section.dataset.data = data;
-            
+
             const compromissos = document.createElement('div');
             compromissos.className = 'commitments';
 
@@ -647,8 +715,8 @@
 
             // Limita ao número máximo de campos
             dadosSalvos = dadosSalvos.slice(0, maxCompromissos);
-
             dadosSalvos.forEach(item => compromissos.appendChild(criarCampoCompromisso(item)));
+
             section.appendChild(compromissos);
             agendaEl.appendChild(section);
         }
@@ -670,6 +738,7 @@
                     selecionado: checkbox.checked
                 });
             });
+
             database.ref('agenda/' + data).set(textos);
         }
 
@@ -685,13 +754,14 @@
                 div.classList.toggle('checked', checkbox.checked);
                 salvarAgenda();
             });
-            if (item.selecionado) { div.classList.add('checked'); }
+            if (item.selecionado) {
+                div.classList.add('checked');
+            }
 
             const input = document.createElement('input');
             input.type = 'text';
             input.value = item.texto;
             if (item.tachado) input.classList.add('done');
-            
             input.addEventListener('input', salvarComDelay);
             input.addEventListener('input', toUpperOnInput); // <-- APLICAÇÃO DA CORREÇÃO AQUI
             input.addEventListener('keydown', (e) => {
@@ -717,7 +787,7 @@
                 input.classList.remove('done');
                 salvarAgenda();
             };
-            
+
             div.appendChild(okBtn);
             div.appendChild(input);
             div.appendChild(checkbox);
@@ -733,7 +803,7 @@
                 compromissos.appendChild(criarCampoCompromisso());
             }
         }
-        
+
         function organizarAgenda() {
             const compromissosDiv = document.querySelector('.commitments');
             if (!compromissosDiv) return;
@@ -741,7 +811,7 @@
             // 1. Coletar todos os dados dos campos que estão preenchidos
             const dadosPreenchidos = [];
             const todosOsCampos = compromissosDiv.querySelectorAll('.commitment');
-            
+
             todosOsCampos.forEach(div => {
                 const input = div.querySelector('input[type="text"]');
                 if (input.value.trim() !== '') {
@@ -835,20 +905,18 @@
             const snapshot = await database.ref('agenda/' + data).once('value');
             const dados = snapshot.val() || [];
             let conteudo = 'Agenda de ' + data + '\n\n';
-
             dados.forEach((item, i) => {
                 if (item.texto) {
                     conteudo += (i + 1) + '. ' + item.texto + (item.tachado ? ' (Concluído)' : '') + '\n';
                 }
             });
-
             const blob = new Blob([conteudo], { type: 'text/plain;charset=utf-8' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
             a.download = `agenda_${data}.txt`;
             a.click();
         }
-        
+
         /* Funções de Copiar/Colar */
         function copiarCompromissos() {
             bufferCopiados = [];
@@ -870,9 +938,9 @@
             if (!bufferCopiados.length) return;
             const compromissosDiv = document.querySelector('.commitments');
             if (!compromissosDiv) return;
-            
+
             let idxBuffer = 0;
-            
+
             function encontrarOuAdicionarCampoVazio() {
                 const vazio = [...compromissosDiv.children].find(div => !div.querySelector('input[type=text]').value);
                 if (vazio) return vazio;
@@ -887,10 +955,8 @@
             while (idxBuffer < bufferCopiados.length) {
                 const campo = encontrarOuAdicionarCampoVazio();
                 if (!campo) break;
-                
                 const input = campo.querySelector('input[type=text]');
                 const checkbox = campo.querySelector('input[type="checkbox"]');
-                
                 input.value = bufferCopiados[idxBuffer++];
                 input.classList.remove('done');
                 checkbox.checked = false;
@@ -913,8 +979,8 @@
             if (resto === 10 || resto === 11) resto = 0;
             return resto === parseInt(cpf[10]);
         }
-        /*
-        document.getElementById('cpf').addEventListener('input', () => {
+
+        /* document.getElementById('cpf').addEventListener('input', () => {
             const raw = document.getElementById('cpf').value.replace(/\D/g, '');
             const status = document.getElementById('cpfStatus');
             const valido = validarCPF(raw);
@@ -932,8 +998,7 @@
             document.getElementById('cpf').value = '';
             document.getElementById('cpfStatus').textContent = '';
             document.getElementById('cpfStatus').className = '';
-        }
-        */
+        } */
 
         /* Funções das Notas Fixas com Firebase */
         async function carregarNotasFixas() {
@@ -967,18 +1032,25 @@
                     }
                 }
             }
-            
+
             // Aplica o listener de capitalização nos inputs de alarme
             document.querySelectorAll('#alarmes input[type="text"]').forEach(input => {
                 input.addEventListener('input', toUpperOnInput); // <-- APLICAÇÃO DA CORREÇÃO AQUI
             });
         }
 
+        // ==================================================================
+        // ============ FUNÇÃO setAlarm MODIFICADA ============
+        // ==================================================================
         function setAlarm(id, silent = false) {
             const msgEl = document.getElementById(`alarmMessage${id}`);
             const timeEl = document.getElementById(`alarmTime${id}`);
             const msg = msgEl.value.trim();
             const time = timeEl.value;
+
+            // Pega o elemento de feedback e limpa
+            const feedbackEl = document.getElementById('alarm-feedback');
+            feedbackEl.textContent = '';
 
             if (!msg || !time) {
                 if (!silent) alert("Preencha a frase e o horário do alarme " + id);
@@ -1001,9 +1073,29 @@
             }
 
             const diff = alarm.getTime() - now.getTime();
+
+            // --- NOVO CÓDIGO INSERIDO ---
+            // Só mostra o feedback se não for silencioso (carregamento da página)
+            if (!silent) {
+                const totalMinutes = Math.floor(diff / (1000 * 60));
+                const hours = Math.floor(totalMinutes / 60);
+                const minutes = totalMinutes % 60;
+
+                feedbackEl.textContent = `Alarme programado para daqui a ${hours}h e ${minutes}min.`;
+
+                // Limpa a mensagem após 4 segundos
+                setTimeout(() => {
+                    feedbackEl.textContent = '';
+                }, 4000);
+            }
+            // --- FIM DO NOVO CÓDIGO ---
+
             alarmTimeouts[id] = setTimeout(() => triggerAlarm(msg, id), diff);
         }
 
+        // ==================================================================
+        // ============ FUNÇÃO clearAlarm MODIFICADA ============
+        // ==================================================================
         function clearAlarm(id) {
             if (alarmTimeouts[id]) {
                 clearTimeout(alarmTimeouts[id]);
@@ -1012,11 +1104,17 @@
             document.getElementById(`alarmMessage${id}`).value = '';
             document.getElementById(`alarmTime${id}`).value = '';
             database.ref(`alarms/${id}`).remove();
+
+            // --- NOVO CÓDIGO INSERIDO ---
+            // Limpa a mensagem de feedback se houver alguma
+            document.getElementById('alarm-feedback').textContent = '';
+            // --- FIM DO NOVO CÓDIGO ---
         }
 
         function triggerAlarm(message, id) {
             if (triggeredAlarms.has(id)) return;
             triggeredAlarms.add(id);
+
             alert("⏰ ALARME " + id + ": " + message);
 
             if (!alarmBlinkInterval) {
