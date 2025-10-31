@@ -127,8 +127,6 @@
     </style>
 </head>
 <body>
-
-<div class="container">
     <h1>Controle de Abastecimentos</h1>
     
     <div class="header-controls">
@@ -160,10 +158,19 @@
 <script type="module">
     // Importações obrigatórias do Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, collection, setDoc, query, onSnapshot, deleteDoc, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+    import { getFirestore, doc, collection, setDoc, query, onSnapshot, deleteDoc, orderBy, limit } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
     import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
+  // Inicializa o Firebase (manter a sua configuração)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDQOGFiqafMZh0ha6XW62P1DpIKJE8TBYc",
+            authDomain: "agenda-online-7b71c.firebaseapp.com",
+            databaseURL: "https://agenda-online-7b71c-default-rtdb.firebaseio.com",
+            projectId: "agenda-online-7b71c",
+            storageBucket: "agenda-online-7b71c.appspot.com",
+            messagingSenderId: "28125733214",
+            appId: "1:28125733214:web:162d1cce5d14f55c24afcf"
+        };
     const corpoTabela = document.getElementById('tabelaCorpo');
     const btnLimpar = document.getElementById('btnLimpar');
     const btnAddRow = document.getElementById('btnAddRow');
