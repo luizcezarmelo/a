@@ -164,8 +164,29 @@
   <div id="aviso">✅ Salvo</div>
 
   <script type="module">
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+
+// Configuração do Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyDQOGFiqafMZh0ha6XW62P1DpIKJE8TBYc",
+  authDomain: "agenda-online-7b71c.firebaseapp.com",
+  databaseURL: "https://agenda-online-7b71c-default-rtdb.firebaseio.com",
+  projectId: "agenda-online-7b71c",
+  storageBucket: "agenda-online-7b71c.firebasestorage.app",
+  messagingSenderId: "28125733214",
+  appId: "1:28125733214:web:162d1cce5d14f55c24afcf"
+};
+
+// Inicializa Firebase
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// Teste de salvamento
+set(ref(db, "teste"), { ok: true })
+  .then(() => console.log("✅ Salvou no Firebase!"))
+  .catch(e => console.error("❌ Erro ao salvar:", e));
+
 
     const firebaseConfig = {
       apiKey: "AIzaSyDQOGFiqafMZh0ha6XW62P1DpIKJE8TBYc",
