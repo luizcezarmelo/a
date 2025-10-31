@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Controle de Abastecimento</title>
   <style>
     body {
@@ -88,6 +88,26 @@
       100% { opacity: 0; transform: translateY(10px); }
     }
 
+    .top-buttons {
+      text-align: right;
+      margin-bottom: 10px;
+    }
+
+    .btn {
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 16px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: 0.2s;
+    }
+
+    .btn:hover {
+      background: #c82333;
+    }
+
     /* Responsivo */
     @media (max-width: 700px) {
       table, thead, tbody, th, td, tr { display: block; }
@@ -111,6 +131,10 @@
         font-weight: 600;
         color: #007bff;
       }
+      .top-buttons {
+        text-align: center;
+        margin-bottom: 15px;
+      }
     }
   </style>
 </head>
@@ -118,6 +142,10 @@
   <h2>🚗 Controle de Abastecimento</h2>
 
   <div class="container">
+    <div class="top-buttons">
+      <button class="btn" id="limparTudo">🧹 Limpar Tudo</button>
+    </div>
+
     <table id="tabela">
       <thead>
         <tr>
@@ -137,7 +165,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+    import { getDatabase, ref, set, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDQOGFiqafMZh0ha6XW62P1DpIKJE8TBYc",
@@ -152,7 +180,9 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const tbody = document.querySelector("#tabela tbody");
+    const aviso = document.getElementById("aviso");
 
+    // cria 10 linhas vazias
     for (let i = 1; i <= 10; i++) {
       const tr = document.createElement("tr");
       tr.innerHTML = `
@@ -165,8 +195,6 @@
       `;
       tbody.appendChild(tr);
     }
-
-    const aviso = document.getElementById("aviso");
 
     function mostrarAviso() {
       aviso.style.display = "block";
@@ -184,7 +212,7 @@
         dados.push({ km, litros, valor, data });
       }
 
-      // Consumo correto (km atual - km anterior) / litros
+      // cálculo correto de consumo
       for (let i = 2; i <= 10; i++) {
         const kmAtual = dados[i - 1].km;
         const kmAnt = dados[i - 2].km;
@@ -193,19 +221,37 @@
         document.getElementById(`consumo${i}`).textContent = consumo;
       }
 
-      await set(ref(db, "controle_abastecimento"), dados);
-      mostrarAviso();
+      try {
+        await set(ref(db, "controle_abastecimento"), dados);
+        mostrarAviso();
+      } catch (e) {
+        console.error("Erro ao salvar no Firebase:", e);
+      }
     }
 
-    // Salvar automaticamente a cada digitação
+    // autosalvamento
     document.querySelectorAll("input").forEach(inp => {
       inp.addEventListener("input", () => {
-        // Define a data automaticamente se o KM for preenchido
-        if (inp.id.startsWith("km") && !document.getElementById(`data${inp.id.replace("km", "")}`).value) {
-          document.getElementById(`data${inp.id.replace("km", "")}`).value = new Date().toISOString().split("T")[0];
+        const id = inp.id.replace("km", "");
+        if (inp.id.startsWith("km") && !document.getElementById(`data${id}`).value) {
+          document.getElementById(`data${id}`).value = new Date().toISOString().split("T")[0];
         }
         salvarAuto();
       });
+    });
+
+    // botão limpar tudo
+    document.getElementById("limparTudo").addEventListener("click", async () => {
+      if (!confirm("Tem certeza que deseja limpar todos os dados?")) return;
+      for (let i = 1; i <= 10; i++) {
+        document.getElementById(`data${i}`).value = "";
+        document.getElementById(`km${i}`).value = "";
+        document.getElementById(`litros${i}`).value = "";
+        document.getElementById(`valor${i}`).value = "";
+        document.getElementById(`consumo${i}`).textContent = "-";
+      }
+      await remove(ref(db, "controle_abastecimento"));
+      mostrarAviso();
     });
   </script>
 </body>
