@@ -3,129 +3,141 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Controle de Consumo</title>
+  <title>Controle de Abastecimento</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      max-width: 900px;
-      margin: 20px auto;
-      padding: 10px;
-      background: #f7f7f7;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: linear-gradient(180deg, #f9fafb 0%, #e9ecef 100%);
+      margin: 0;
+      padding: 20px;
+      color: #333;
     }
+
     h2 {
       text-align: center;
-      margin-bottom: 15px;
+      font-weight: 600;
+      color: #222;
+      margin-bottom: 20px;
     }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      overflow: hidden;
+      padding: 15px;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      background: white;
-      font-size: 14px;
+      font-size: 15px;
     }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 6px;
-      text-align: center;
-    }
+
     th {
-      background: #eaeaea;
-    }
-    button {
-      padding: 8px 15px;
-      margin: 5px;
-      border: none;
-      border-radius: 5px;
       background: #007bff;
       color: white;
-      cursor: pointer;
-      font-size: 14px;
+      padding: 10px;
+      font-weight: 500;
     }
-    button:hover {
-      background: #0056b3;
-    }
-    input[type="number"], input[type="text"], input[type="date"] {
-      width: 95%;
+
+    td {
+      border-bottom: 1px solid #eee;
       text-align: center;
+      padding: 8px;
+    }
+
+    input[type="number"], input[type="date"] {
+      width: 90%;
+      padding: 6px;
+      border-radius: 8px;
       border: 1px solid #ccc;
-      border-radius: 3px;
-      padding: 4px;
+      text-align: center;
       font-size: 14px;
+      transition: 0.2s;
     }
 
-    /* Responsividade */
-    @media (max-width: 600px) {
-      table, thead, tbody, th, td, tr {
-        display: block;
-      }
-      thead {
-        display: none;
-      }
-      tr {
-        margin-bottom: 10px;
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        padding: 6px;
-      }
-      td {
-        border: none;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 5px 8px;
-      }
-      td::before {
-        content: attr(data-label);
-        font-weight: bold;
-      }
+    input:focus {
+      outline: none;
+      border-color: #007bff;
+      background: #eef6ff;
     }
 
-    /* Aviso de salvamento */
     #aviso {
       position: fixed;
       bottom: 20px;
       right: 20px;
       background: #28a745;
       color: white;
-      padding: 8px 15px;
-      border-radius: 5px;
+      padding: 10px 16px;
+      border-radius: 8px;
       font-size: 14px;
       display: none;
       box-shadow: 0 2px 6px rgba(0,0,0,0.2);
       opacity: 0.95;
+      animation: fadeInOut 2s ease-in-out;
       z-index: 1000;
-      transition: opacity 0.3s ease;
+    }
+
+    @keyframes fadeInOut {
+      0% { opacity: 0; transform: translateY(10px); }
+      10% { opacity: 1; transform: translateY(0); }
+      90% { opacity: 1; }
+      100% { opacity: 0; transform: translateY(10px); }
+    }
+
+    /* Responsivo */
+    @media (max-width: 700px) {
+      table, thead, tbody, th, td, tr { display: block; }
+      thead { display: none; }
+      tr {
+        background: white;
+        margin-bottom: 10px;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        padding: 10px;
+      }
+      td {
+        border: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 4px;
+      }
+      td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #007bff;
+      }
     }
   </style>
 </head>
 <body>
+  <h2>🚗 Controle de Abastecimento</h2>
 
-  <h2>Controle de Abastecimento</h2>
-  <div style="text-align:center;">
-    <button onclick="limparTudo()">🧹 Limpar Tudo</button>
-    <button onclick="salvarFirebase()">💾 Salvar</button>
+  <div class="container">
+    <table id="tabela">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Data</th>
+          <th>KM</th>
+          <th>Litros</th>
+          <th>Valor (R$)</th>
+          <th>Consumo (Km/L)</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
 
-  <table id="tabela">
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Data</th>
-        <th>KM</th>
-        <th>Litros</th>
-        <th>Valor (R$)</th>
-        <th>Consumo (Km/L)</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-
-  <div id="aviso">✅ Salvo com sucesso</div>
+  <div id="aviso">✅ Salvo</div>
 
   <script type="module">
-    // --- Firebase Setup ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+    import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDQOGFiqafMZh0ha6XW62P1DpIKJE8TBYc",
@@ -139,90 +151,62 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-
     const tbody = document.querySelector("#tabela tbody");
 
-    // Cria as 10 linhas
     for (let i = 1; i <= 10; i++) {
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td data-label="#">${i}</td>
         <td data-label="Data"><input type="date" id="data${i}"></td>
         <td data-label="KM"><input type="number" id="km${i}" placeholder="KM"></td>
-        <td data-label="Litros"><input type="number" id="litros${i}" step="0.01" placeholder="Litros"></td>
+        <td data-label="Litros"><input type="number" id="litros${i}" step="0.01" placeholder="L"></td>
         <td data-label="Valor"><input type="number" id="valor${i}" step="0.01" placeholder="R$"></td>
         <td data-label="Consumo" id="consumo${i}">-</td>
       `;
       tbody.appendChild(tr);
     }
 
-    // Preenche data e calcula consumo
-    for (let i = 1; i <= 10; i++) {
-      const km = document.getElementById(`km${i}`);
-      const litros = document.getElementById(`litros${i}`);
+    const aviso = document.getElementById("aviso");
 
-      km.addEventListener("input", () => {
-        const hoje = new Date().toISOString().split("T")[0];
-        const dataInput = document.getElementById(`data${i}`);
-        if (!dataInput.value) dataInput.value = hoje;
-        calcularConsumo(i);
-      });
-
-      litros.addEventListener("input", () => calcularConsumo(i));
-    }
-
-    function calcularConsumo(i) {
-      const km = parseFloat(document.getElementById(`km${i}`).value) || 0;
-      const litros = parseFloat(document.getElementById(`litros${i}`).value) || 0;
-      const consumo = litros > 0 ? (km / litros).toFixed(2) : "-";
-      document.getElementById(`consumo${i}`).innerText = consumo;
-    }
-
-    // Limpar Tudo
-    window.limparTudo = function() {
-      if (!confirm("Deseja realmente limpar todos os dados?")) return;
-      for (let i = 1; i <= 10; i++) {
-        document.getElementById(`data${i}`).value = "";
-        document.getElementById(`km${i}`).value = "";
-        document.getElementById(`litros${i}`).value = "";
-        document.getElementById(`valor${i}`).value = "";
-        document.getElementById(`consumo${i}`).innerText = "-";
-      }
-    }
-
-    // Salvar no Firebase
-    window.salvarFirebase = function() {
-      const registros = [];
-      for (let i = 1; i <= 10; i++) {
-        const data = document.getElementById(`data${i}`).value;
-        const km = document.getElementById(`km${i}`).value;
-        const litros = document.getElementById(`litros${i}`).value;
-        const valor = document.getElementById(`valor${i}`).value;
-        const consumo = document.getElementById(`consumo${i}`).innerText;
-        if (km || litros || valor)
-          registros.push({ data, km, litros, valor, consumo });
-      }
-
-      if (registros.length === 0) {
-        alert("Nada para salvar!");
-        return;
-      }
-
-      const chave = "abastecimentos/" + new Date().toISOString().replace(/[:.]/g, "-");
-      set(ref(db, chave), registros)
-        .then(() => mostrarAviso("✅ Salvo com sucesso"))
-        .catch(err => mostrarAviso("❌ Erro: " + err.message, true));
-    }
-
-    // Aviso flutuante
-    function mostrarAviso(texto, erro = false) {
-      const aviso = document.getElementById("aviso");
-      aviso.textContent = texto;
-      aviso.style.background = erro ? "#dc3545" : "#28a745";
+    function mostrarAviso() {
       aviso.style.display = "block";
-      setTimeout(() => aviso.style.display = "none", 2000);
+      setTimeout(() => (aviso.style.display = "none"), 2000);
     }
-  </script>
 
+    async function salvarAuto() {
+      const dados = [];
+      for (let i = 1; i <= 10; i++) {
+        const km = parseFloat(document.getElementById(`km${i}`).value) || 0;
+        const litros = parseFloat(document.getElementById(`litros${i}`).value) || 0;
+        const valor = parseFloat(document.getElementById(`valor${i}`).value) || 0;
+        const data = document.getElementById(`data${i}`).value || "";
+
+        dados.push({ km, litros, valor, data });
+      }
+
+      // Consumo correto (km atual - km anterior) / litros
+      for (let i = 2; i <= 10; i++) {
+        const kmAtual = dados[i - 1].km;
+        const kmAnt = dados[i - 2].km;
+        const litros = dados[i - 1].litros;
+        const consumo = litros > 0 && kmAnt > 0 ? ((kmAtual - kmAnt) / litros).toFixed(2) : "-";
+        document.getElementById(`consumo${i}`).textContent = consumo;
+      }
+
+      await set(ref(db, "controle_abastecimento"), dados);
+      mostrarAviso();
+    }
+
+    // Salvar automaticamente a cada digitação
+    document.querySelectorAll("input").forEach(inp => {
+      inp.addEventListener("input", () => {
+        // Define a data automaticamente se o KM for preenchido
+        if (inp.id.startsWith("km") && !document.getElementById(`data${inp.id.replace("km", "")}`).value) {
+          document.getElementById(`data${inp.id.replace("km", "")}`).value = new Date().toISOString().split("T")[0];
+        }
+        salvarAuto();
+      });
+    });
+  </script>
 </body>
 </html>
