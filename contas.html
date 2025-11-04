@@ -1074,7 +1074,7 @@
                 a = calculateColumnTotal(ui.c6Table, 1);
             ui.fixedTotal.textContent = formatCurrency(e), ui.diversosTotal.textContent = formatCurrency(t), ui.nubankTotal.textContent = formatCurrency(n), ui.c6Total.textContent = formatCurrency(a);
             // **CORREÇÃO: Total Geral deve somar todas as tabelas**
-            ui.totalGeral.textContent = formatCurrency(e + t + n + a);
+            ui.totalGeral.textContent = formatCurrency(e + n + a);
             updateInstallmentSummary()
         }
 
