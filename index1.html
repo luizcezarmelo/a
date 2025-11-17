@@ -340,6 +340,15 @@
             color: var(--subtle-text-color);
             opacity: 0.8;
         }
+        
+        /* NOVO: Estilo para item recorrente */
+        .commitment.recorrente input[type="text"] {
+            font-style: italic;
+            color: #555;
+        }
+        .commitment.recorrente button:first-of-type {
+            border-color: var(--primary-color);
+        }
 
         .destaque {
             background: var(--highlight-color);
@@ -428,12 +437,92 @@
         /* ================================================================== */
         /* ============= FIM DO NOVO CSS - VISUAL MELHORADO ============= */
         /* ================================================================== */
+
+        /* --- Estilos dos Modais (NOVO) --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .modal-content {
+            background-color: var(--surface-color);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            width: 90%;
+            max-width: 450px;
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+
+        .modal-content input[type="text"] {
+            width: 100%;
+        }
+
+        .modal-content #frequenciaOpcoes label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+        .modal-content #frequenciaOpcoes input[type="radio"] {
+             margin-right: 8px;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-actions button {
+            padding: 8px 15px;
+        }
+
+        .modal-actions button#salvarRecorrenteBtn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+        }
+
+        .modal-actions button#salvarRecorrenteBtn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .modal-actions button[id^="excluir"] {
+            width: 100%;
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+        }
+
+        .modal-actions button[id^="excluir"]:hover {
+            background-color: #b02a37;
+        }
+         .modal-actions button#cancelarExcluirBtn {
+            background-color: #6c757d;
+         }
+         .modal-actions button#cancelarExcluirBtn:hover {
+            background-color: #5a6268;
+         }
+
     </style>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 </head>
 <body>
-
     <div id="login-screen">
         <div id="login-form">
             <h2 id="login-title">Acesso Restrito</h2>
@@ -458,31 +547,27 @@
                 <button onclick="window.open('https://luizcezarmelo.github.io/a/Tuto.html', '_blank')">Windows</button>
                 <button onclick="window.open('https://luizcezarmelo.github.io/a/gasosa.html', '_blank')">Gasolina</button>
             </div>
-
             <div class="calendar-section">
                 <input type="date" id="dataSelecionada">
                 <button id="hojeBtn" title="Hoje">📅</button>
             </div>
-
             <div class="day-nav">
                 <button id="prevDayBtn" title="Dia anterior">◀</button>
                 <button id="nextDayBtn" title="Próximo dia">▶</button>
             </div>
-
             <div class="actions">
                 <button id="novoBtn">Novo</button>
                 <button id="organizarBtn">Organizar</button>
                 <button id="copiarBtn">Copiar</button>
                 <button id="colarBtn">Colar</button>
                 <button id="exportarBtn">Exportar TXT</button>
+                <button id="recorrenteBtn" title="Novo Recorrente">🔄</button>
             </div>
-
             <div id="agenda"></div>
         </div>
 
         <div class="right-panel">
             <h2>Ferramentas</h2>
-
             <h3>🔍 Pesquisa</h3>
             <div class="search-area">
                 <input type="text" id="search" placeholder="Pesquisar...">
@@ -491,7 +576,6 @@
             <div id="searchResults" class="search-results"></div>
 
             <h3>⏰ Alarmes</h3>
-            
             <div id="alarm-feedback" style="font-size: 0.9em; color: var(--success-color); margin-bottom: 10px; text-align: center; font-weight: 500; min-height: 1.2em;"></div>
             <div id="alarmes" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
                 <div>
@@ -516,9 +600,39 @@
 
             <h3>📝 Lembretes</h3>
             <textarea id="notasFixas" rows="20" style="width: 100%; resize: vertical;"></textarea>
-
         </div>
     </div>
+
+    <div id="modalRecorrente" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h3>Novo Compromisso Recorrente</h3>
+            <p>Este compromisso será repetido a partir do dia <strong>selecionado na agenda</strong>.</p>
+            <input type="text" id="recorrenteTexto" placeholder="Descrição do compromisso..." style="width: 100%; margin-top: 10px; margin-bottom: 15px;">
+            <div id="frequenciaOpcoes" style="text-align: left; margin-bottom: 20px;">
+                <label><input type="radio" name="frequencia" value="diario" checked> Diário</label>
+                <label><input type="radio" name="frequencia" value="semanal"> Semanal (mesmo dia da semana)</label>
+                <label><input type="radio" name="frequencia" value="mensal"> Mensal (mesmo dia do mês)</label>
+                <label><input type="radio" name="frequencia" value="anual"> Anual (mesma data)</label>
+            </div>
+            <div class="modal-actions">
+                <button id="salvarRecorrenteBtn">Salvar</button>
+                <button id="cancelarRecorrenteBtn">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalExcluirRecorrente" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h3>Excluir Compromisso Recorrente</h3>
+            <p id="excluirRecorrenteTexto" style="margin-bottom: 15px;">Como deseja excluir este compromisso?</p>
+            <div class="modal-actions" style="flex-direction: column; gap: 10px;">
+                <button id="excluirUmBtn">Excluir somente esta ocorrência</button>
+                <button id="excluirFuturosBtn">Excluir esta e todas as futuras</button>
+                <button id="cancelarExcluirBtn" style="margin-top: 10px;">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
 
     <script>
         // --- LÓGICA DE LOGIN INSERIDA AQUI ---
@@ -544,7 +658,6 @@
         };
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
-
         let correctPassword = null;
 
         // Função para verificar a senha no Firebase
@@ -646,6 +759,9 @@
         const nextDayBtn = document.getElementById('nextDayBtn');
         const notasFixasEl = document.getElementById('notasFixas');
 
+        // NOVO: Botão recorrente
+        const recorrenteBtn = document.getElementById('recorrenteBtn');
+
         const maxCompromissos = 20;
         let bufferCopiados = [];
 
@@ -659,19 +775,27 @@
         copiarBtn.addEventListener('click', copiarCompromissos);
         colarBtn.addEventListener('click', colarCompromissos);
         exportarBtn.addEventListener('click', () => exportarParaTXT(dataInput.value));
+        
+        // NOVO: Listener do botão recorrente
+        recorrenteBtn.addEventListener('click', () => {
+             document.getElementById('recorrenteTexto').value = ''; // Limpa o campo
+             document.getElementById('modalRecorrente').style.display = 'flex';
+             document.getElementById('recorrenteTexto').focus();
+        });
+
         hojeBtn.addEventListener('click', () => {
             const hoje = new Date().toISOString().split('T')[0];
             dataInput.value = hoje;
             carregarAgenda();
         });
         prevDayBtn.addEventListener('click', () => {
-            const d = new Date(dataInput.value);
+            const d = new Date(dataInput.value + "T12:00:00"); // Adiciona hora para evitar problemas de fuso
             d.setDate(d.getDate() - 1);
             dataInput.value = d.toISOString().split('T')[0];
             carregarAgenda();
         });
         nextDayBtn.addEventListener('click', () => {
-            const d = new Date(dataInput.value);
+            const d = new Date(dataInput.value + "T12:00:00"); // Adiciona hora para evitar problemas de fuso
             d.setDate(d.getDate() + 1);
             dataInput.value = d.toISOString().split('T')[0];
             carregarAgenda();
@@ -689,40 +813,88 @@
         function toUpperOnInput(e) {
             if (e.target.matches('input[type="text"], textarea')) {
                 const pos = e.target.selectionStart;
-                e.target.value = e.target.value.toUpperCase(); // Garante que o cursor volte para onde estava
+                e.target.value = e.target.value.toUpperCase();
+                // Garante que o cursor volte para onde estava
                 e.target.setSelectionRange(pos, pos);
             }
         }
         /* ------------------------------------------------- */
 
-        /* Carregar agenda do dia selecionado */
+        /**
+         * ==================================================================
+         * INÍCIO DAS FUNÇÕES PRINCIPAIS MODIFICADAS (RECORRÊNCIA)
+         * ==================================================================
+         */
+
+        /* Carregar agenda do dia selecionado (VERSÃO MODIFICADA) */
         async function carregarAgenda() {
             const data = dataInput.value;
+            const diaSelecionado = new Date(data + 'T12:00:00'); // Usar T12 para evitar problemas de fuso
+            
             agendaEl.innerHTML = ''; // Limpa a agenda atual
 
+            // 1. Cria a estrutura da agenda
             const section = document.createElement('div');
             section.className = 'date-section';
             section.dataset.data = data;
-
             const compromissos = document.createElement('div');
             compromissos.className = 'commitments';
 
-            // Busca os dados do Firebase
+            // 2. Busca os dados NORMAIS do dia
             const snapshot = await database.ref('agenda/' + data).once('value');
             let dadosSalvos = snapshot.val() || [];
 
-            // Preenche com campos vazios se houver menos que o máximo
-            while (dadosSalvos.length < maxCompromissos) dadosSalvos.push({ texto: '', hora: '', tachado: false, selecionado: false });
+            // 3. Busca as REGRAS de recorrência
+            const recorrenciasSnap = await database.ref('recorrencias').once('value');
+            const todasRecorrencias = recorrenciasSnap.val() || {};
 
-            // Limita ao número máximo de campos
-            dadosSalvos = dadosSalvos.slice(0, maxCompromissos);
-            dadosSalvos.forEach(item => compromissos.appendChild(criarCampoCompromisso(item)));
+            // 4. Preenche com campos vazios se houver menos que o máximo
+            while (dadosSalvos.length < maxCompromissos) {
+                dadosSalvos.push({ texto: '', hora: '', tachado: false, selecionado: false });
+            }
+            dadosSalvos = dadosSalvos.slice(0, maxCompromissos); // Garante o limite
+
+            // 5. Calcula quais recorrentes devem aparecer HOJE
+            const textosJaNaAgenda = new Set(dadosSalvos.map(d => d.texto).filter(Boolean));
+            const slotsVaziosIndices = [];
+            dadosSalvos.forEach((d, i) => {
+                if (!d.texto) slotsVaziosIndices.push(i);
+            });
+
+            for (const id in todasRecorrencias) {
+                const regra = { ...todasRecorrencias[id], idRecorrente: id, isRecorrente: true };
+                
+                // Se o texto já existe na agenda do dia (foi modificado/tachado), não mostra a regra
+                if (textosJaNaAgenda.has(regra.texto)) {
+                    continue;
+                }
+
+                if (deveAparecerNesteDia(regra, diaSelecionado)) {
+                    if (slotsVaziosIndices.length > 0) {
+                        const index = slotsVaziosIndices.shift(); // Pega o primeiro slot vazio
+                        // Injeta o item recorrente no slot vazio
+                        dadosSalvos[index] = { ...regra, tachado: false, selecionado: false };
+                    } else {
+                        // Opcional: Logar que não há mais espaço para recorrentes
+                        // console.log("Sem espaço para o item recorrente:", regra.texto);
+                    }
+                }
+            }
+
+            // 6. Renderiza todos os compromissos (normais e recorrentes injetados)
+            dadosSalvos.forEach(item => {
+                compromissos.appendChild(criarCampoCompromisso(item, data)); // Passa a data para a função
+            });
 
             section.appendChild(compromissos);
             agendaEl.appendChild(section);
         }
 
-        /* Salvamento da agenda */
+        /* Salvamento da agenda (SEM MODIFICAÇÃO, MAS IMPORTANTE) */
+        // Esta função salva o estado ATUAL dos 20 campos.
+        // Se um item recorrente foi "tachado", ele é salvo como um item normal,
+        // o que o "congela" e faz com que a regra de recorrência seja ignorada
+        // na próxima vez (override). Isso é o comportamento desejado.
         function salvarAgenda() {
             const data = dataInput.value;
             const section = document.querySelector('.date-section');
@@ -732,39 +904,52 @@
             section.querySelectorAll('.commitment').forEach(div => {
                 const input = div.querySelector('input[type=text]');
                 const checkbox = div.querySelector('input[type=checkbox]');
+                
+                // Pega o item "original" que foi usado para criar este campo
+                // Se for recorrente, não salvamos a regra, apenas o estado atual
+                const itemOriginal = div._agendaItem || {}; 
+
                 textos.push({
                     texto: input.value,
-                    hora: '', // Hora não está sendo usada/salva no campo de compromisso principal
+                    hora: '', // Hora não está sendo usada/salva
                     tachado: input.classList.contains('done'),
                     selecionado: checkbox.checked
+                    // Não salvamos 'isRecorrente' etc. no nó 'agenda/data'
                 });
             });
 
             database.ref('agenda/' + data).set(textos);
         }
 
-        /* Cria um campo de compromisso */
-        function criarCampoCompromisso(item = { texto: '', hora: '', tachado: false, seleconado: false }) {
+        /* Cria um campo de compromisso (VERSÃO MODIFICADA) */
+        function criarCampoCompromisso(item = { texto: '', hora: '', tachado: false, selecionado: false }, dataAtual) {
             const div = document.createElement('div');
             div.className = 'commitment';
+            
+            // Armazena a referência do item original no elemento DOM
+            // para ser usado nos listeners de OK e Excluir
+            div._agendaItem = item; 
 
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.checked = item.selecionado;
             checkbox.addEventListener('change', () => {
                 div.classList.toggle('checked', checkbox.checked);
-                salvarAgenda();
+                salvarAgenda(); // Salva o estado de seleção
             });
+
             if (item.selecionado) {
                 div.classList.add('checked');
             }
 
             const input = document.createElement('input');
             input.type = 'text';
-            input.value = item.texto;
+            input.value = item.texto || '';
             if (item.tachado) input.classList.add('done');
+            
+            // Listeners do input
             input.addEventListener('input', salvarComDelay);
-            input.addEventListener('input', toUpperOnInput); // <-- APLICAÇÃO DA CORREÇÃO AQUI
+            input.addEventListener('input', toUpperOnInput);
             input.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     const allInputs = [...document.querySelectorAll('.commitment input[type=text]')];
@@ -776,18 +961,41 @@
 
             const okBtn = document.createElement('button');
             okBtn.textContent = 'OK';
+            
+            // Lógica do Botão OK
             okBtn.onclick = () => {
                 input.classList.toggle('done');
-                salvarAgenda();
+                // Ao "tachar" (OK), o item (recorrente ou não) 
+                // será salvo permanentemente na agenda do dia pela função salvarAgenda()
+                salvarAgenda(); 
             };
 
             const delBtn = document.createElement('button');
             delBtn.textContent = 'Excluir';
+            
+            // Lógica do Botão Excluir (MODIFICADA)
             delBtn.onclick = () => {
-                input.value = '';
-                input.classList.remove('done');
-                salvarAgenda();
+                if (item.isRecorrente) {
+                    // Se for recorrente, abre o modal de exclusão
+                    abrirModalExcluirRecorrente(item, dataAtual);
+                } else {
+                    // Se for normal, apenas limpa o campo e salva
+                    input.value = '';
+                    input.classList.remove('done');
+                    checkbox.checked = false;
+                    div.classList.remove('checked');
+                    salvarAgenda();
+                }
             };
+            
+            // Adiciona indicador visual para recorrentes
+            if (item.isRecorrente) {
+                div.classList.add('recorrente');
+                okBtn.textContent = '🔄'; // Emoji para indicar que é um item recorrente
+                okBtn.title = 'Concluir (transforma em item normal neste dia)';
+                delBtn.title = 'Excluir (abrirá opções de recorrência)';
+            }
+
 
             div.appendChild(okBtn);
             div.appendChild(input);
@@ -797,11 +1005,27 @@
             return div;
         }
 
+        /**
+         * ==================================================================
+         * FIM DAS FUNÇÕES PRINCIPAIS MODIFICADAS
+         * ==================================================================
+         */
+
         /* Adiciona um novo campo de compromisso */
         function adicionarCompromisso() {
             const compromissos = document.querySelector('.commitments');
-            if (compromissos.children.length < maxCompromissos) {
-                compromissos.appendChild(criarCampoCompromisso());
+            
+            // Procura o primeiro campo vazio
+            const campoVazio = [...compromissos.children].find(div => !div.querySelector('input[type=text]').value);
+            
+            if (campoVazio) {
+                 // Foca no primeiro campo vazio
+                campoVazio.querySelector('input[type=text]').focus();
+            } else if (compromissos.children.length < maxCompromissos) {
+                // Adiciona um novo se não houver vazios e houver espaço
+                const novoCampo = criarCampoCompromisso({}, dataInput.value); // Passa a data
+                compromissos.appendChild(novoCampo);
+                novoCampo.querySelector('input[type=text]').focus();
             }
         }
 
@@ -816,38 +1040,61 @@
             todosOsCampos.forEach(div => {
                 const input = div.querySelector('input[type="text"]');
                 if (input.value.trim() !== '') {
+                    // Pega o item original (pode ser recorrente ou não)
+                    const item = div._agendaItem || {};
                     const checkbox = div.querySelector('input[type="checkbox"]');
+                    
                     dadosPreenchidos.push({
                         texto: input.value,
                         tachado: input.classList.contains('done'),
-                        selecionado: checkbox.checked
+                        selecionado: checkbox.checked,
+                        // Preserva a informação de recorrência se ela existir
+                        isRecorrente: item.isRecorrente,
+                        idRecorrente: item.idRecorrente,
+                        startDate: item.startDate,
+                        frequencia: item.frequencia
                     });
                 }
             });
 
-            // 2. Reescrever os dados nos campos desde o início
+            // 2. Limpa todos os campos (visualmente)
             todosOsCampos.forEach((div, index) => {
                 const input = div.querySelector('input[type="text"]');
                 const checkbox = div.querySelector('input[type="checkbox"]');
+                input.value = '';
+                checkbox.checked = false;
+                input.classList.remove('done');
+                div.classList.remove('checked', 'recorrente');
+                div.querySelector('button').textContent = 'OK'; // Reseta o botão
+                div._agendaItem = { texto: '', hora: '', tachado: false, selecionado: false }; // Reseta o item
+            });
 
-                if (index < dadosPreenchidos.length) {
-                    // Preenche com os dados coletados
-                    const dados = dadosPreenchidos[index];
+            // 3. Reescreve os dados nos campos desde o início
+            dadosPreenchidos.forEach((dados, index) => {
+                 if (index < todosOsCampos.length) {
+                    const div = todosOsCampos[index];
+                    const input = div.querySelector('input[type="text"]');
+                    const checkbox = div.querySelector('input[type="checkbox"]');
+                    
                     input.value = dados.texto;
                     checkbox.checked = dados.selecionado;
+                    
                     // Ajusta as classes CSS (para visual)
                     input.classList.toggle('done', dados.tachado);
                     div.classList.toggle('checked', dados.selecionado);
-                } else {
-                    // Limpa os campos excedentes
-                    input.value = '';
-                    checkbox.checked = false;
-                    input.classList.remove('done');
-                    div.classList.remove('checked');
-                }
+                    
+                    // Re-associa o item original
+                    div._agendaItem = dados; 
+                    
+                    // Re-aplica estilo recorrente se for o caso
+                    if(dados.isRecorrente) {
+                        div.classList.add('recorrente');
+                        div.querySelector('button').textContent = '🔄';
+                    }
+                 }
             });
 
-            // 3. Salvar o novo estado no Firebase
+            // 4. Salvar o novo estado no Firebase
             salvarAgenda();
         }
 
@@ -858,33 +1105,65 @@
             if (termo.length < 3) return;
 
             const resultados = [];
-            const snapshot = await database.ref('agenda').once('value');
-            const todasAsAgendas = snapshot.val();
-
+            // 1. Pesquisa na 'agenda'
+            const snapshotAgenda = await database.ref('agenda').once('value');
+            const todasAsAgendas = snapshotAgenda.val();
             if (todasAsAgendas) {
                 for (const data in todasAsAgendas) {
                     const dadosDoDia = todasAsAgendas[data] || [];
                     dadosDoDia.forEach((item, index) => {
                         if (item.texto && item.texto.toLowerCase().includes(termo)) {
-                            resultados.push({ data, index, item });
+                            resultados.push({ data, index, item, tipo: 'agenda' });
                         }
                     });
                 }
             }
 
+            // 2. Pesquisa em 'recorrencias'
+            const snapshotRec = await database.ref('recorrencias').once('value');
+            const todasRecorrencias = snapshotRec.val();
+            if (todasRecorrencias) {
+                for (const id in todasRecorrencias) {
+                    const regra = todasRecorrencias[id];
+                    if (regra.texto && regra.texto.toLowerCase().includes(termo)) {
+                        resultados.push({
+                            data: regra.startDate,
+                            index: 0,
+                            item: regra,
+                            tipo: 'recorrente'
+                        });
+                    }
+                }
+            }
+
+
             if (resultados.length > 0) {
-                resultados.forEach(({ data, index, item }) => {
+                resultados.forEach(({ data, index, item, tipo }) => {
                     const divResultado = document.createElement('div');
-                    divResultado.textContent = `Dia: ${data} - ${item.texto}`;
+                    let prefixo = (tipo === 'recorrente') ? '🔄 Recorrente (início):' : 'Dia:';
+                    divResultado.textContent = `${prefixo} ${data} - ${item.texto}`;
+                    
                     divResultado.onclick = () => {
-                        dataInput.value = data;
+                        dataInput.value = data; // Pula para o dia (ou dia de início)
                         carregarAgenda().then(() => {
-                            // Espera a agenda carregar e tenta encontrar o elemento pelo índice
-                            const compromisso = agendaEl.querySelectorAll('.commitment')[index];
-                            if (compromisso) {
-                                compromisso.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                compromisso.classList.add('destaque');
-                                setTimeout(() => compromisso.classList.remove('destaque'), 2000);
+                            if (tipo === 'agenda') {
+                                // Tenta encontrar o item específico
+                                const compromisso = agendaEl.querySelectorAll('.commitment')[index];
+                                if (compromisso) {
+                                    compromisso.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    compromisso.classList.add('destaque');
+                                    setTimeout(() => compromisso.classList.remove('destaque'), 2000);
+                                }
+                            } else {
+                                // Para recorrente, apenas destaca o primeiro que encontrar com o texto
+                                const compromisso = [...agendaEl.querySelectorAll('.commitment input[type=text]')]
+                                                    .find(input => input.value === item.texto);
+                                if (compromisso) {
+                                    const parent = compromisso.closest('.commitment');
+                                    parent.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    parent.classList.add('destaque');
+                                    setTimeout(() => parent.classList.remove('destaque'), 2000);
+                                }
                             }
                         });
                     };
@@ -895,6 +1174,7 @@
             }
         }
 
+
         /* Limpa busca */
         function limparBusca() {
             searchEl.value = '';
@@ -903,14 +1183,49 @@
 
         /* Exporta para TXT */
         async function exportarParaTXT(data) {
+            // Re-usa a lógica de carregamento para obter a lista combinada
+            const diaSelecionado = new Date(data + 'T12:00:00');
             const snapshot = await database.ref('agenda/' + data).once('value');
-            const dados = snapshot.val() || [];
+            let dadosSalvos = snapshot.val() || [];
+            
+            const recorrenciasSnap = await database.ref('recorrencias').once('value');
+            const todasRecorrencias = recorrenciasSnap.val() || {};
+
+            while (dadosSalvos.length < maxCompromissos) {
+                dadosSalvos.push({ texto: '', hora: '', tachado: false, selecionado: false });
+            }
+            dadosSalvos = dadosSalvos.slice(0, maxCompromissos);
+
+            const textosJaNaAgenda = new Set(dadosSalvos.map(d => d.texto).filter(Boolean));
+            const slotsVaziosIndices = [];
+            dadosSalvos.forEach((d, i) => {
+                if (!d.texto) slotsVaziosIndices.push(i);
+            });
+
+            for (const id in todasRecorrencias) {
+                const regra = { ...todasRecorrencias[id], idRecorrente: id, isRecorrente: true };
+                if (textosJaNaAgenda.has(regra.texto)) continue;
+                if (deveAparecerNesteDia(regra, diaSelecionado)) {
+                    if (slotsVaziosIndices.length > 0) {
+                        const index = slotsVaziosIndices.shift();
+                        dadosSalvos[index] = { ...regra, tachado: false, selecionado: false };
+                    }
+                }
+            }
+
+            // Agora 'dadosSalvos' contém a lista completa do dia
             let conteudo = 'Agenda de ' + data + '\n\n';
-            dados.forEach((item, i) => {
+            let contador = 1;
+            dadosSalvos.forEach((item) => {
                 if (item.texto) {
-                    conteudo += (i + 1) + '. ' + item.texto + (item.tachado ? ' (Concluído)' : '') + '\n';
+                    let sufixo = item.tachado ? ' (Concluído)' : '';
+                    if (item.isRecorrente && !item.tachado) sufixo += ' (Recorrente)';
+                    
+                    conteudo += (contador++) + '. ' + item.texto + sufixo + '\n';
                 }
             });
+
+
             const blob = new Blob([conteudo], { type: 'text/plain;charset=utf-8' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
@@ -918,23 +1233,34 @@
             a.click();
         }
 
-        /* Funções de Copiar/Colar */
+        /* ==================================================================
+         FUNÇÃO CORRIGIDA (COPIAR)
+        ==================================================================
+        */
         function copiarCompromissos() {
             bufferCopiados = [];
             const section = document.querySelector('.date-section');
             if (!section) return;
-
             const compromissos = section.querySelectorAll('.commitment');
+            
             compromissos.forEach(div => {
                 const input = div.querySelector('input[type="text"]');
-                if (!input.classList.contains('done')) {
+                
+                // LÓGICA ORIGINAL RESTAURADA:
+                // Copia o item se ele tiver texto e NÃO estiver tachado ('done')
+                if (input.value.trim() !== '' && !input.classList.contains('done')) {
                     bufferCopiados.push(input.value);
-                    input.classList.add('done');
+                    input.classList.add('done'); // Tacha o item após copiar
                 }
             });
-            salvarAgenda();
+            
+            salvarAgenda(); // Salva o novo estado (com os itens tachados)
         }
 
+        /* ==================================================================
+         FUNÇÃO COLAR (Sem alterações, já estava correta)
+        ==================================================================
+        */
         function colarCompromissos() {
             if (!bufferCopiados.length) return;
             const compromissosDiv = document.querySelector('.commitments');
@@ -943,10 +1269,13 @@
             let idxBuffer = 0;
 
             function encontrarOuAdicionarCampoVazio() {
+                // Prioriza campos vazios
                 const vazio = [...compromissosDiv.children].find(div => !div.querySelector('input[type=text]').value);
                 if (vazio) return vazio;
+                
+                // Se não houver vazios, mas houver espaço, adiciona
                 if (compromissosDiv.children.length < maxCompromissos) {
-                    const novo = criarCampoCompromisso();
+                    const novo = criarCampoCompromisso({}, dataInput.value); // Passa a data
                     compromissosDiv.appendChild(novo);
                     return novo;
                 }
@@ -955,11 +1284,11 @@
 
             while (idxBuffer < bufferCopiados.length) {
                 const campo = encontrarOuAdicionarCampoVazio();
-                if (!campo) break;
+                if (!campo) break; // Para se a agenda estiver cheia
                 const input = campo.querySelector('input[type=text]');
                 const checkbox = campo.querySelector('input[type="checkbox"]');
                 input.value = bufferCopiados[idxBuffer++];
-                input.classList.remove('done');
+                input.classList.remove('done'); // Garante que o item colado não venha tachado
                 checkbox.checked = false;
                 campo.classList.remove('checked');
             }
@@ -967,39 +1296,8 @@
         }
 
         /* Funções de CPF (Ocultadas para economizar espaço, mas ainda presentes no seu código) */
-        function validarCPF(cpf) {
-            if (!cpf || cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
-            let soma = 0, resto;
-            for (let i = 1; i <= 9; i++) soma += parseInt(cpf[i - 1]) * (11 - i);
-            resto = (soma * 10) % 11;
-            if (resto === 10 || resto === 11) resto = 0;
-            if (resto !== parseInt(cpf[9])) return false;
-            soma = 0;
-            for (let i = 1; i <= 10; i++) soma += parseInt(cpf[i - 1]) * (12 - i);
-            resto = (soma * 10) % 11;
-            if (resto === 10 || resto === 11) resto = 0;
-            return resto === parseInt(cpf[10]);
-        }
-
-        /* document.getElementById('cpf').addEventListener('input', () => {
-            const raw = document.getElementById('cpf').value.replace(/\D/g, '');
-            const status = document.getElementById('cpfStatus');
-            const valido = validarCPF(raw);
-            status.textContent = valido ? 'CPF válido' : 'CPF inválido';
-            status.className = valido ? 'valid' : 'invalid';
-        });
-        function copiarCPF() {
-            let raw = document.getElementById('cpf').value.replace(/\D/g, '');
-            if (validarCPF(raw)) {
-                let formatado = raw.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
-                navigator.clipboard.writeText(formatado);
-            }
-        }
-        function limparCPF() {
-            document.getElementById('cpf').value = '';
-            document.getElementById('cpfStatus').textContent = '';
-            document.getElementById('cpfStatus').className = '';
-        } */
+        function validarCPF(cpf) { if (!cpf || cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false; let soma = 0, resto; for (let i = 1; i <= 9; i++) soma += parseInt(cpf[i - 1]) * (11 - i); resto = (soma * 10) % 11; if (resto === 10 || resto === 11) resto = 0; if (resto !== parseInt(cpf[9])) return false; soma = 0; for (let i = 1; i <= 10; i++) soma += parseInt(cpf[i - 1]) * (12 - i); resto = (soma * 10) % 11; if (resto === 10 || resto === 11) resto = 0; return resto === parseInt(cpf[10]); }
+        /* document.getElementById('cpf').addEventListener('input', () => { const raw = document.getElementById('cpf').value.replace(/\D/g, ''); const status = document.getElementById('cpfStatus'); const valido = validarCPF(raw); status.textContent = valido ? 'CPF válido' : 'CPF inválido'; status.className = valido ? 'valid' : 'invalid'; }); function copiarCPF() { let raw = document.getElementById('cpf').value.replace(/\D/g, ''); if (validarCPF(raw)) { let formatado = raw.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4"); navigator.clipboard.writeText(formatado); } } function limparCPF() { document.getElementById('cpf').value = ''; document.getElementById('cpfStatus').textContent = ''; document.getElementById('cpfStatus').className = ''; } */
 
         /* Funções das Notas Fixas com Firebase */
         async function carregarNotasFixas() {
@@ -1051,7 +1349,7 @@
 
             // Pega o elemento de feedback
             const feedbackEl = document.getElementById('alarm-feedback');
-            
+
             // --- ALTERAÇÃO DE ROBUSTEZ ---
             // Limpa o feedback SÓ SE o elemento existir
             if (feedbackEl) {
@@ -1087,7 +1385,6 @@
                 const totalMinutes = Math.floor(diff / (1000 * 60));
                 const hours = Math.floor(totalMinutes / 60);
                 const minutes = totalMinutes % 60;
-
                 feedbackEl.textContent = `Alarme programado para daqui a ${hours}h e ${minutes}min.`;
 
                 // Limpa a mensagem após 4 segundos
@@ -1113,6 +1410,7 @@
             }
             document.getElementById(`alarmMessage${id}`).value = '';
             document.getElementById(`alarmTime${id}`).value = '';
+
             database.ref(`alarms/${id}`).remove();
 
             // --- ALTERAÇÃO DE ROBUSTEZ ---
@@ -1141,7 +1439,6 @@
             }
 
             database.ref(`alarms/${id}`).remove();
-            
             document.getElementById(`alarmMessage${id}`).value = '';
             document.getElementById(`alarmTime${id}`).value = '';
         }
@@ -1156,7 +1453,174 @@
             window.removeEventListener('focus', stopAlarmBlink);
             window.removeEventListener('click', stopAlarmBlink);
         }
-        /* ======================================================== */
+
+
+        /**
+         * ==================================================================
+         * INÍCIO DAS NOVAS FUNÇÕES DE RECORRÊNCIA
+         * ==================================================================
+         */
+
+        // Elementos dos Modais
+        const modalRecorrente = document.getElementById('modalRecorrente');
+        const modalExcluirRecorrente = document.getElementById('modalExcluirRecorrente');
+        const recorrenteTextoEl = document.getElementById('recorrenteTexto');
+
+        // Aplica o listener de capitalização também no modal
+        recorrenteTextoEl.addEventListener('input', toUpperOnInput);
+
+        // --- Listeners do Modal de NOVO RECORRENTE ---
+        document.getElementById('cancelarRecorrenteBtn').addEventListener('click', () => {
+            modalRecorrente.style.display = 'none';
+        });
+
+        document.getElementById('salvarRecorrenteBtn').addEventListener('click', () => {
+            const texto = recorrenteTextoEl.value.trim().toUpperCase();
+            if (!texto) {
+                alert('Por favor, digite a descrição do compromisso.');
+                return;
+            }
+            
+            const frequenciaEl = document.querySelector('input[name="frequencia"]:checked');
+            if (!frequenciaEl) {
+                alert('Por favor, selecione uma frequência.');
+                return;
+            }
+            
+            const frequencia = frequenciaEl.value;
+            const startDate = dataInput.value; // Começa no dia selecionado
+
+            // Cria um ID único no Firebase
+            const novoId = database.ref('recorrencias').push().key;
+
+            const regra = {
+                texto: texto,
+                startDate: startDate,
+                frequencia: frequencia,
+                excecoes: {} // Nó para armazenar exceções de dias
+            };
+
+            database.ref('recorrencias/' + novoId).set(regra).then(() => {
+                modalRecorrente.style.display = 'none';
+                carregarAgenda(); // Recarrega a agenda para mostrar o novo item
+            });
+        });
+
+
+        // --- Funções e Listeners do Modal de EXCLUIR RECORRENTE ---
+        
+        // Variáveis temporárias para guardar o item a ser excluído
+        let itemParaExcluir = null;
+        let dataParaExcluir = null;
+
+        function abrirModalExcluirRecorrente(item, data) {
+            itemParaExcluir = item;
+            dataParaExcluir = data;
+            document.getElementById('excluirRecorrenteTexto').textContent = `Como deseja excluir "${item.texto}"?`;
+            modalExcluirRecorrente.style.display = 'flex';
+        }
+
+        document.getElementById('cancelarExcluirBtn').addEventListener('click', () => {
+            modalExcluirRecorrente.style.display = 'none';
+            itemParaExcluir = null;
+            dataParaExcluir = null;
+        });
+
+        // Botão "Excluir somente esta"
+        document.getElementById('excluirUmBtn').addEventListener('click', () => {
+            if (!itemParaExcluir || !dataParaExcluir) return;
+
+            const id = itemParaExcluir.idRecorrente;
+            const data = dataParaExcluir;
+
+            // Adiciona a data atual ao nó de exceções da regra
+            database.ref(`recorrencias/${id}/excecoes/${data}`).set(true).then(() => {
+                modalExcluirRecorrente.style.display = 'none';
+                carregarAgenda(); // Recarrega para o item sumir
+            });
+        });
+
+        // Botão "Excluir esta e futuras"
+        document.getElementById('excluirFuturosBtn').addEventListener('click', () => {
+            if (!itemParaExcluir || !dataParaExcluir) return;
+
+            const id = itemParaExcluir.idRecorrente;
+            
+            // Define uma 'endDate' para a regra, sendo o dia anterior ao atual
+            const d = new Date(dataParaExcluir + "T12:00:00");
+            d.setDate(d.getDate() - 1);
+            const dataFim = d.toISOString().split('T')[0];
+
+            database.ref(`recorrencias/${id}/endDate`).set(dataFim).then(() => {
+                modalExcluirRecorrente.style.display = 'none';
+                carregarAgenda(); // Recarrega para o item sumir
+            });
+        });
+
+
+        // --- Função Helper: O "Cérebro" da Recorrência ---
+        
+        /**
+         * Verifica se uma regra de recorrência deve aparecer em um dia específico.
+         * @param {object} regra - O objeto da regra de recorrência.
+         * @param {Date} diaSelecionado - O objeto Date do dia a ser verificado.
+         */
+        function deveAparecerNesteDia(regra, diaSelecionado) {
+            // Ajusta o startDate para T12 para evitar problemas de fuso
+            const startDate = new Date(regra.startDate + 'T12:00:00');
+            
+            // 1. Se o dia for ANTERIOR ao início, não mostra
+            if (diaSelecionado < startDate) {
+                return false;
+            }
+
+            // 2. Se o dia for DEPOIS do fim, não mostra
+            if (regra.endDate) {
+                const endDate = new Date(regra.endDate + 'T12:00:00');
+                if (diaSelecionado > endDate) {
+                    return false;
+                }
+            }
+
+            // 3. Se o dia for uma EXCEÇÃO, não mostra
+            const dataFormatada = diaSelecionado.toISOString().split('T')[0];
+            if (regra.excecoes && regra.excecoes[dataFormatada]) {
+                return false;
+            }
+
+            // 4. Verifica a Frequência
+            const diaInicio = startDate.getDate();
+            const diaSemanaInicio = startDate.getDay();
+            const mesInicio = startDate.getMonth();
+
+            const diaSel = diaSelecionado.getDate();
+            const diaSemanaSel = diaSelecionado.getDay();
+            const mesSel = diaSelecionado.getMonth();
+
+            switch (regra.frequencia) {
+                case 'diario':
+                    return true; // Já passou pelas checagens de início, fim e exceção
+                
+                case 'semanal':
+                    return diaSemanaSel === diaSemanaInicio;
+                
+                case 'mensal':
+                    return diaSel === diaInicio;
+                
+                case 'anual':
+                    return diaSel === diaInicio && mesSel === mesInicio;
+                
+                default:
+                    return false;
+            }
+        }
+
+        /**
+         * ==================================================================
+         * FIM DAS NOVAS FUNÇÕES DE RECORRÊNCIA
+         * ==================================================================
+         */
+
     </script>
 </body>
 </html>
