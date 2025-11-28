@@ -546,7 +546,7 @@ const ui = {
     loginOverlay: document.getElementById("login-overlay"), 
     loginTitle: document.getElementById("login-title"), 
     loginMessage: document.getElementById("login-message"), 
-    passcodeInput: document.getElementById("passcode-input"), 
+    passcodeInput: document.getElementById("passcodeInput"), 
     loginButton: document.getElementById("login-button"), 
     currentMonthYear: document.getElementById("currentMonthYear"), 
     prevMonthBtn: document.getElementById("prevMonthBtn"), 
@@ -743,6 +743,7 @@ function loadData() {
             [ui.fixedExpensesTable, ui.diversosTable, ui.nubankTable, ui.c6Table].forEach(ensureEmptyRow); 
             updateAllTotals(); 
         } else { 
+            // Os dados foram apagados ou o mês é novo, copia do anterior.
             const prevMonthDate = new Date(current_date); 
             prevMonthDate.setMonth(prevMonthDate.getMonth() - 1); 
             const prevMonthKey = getMonthYearKey(prevMonthDate); 
@@ -780,11 +781,31 @@ function loadData() {
         showStatus("Erro fatal ao carregar dados.", 5000); 
     }); 
 } 
+function clearUIForNewMonth() {
+    // Limpa os corpos das tabelas
+    ui.fixedExpensesTable.innerHTML = "";
+    ui.diversosTable.innerHTML = "";
+    ui.nubankTable.innerHTML = "";
+    ui.c6Table.innerHTML = "";
+    ui.installmentsSummaryTable.innerHTML = "";
+    
+    // Zera os totais
+    ui.fixedTotal.textContent = "R$ 0,00";
+    ui.diversosTotal.textContent = "R$ 0,00";
+    ui.nubankTotal.textContent = "R$ 0,00";
+    ui.c6Total.textContent = "R$ 0,00";
+    ui.totalGeral.textContent = "R$ 0,00";
+}
 function clearAllData() { 
     if (!confirm("ATENÇÃO! Isso vai apagar todos os dados deste mês. Deseja continuar?")) return; 
+    
+    // 🛑 NOVO: Limpa a interface imediatamente para feedback visual
+    clearUIForNewMonth(); 
+
     const e = getMonthYearKey(current_date); 
     const monthRef = ref(database, "expenses/" + e);
-    // 🛑 CORREÇÃO: Remove o listener antes de limpar os dados para evitar corrida assíncrona.
+
+    // Desconecta o listener para garantir que ele não se comporte de forma inesperada
     if (currentMonthListener) {
         currentMonthListener();
         currentMonthListener = null;
@@ -792,7 +813,7 @@ function clearAllData() {
     
     set(monthRef, null).then((() => { 
         showStatus("Dados do mês atual limpos com sucesso!", 3e3); 
-        // 🛑 CORREÇÃO: Força o recarregamento dos dados para reativar o listener e copiar do mês anterior.
+        // Força o recarregamento, que irá detectar que o mês está vazio
         loadData(); 
     })).catch((e => { 
         console.error("Erro ao limpar dados: ", e), showStatus("Erro ao limpar os dados!", 5e3) 
