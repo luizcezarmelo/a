@@ -537,16 +537,11 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig); 
 const database = getDatabase(app); 
 let debounceTimer; 
-// 🚨 MODIFICAÇÃO AQUI: avança um mês no início 
 let current_date = new Date(); 
-current_date.setMonth(current_date.getMonth() + 1); // AVANÇA UM MÊS 
-// 🚨 FIM DA MODIFICAÇÃO 
-let currentMonthListener = null; // Controla o listener do Firebase 
-
-// 🎯 NOVAS VARIÁVEIS PARA GERENCIAR O FOCO/CURSOR
+current_date.setMonth(current_date.getMonth() + 1); 
+let currentMonthListener = null; 
 let savedRange = null;
 let lastFocusedCell = null;
-
 const ui = { 
     loginOverlay: document.getElementById("login-overlay"), 
     loginTitle: document.getElementById("login-title"), 
@@ -574,20 +569,16 @@ const ui = {
     totalGeral: document.getElementById("totalGeral"), 
     status: document.getElementById("status") 
 }; 
-
-// 🎯 NOVAS FUNÇÕES DE GERENCIAMENTO DE CURSOR
 function saveSelection() {
     const selection = window.getSelection();
     if (selection.rangeCount > 0) {
         const range = selection.getRangeAt(0);
-        // Salva apenas se o foco estiver dentro de uma célula editável
         if (range.startContainer.parentNode && range.startContainer.parentNode.hasAttribute('contenteditable')) {
             savedRange = range.cloneRange();
             lastFocusedCell = range.startContainer.parentNode;
         } else if (document.activeElement && document.activeElement.hasAttribute('contenteditable')) {
-             // Caso a célula seja o startContainer (sem nós internos)
             lastFocusedCell = document.activeElement;
-            savedRange = null; // Não salva o Range se não houver texto, apenas o elemento
+            savedRange = null; 
         } else {
             savedRange = null;
             lastFocusedCell = null;
@@ -597,19 +588,15 @@ function saveSelection() {
         lastFocusedCell = null;
     }
 }
-
 function restoreSelection() {
     if (savedRange) {
         const selection = window.getSelection();
         selection.removeAllRanges();
         selection.addRange(savedRange);
     } else if (lastFocusedCell) {
-        // Se não salvou o Range, apenas tenta focar o elemento novamente
         lastFocusedCell.focus();
     }
 }
-// 🎯 FIM DAS NOVAS FUNÇÕES
-
 function initLogin() { 
     const e = ref(database, "passcode"); 
     onValue(e, (e => { 
@@ -643,7 +630,7 @@ function setupFirstAccessScreen() {
 function startApp() { 
     updateMonthDisplay(), loadData(), ui.prevMonthBtn.addEventListener("click", (() => changeMonth(-1))), ui.nextMonthBtn.addEventListener("click", (() => changeMonth(1))), ui.todayBtn.addEventListener("click", (() => { 
         if (currentMonthListener) { 
-            currentMonthListener(); // Desconecta o listener antigo 
+            currentMonthListener(); 
             currentMonthListener = null; 
         } 
         current_date = new Date, updateMonthDisplay(), loadData() 
@@ -677,7 +664,7 @@ function restoreDataFromFile(e) {
             const n = JSON.parse(t.target.result), 
                 a = ref(database, "expenses/"); 
             set(a, n).then((() => { 
-                showStatus("Dados restaurados com sucesso!", 3e3), loadData() // Recarrega os dados 
+                showStatus("Dados restaurados com sucesso!", 3e3), loadData() 
             })).catch((e => { 
                 showStatus("Erro ao salvar dados restaurados.", 5e3), console.error(e) 
             })) 
@@ -689,14 +676,14 @@ function restoreDataFromFile(e) {
     }, n.readAsText(t) 
 } 
 function changeMonth(e) { 
-    saveData(!0); // Salva dados do mês antigo 
+    saveData(!0); 
     if (currentMonthListener) { 
-        currentMonthListener(); // Desconecta o listener do mês antigo 
+        currentMonthListener(); 
         currentMonthListener = null; 
     } 
     current_date.setMonth(current_date.getMonth() + e); 
     updateMonthDisplay(); 
-    loadData(); // Carrega dados do novo mês 
+    loadData(); 
 } 
 function updateMonthDisplay() { 
     const e = current_date.toLocaleString("pt-BR", { 
@@ -726,13 +713,18 @@ function saveData(e = !1) {
         set(ref(database, "expenses/" + e), t).then((() => { 
             if (!e) {
                 showStatus("Salvo!");
-                restoreSelection(); // 🎯 RESTAURA O FOCO APÓS SALVAR
+                setTimeout(restoreSelection, 0); 
             }
         })).catch((e => { 
             console.error("Erro ao salvar: ", e), showStatus("Erro ao salvar!", 5e3) 
         })) 
     }; 
-    e ? t() : (showStatus("Salvando..."), debounceTimer = setTimeout(t, 2500)) 
+    const startDebounce = () => {
+        showStatus("Salvando...");
+        debounceTimer = setTimeout(t, 1500); 
+    };
+
+    e ? t() : startDebounce();
 } 
 function loadData() { 
     if (currentMonthListener) { 
@@ -741,11 +733,9 @@ function loadData() {
     } 
     const monthKey = getMonthYearKey(current_date); 
     const currentMonthRef = ref(database, "expenses/" + monthKey); 
-    // Conecta um listener EM TEMPO REAL 
     currentMonthListener = onValue(currentMonthRef, (currentSnapshot) => { 
         const currentData = currentSnapshot.val(); 
         if (currentData) { 
-            // CENÁRIO 1: Já existem dados para este mês 
             populateTable(ui.fixedExpensesTable, currentData.fixed || []); 
             populateTable(ui.diversosTable, currentData.diversos || []); 
             populateTable(ui.nubankTable, currentData.nubank || []); 
@@ -753,7 +743,6 @@ function loadData() {
             [ui.fixedExpensesTable, ui.diversosTable, ui.nubankTable, ui.c6Table].forEach(ensureEmptyRow); 
             updateAllTotals(); 
         } else { 
-            // CENÁRIO 2: Mês vazio (primeiro acesso) 
             const prevMonthDate = new Date(current_date); 
             prevMonthDate.setMonth(prevMonthDate.getMonth() - 1); 
             const prevMonthKey = getMonthYearKey(prevMonthDate); 
@@ -765,12 +754,10 @@ function loadData() {
                     nubank: [], 
                     c6: [] 
                 }; 
-                // Copia parcelas, avançando o número E RESETANDO CHECKBOX 
                 const newNubank = processContinuingInstallments(prevData.nubank || []); 
                 const newC6 = processContinuingInstallments(prevData.c6 || []); 
                 const newDiversos = processContinuingInstallments(prevData.diversos || []); 
-                // Copia despesas fixas, RESETANDO CHECKBOX 
-                const newFixed = (prevData.fixed || []).map((e => [e[0], e[1], !1])); // !1 é `false` 
+                const newFixed = (prevData.fixed || []).map((e => [e[0], e[1], !1])); 
                 const newDataForNewMonth = { 
                     fixed: newFixed, 
                     diversos: newDiversos, 
@@ -783,10 +770,9 @@ function loadData() {
                 populateTable(ui.c6Table, newDataForNewMonth.c6); 
                 [ui.fixedExpensesTable, ui.diversosTable, ui.nubankTable, ui.c6Table].forEach(ensureEmptyRow); 
                 updateAllTotals(); 
-                // Salva os dados copiados no Firebase para o mês atual 
                 set(currentMonthRef, newDataForNewMonth); 
             }, { 
-                onlyOnce: true // Só lê o mês anterior uma vez 
+                onlyOnce: true 
             }); 
         } 
     }, (error) => { 
@@ -797,10 +783,17 @@ function loadData() {
 function clearAllData() { 
     if (!confirm("ATENÇÃO! Isso vai apagar todos os dados deste mês. Deseja continuar?")) return; 
     const e = getMonthYearKey(current_date); 
-    // Seta o mês para 'null'. O listener 'loadData' vai disparar 
-    // e recriar o mês a partir do mês anterior (CENÁRIO 2) 
-    set(ref(database, "expenses/" + e), null).then((() => { 
-        showStatus("Dados do mês atual limpos com sucesso!", 3e3) 
+    const monthRef = ref(database, "expenses/" + e);
+    // 🛑 CORREÇÃO: Remove o listener antes de limpar os dados para evitar corrida assíncrona.
+    if (currentMonthListener) {
+        currentMonthListener();
+        currentMonthListener = null;
+    }
+    
+    set(monthRef, null).then((() => { 
+        showStatus("Dados do mês atual limpos com sucesso!", 3e3); 
+        // 🛑 CORREÇÃO: Força o recarregamento dos dados para reativar o listener e copiar do mês anterior.
+        loadData(); 
     })).catch((e => { 
         console.error("Erro ao limpar dados: ", e), showStatus("Erro ao limpar os dados!", 5e3) 
     })) 
@@ -811,30 +804,25 @@ function processContinuingInstallments(e) {
         if (n && 3 === n.length) { 
             const a = parseInt(n[1], 10), 
                 o = parseInt(n[2], 10); 
-            // Adiciona a próxima parcela com checkbox `false` (!1) 
             a < o && e.push([t[0], t[1], `${a+1}/${o}`, !1]) 
         } 
         return e 
     }), []) 
 } 
 function populateTable(e, t) { 
-    e.innerHTML = ""; // Limpa a tabela 
+    e.innerHTML = ""; 
     const n = "installmentsSummaryTable" !== e.id; 
     t.forEach((t => { 
         const a = e.insertRow(); 
-        // Popula células de texto 
         t.forEach(((e, o) => { 
-            // O último item do array é o 'checked', não cria célula para ele 
             if (n && o === t.length - 1) return; 
             const s = a.insertCell(); 
             s.textContent = e, s.setAttribute("contenteditable", "true") 
         })); 
-        // Adiciona célula do checkbox 
         if (n) { 
             const e = a.insertCell(), 
                 n = document.createElement("input"); 
             n.type = "checkbox"; 
-            // Define o estado 'checked' com base no último item do array 
             n.checked = !0 === t[t.length - 1]; 
             e.style.textAlign = "center"; 
             e.appendChild(n); 
@@ -844,10 +832,9 @@ function populateTable(e, t) {
 function parseTableData(e) { 
     return Array.from(e.rows).map((e => { 
         const t = Array.from(e.cells).map((e => e.querySelector('input[type="checkbox"]') ? e.querySelector('input[type="checkbox"]').checked : e.textContent.trim())), 
-            n = t.pop(); // Pega o valor booleano (true/false) do checkbox 
-        // Só retorna a linha se alguma célula de texto (descrição, valor, etc.) tiver conteúdo 
+            n = t.pop(); 
         return t.some((e => "" !== e)) ? [...t, n] : null 
-    })).filter((e => null !== e)) // Remove linhas nulas (que estavam vazias) 
+    })).filter((e => null !== e)) 
 } 
 function ensureEmptyRow(e) { 
     (0 === e.rows.length || e.rows.length > 0 && !(e => { 
@@ -868,27 +855,27 @@ function setupTableListeners(e, t) {
     e.addEventListener("focusout", (e => { 
         if ("TD" === e.target.tagName && e.target.hasAttribute("contenteditable")) { 
             const n = e.target; 
-            if (1 === n.cellIndex) { // Se for a célula de Valor 
+            if (1 === n.cellIndex) { 
                 const e = n.textContent.trim(); 
                 if (e) { 
                     let a = parseCurrency(e); 
-                    n.textContent = a.toLocaleString("pt-BR", { // Formata o valor 
+                    n.textContent = a.toLocaleString("pt-BR", { 
                         minimumFractionDigits: 2, 
                         maximumFractionDigits: 2 
                     }), updateTotals(t) 
                 } 
             } 
         } 
-    })), e.addEventListener("input", (n => { // Ao digitar 
+    })), e.addEventListener("input", (n => { 
         n.target.hasAttribute("contenteditable") && (
-            saveSelection(), // 🎯 SALVA A POSIÇÃO DO CURSOR ANTES DO DEBOUNCE
+            saveSelection(), 
             updateTotals(t), 
             saveData(), 
             ensureEmptyRow(e)
         ) 
-    })), e.addEventListener("change", (e => { // Ao clicar no checkbox 
+    })), e.addEventListener("change", (e => { 
         "checkbox" === e.target.type && saveData() 
-    })), e.addEventListener("keydown", (t => { // Ao apertar Enter 
+    })), e.addEventListener("keydown", (t => { 
         if ("Enter" === t.key && "TD" === t.target.tagName && !t.shiftKey) { 
             t.preventDefault(); 
             const n = t.target.parentElement.nextElementSibling; 
@@ -946,7 +933,8 @@ function updateInstallmentSummary() {
             l = parseInt(s[2], 10) - r; 
         if (l < 0) return null; 
         const i = new Date(current_date); 
-        return i.setMonth(i.getMonth() + l), i.setDate(1), { 
+        i.setMonth(i.getMonth() + l), i.setDate(1); 
+        return { 
             description: n, 
             card: t, 
             value: parseCurrency(a), 
@@ -996,7 +984,6 @@ function updateAllTotals() {
         n = calculateColumnTotal(ui.nubankTable, 1), 
         a = calculateColumnTotal(ui.c6Table, 1); 
     ui.fixedTotal.textContent = formatCurrency(e), ui.diversosTotal.textContent = formatCurrency(t), ui.nubankTotal.textContent = formatCurrency(n), ui.c6Total.textContent = formatCurrency(a); 
-    // O Total Geral soma TODAS as tabelas 
     ui.totalGeral.textContent = formatCurrency(e + n + a); 
     updateInstallmentSummary() 
 } 
