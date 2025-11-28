@@ -542,6 +542,11 @@ let current_date = new Date();
 current_date.setMonth(current_date.getMonth() + 1); // AVANÇA UM MÊS 
 // 🚨 FIM DA MODIFICAÇÃO 
 let currentMonthListener = null; // Controla o listener do Firebase 
+
+// 🎯 NOVAS VARIÁVEIS PARA GERENCIAR O FOCO/CURSOR
+let savedRange = null;
+let lastFocusedCell = null;
+
 const ui = { 
     loginOverlay: document.getElementById("login-overlay"), 
     loginTitle: document.getElementById("login-title"), 
@@ -569,6 +574,42 @@ const ui = {
     totalGeral: document.getElementById("totalGeral"), 
     status: document.getElementById("status") 
 }; 
+
+// 🎯 NOVAS FUNÇÕES DE GERENCIAMENTO DE CURSOR
+function saveSelection() {
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        // Salva apenas se o foco estiver dentro de uma célula editável
+        if (range.startContainer.parentNode && range.startContainer.parentNode.hasAttribute('contenteditable')) {
+            savedRange = range.cloneRange();
+            lastFocusedCell = range.startContainer.parentNode;
+        } else if (document.activeElement && document.activeElement.hasAttribute('contenteditable')) {
+             // Caso a célula seja o startContainer (sem nós internos)
+            lastFocusedCell = document.activeElement;
+            savedRange = null; // Não salva o Range se não houver texto, apenas o elemento
+        } else {
+            savedRange = null;
+            lastFocusedCell = null;
+        }
+    } else {
+        savedRange = null;
+        lastFocusedCell = null;
+    }
+}
+
+function restoreSelection() {
+    if (savedRange) {
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(savedRange);
+    } else if (lastFocusedCell) {
+        // Se não salvou o Range, apenas tenta focar o elemento novamente
+        lastFocusedCell.focus();
+    }
+}
+// 🎯 FIM DAS NOVAS FUNÇÕES
+
 function initLogin() { 
     const e = ref(database, "passcode"); 
     onValue(e, (e => { 
@@ -683,7 +724,10 @@ function saveData(e = !1) {
                 c6: parseTableData(ui.c6Table) 
             }; 
         set(ref(database, "expenses/" + e), t).then((() => { 
-            if (!e) showStatus("Salvo!") 
+            if (!e) {
+                showStatus("Salvo!");
+                restoreSelection(); // 🎯 RESTAURA O FOCO APÓS SALVAR
+            }
         })).catch((e => { 
             console.error("Erro ao salvar: ", e), showStatus("Erro ao salvar!", 5e3) 
         })) 
@@ -836,7 +880,12 @@ function setupTableListeners(e, t) {
             } 
         } 
     })), e.addEventListener("input", (n => { // Ao digitar 
-        n.target.hasAttribute("contenteditable") && (updateTotals(t), saveData(), ensureEmptyRow(e)) 
+        n.target.hasAttribute("contenteditable") && (
+            saveSelection(), // 🎯 SALVA A POSIÇÃO DO CURSOR ANTES DO DEBOUNCE
+            updateTotals(t), 
+            saveData(), 
+            ensureEmptyRow(e)
+        ) 
     })), e.addEventListener("change", (e => { // Ao clicar no checkbox 
         "checkbox" === e.target.type && saveData() 
     })), e.addEventListener("keydown", (t => { // Ao apertar Enter 
