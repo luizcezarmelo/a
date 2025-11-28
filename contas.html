@@ -732,7 +732,7 @@ function saveData(e = !1) {
             console.error("Erro ao salvar: ", e), showStatus("Erro ao salvar!", 5e3) 
         })) 
     }; 
-    e ? t() : (showStatus("Salvando..."), debounceTimer = setTimeout(t, 1500)) 
+    e ? t() : (showStatus("Salvando..."), debounceTimer = setTimeout(t, 2500)) 
 } 
 function loadData() { 
     if (currentMonthListener) { 
