@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Compactar Código</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; }
+  /* Ajustei a margem inferior do textarea */
+  textarea { width: 100%; height: 200px; margin-bottom: 5px; font-size: 14px; }
+  
+  /* Modificado para alinhar à esquerda e ajustar margens */
+  .button-container { 
+    display: flex; 
+    justify-content: flex-start; /* Alinhado à esquerda */
+    margin-top: 5px; /* Pequena margem acima do botão */
+    margin-bottom: 20px; /* Margem abaixo do botão */
+  }
+
+  /* Estilo do botão Copiar (Original) */
+  #copyButton {
+    background-color: #4CAF50; /* Verde */
+    border: none;
+    color: white;
+    padding: 8px 12px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 12px;
+    margin: 0; /* Ajustado */
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+  }
+  #copyButton:hover {
+    background-color: #45a049;
+  }
+
+  /* NOVO: Estilo do botão Limpar */
+  #clearButton {
+    background-color: #f44336; /* Vermelho */
+    border: none;
+    color: white;
+    padding: 8px 12px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 12px;
+    margin: 0;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+  }
+  #clearButton:hover {
+    background-color: #da190b;
+  }
+</style>
+</head>
+<body>
+
+<h2>Código Original</h2>
+<textarea id="inputText" placeholder="Cole seu código aqui..."></textarea>
+<div class="button-container">
+  <button id="clearButton">Limpar</button>
+</div>
+
+<h2>Código Compactado</h2>
+<textarea id="outputText" placeholder="Aqui aparecerá compactado..." readonly></textarea>
+<div class="button-container">
+  <button id="copyButton" style="display:none;">Copiar</button>
+</div>
+
+<script>
+  const input = document.getElementById('inputText');
+  const output = document.getElementById('outputText');
+  const copyButton = document.getElementById('copyButton');
+  const clearButton = document.getElementById('clearButton'); // NOVO
+
+  // Adiciona um ouvinte para o evento de 'input' no campo de texto de entrada
+  input.addEventListener('input', () => {
+    let text = input.value;
+    
+    // Mostra o botão de copiar somente se houver texto
+    if (text.trim().length > 0) {
+      copyButton.style.display = 'block';
+    } else {
+      copyButton.style.display = 'none';
+    }
+
+    // Remove quebras de linha e múltiplos espaços
+    text = text.replace(/(\r\n|\n|\r)/g, ' ').replace(/\s+/g, ' ').trim();
+
+    output.value = text;
+  });
+
+  // Adiciona um ouvinte de 'click' ao botão de copiar
+  copyButton.addEventListener('click', () => {
+    // Seleciona o texto do campo de saída
+    output.select();
+    // Copia o texto para a área de transferência
+    document.execCommand('copy');
+    // Deseleciona o texto
+    window.getSelection().removeAllRanges();
+    //alert('Código copiado!');
+  });
+
+  // NOVO: Adiciona um ouvinte de 'click' ao botão de limpar
+  clearButton.addEventListener('click', () => {
+    input.value = ''; // Limpa a entrada
+    output.value = ''; // Limpa a saída
+    copyButton.style.display = 'none'; // Esconde o botão copiar
+  });
+</script>
+
+</body>
+</html>
