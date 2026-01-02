@@ -1,266 +1,421 @@
 <!doctype html>
-<html lang=pt-BR>
+<html lang="pt-BR">
 <head>
-<meta charset=UTF-8>
-<meta name=viewport content="width=device-width,initial-scale=1">
-<title>Controle de Despesas</title>
-<link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css>
-<style>
-@import url(https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap);
-:root { --bg-color: #f4f7f9; --surface-color: #ffffff; --text-color-primary: #212529; --text-color-secondary: #6c757d; --border-color: #e9ecef; --accent-color: #007bff; --accent-color-hover: #0056b3; --nubank-color: #820ad1; --c6-color: #2b2b2b; --success-color: #198754; --danger-color: #dc3545; --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05); --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1); --border-radius: 8px }
-body { font-family: Inter, sans-serif; background-color: var(--bg-color); color: var(--text-color-primary); margin: 0; padding: 2rem 1.5rem; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; font-size: 14px }
-#login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, .6); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; z-index: 1000; transition: opacity .3s ease; opacity: 1 }
-#login-box { background: var(--surface-color); padding: 32px; border-radius: var(--border-radius); box-shadow: var(--shadow-md); text-align: center; width: 90%; max-width: 340px; transform: scale(.95); animation: scaleIn .3s ease-out forwards }
-@keyframes scaleIn { to { transform: scale(1) } }
-#login-box h2 { margin-top: 0; margin-bottom: 8px; font-size: 1.5rem; font-weight: 700 }
-#login-box p { margin-bottom: 24px; color: var(--text-color-secondary); font-size: .9rem }
-#passcode-input { width: calc(100% - 24px); padding: 12px; font-size: 2rem; text-align: center; letter-spacing: .5em; border: 2px solid var(--border-color); border-radius: var(--border-radius); margin-bottom: 24px; background-color: var(--bg-color); transition: all .2s; caret-color: var(--text-color-primary); } /* CORREÇÃO 1: caret-color força o cursor a aparecer */
-#passcode-input:focus { outline: 0; border-color: var(--accent-color); box-shadow: 0 0 0 4px rgba(0, 123, 255, .15) }
-#login-button { width: 100%; padding: 14px; background-color: var(--accent-color); color: #fff; border: none; border-radius: var(--border-radius); font-size: 1rem; font-weight: 600; cursor: pointer; transition: background-color .2s }
-#login-button:hover { background-color: var(--accent-color-hover) }
-.container { max-width: 1600px; margin: auto; padding: 0 }
-h1 { font-size: 2rem; font-weight: 700; text-align: center; margin-bottom: 2.5rem }
-h2 { font-size: 1.1rem; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 10px }
-.month-navigation { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 2rem; gap: 1rem; background: var(--surface-color); padding: 1rem; border-radius: var(--border-radius); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm) }
-.nav-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap }
-#currentMonthYear { margin: 0 10px; font-size: 1.25rem; font-weight: 600; white-space: nowrap }
-.month-navigation button { background-color: var(--surface-color); border: 1px solid var(--border-color); cursor: pointer; border-radius: var(--border-radius); transition: all .2s ease-in-out; box-shadow: var(--shadow-sm); display: flex; align-items: center; justify-content: center; height: 40px; font-weight: 500; color: var(--text-color-secondary); padding: 0 16px; font-size: .9rem }
-.month-navigation button:hover { border-color: var(--accent-color); color: var(--accent-color); background-color: #f8f9fa }
-.month-navigation button i { margin-right: 8px; font-size: 1em }
-#nextMonthBtn, #prevMonthBtn { width: 40px; padding: 0; font-size: 1.1rem }
-#nextMonthBtn i, #prevMonthBtn i { margin: 0 }
-#todayBtn { color: var(--success-color); border-color: var(--success-color) }
-#todayBtn:hover { background-color: var(--success-color); color: #fff }
-#clearAllBtn { color: var(--danger-color); border-color: var(--danger-color) }
-#clearAllBtn:hover { background-color: var(--danger-color); color: #fff }
-.summary-box { background-color: var(--surface-color); color: var(--text-color-primary); padding: 24px; border-radius: var(--border-radius); text-align: center; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); margin-bottom: 2rem }
-.summary-box h3 { margin-top: 0; margin-bottom: 8px; font-size: 1rem; font-weight: 500; opacity: .9 }
-.summary-box #totalGeral { font-size: 1.8rem; font-weight: 700; color: #000; background-color: #fff; padding: 5px 15px; border-radius: 8px; display: inline-block }
-.grid-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem }
-.grid-item { background-color: var(--surface-color); border-radius: var(--border-radius); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); display: flex; flex-direction: column; transition: box-shadow .2s ease, transform .2s ease }
-.grid-item:hover { transform: translateY(-3px); box-shadow: var(--shadow-md) }
-.card-header-wrapper { padding: 16px 20px; border-bottom: 1px solid var(--border-color) }
-.card-header-wrapper.nubank-header { border-top: 4px solid var(--nubank-color) }
-.card-header-wrapper.c6-header { border-top: 4px solid var(--c6-color) }
-.card-header-wrapper h2 i { color: var(--text-color-secondary) }
-.nubank-header h2 { color: var(--nubank-color) }
-.c6-header h2 { color: var(--c6-color) }
-.full-width-item { grid-column: 1/-1 }
-@media (max-width:1200px) { .grid-container { grid-template-columns: repeat(2, 1fr) } }
-@media (max-width:768px) { body { padding: 1rem } h1 { font-size: 1.75rem; margin-bottom: 1.5rem } .grid-container { grid-template-columns: 1fr } .month-navigation { flex-direction: column; align-items: stretch } .nav-group { justify-content: center } }
-table { width: 100%; border-collapse: collapse; flex-grow: 1 }
-.table-container { padding: 0 8px 8px 8px }
-td, th { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border-color); vertical-align: middle }
-th { font-weight: 600; color: var(--text-color-secondary); font-size: .75rem; text-transform: uppercase; letter-spacing: .5px }
-tbody tr:nth-child(2n) { background-color: #fcfcfd }
-tbody tr:last-child td { border-bottom: none }
-tbody tr:hover { background-color: #f1f3f5 }
-td[contenteditable=true]:focus { outline: 0; background-color: #e9f2ff; box-shadow: 0 0 0 2px var(--accent-color) inset }
-td input[type=checkbox] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent-color) }
-tfoot { border-top: 2px solid var(--text-color-primary) }
-tfoot td { font-weight: 600; font-size: .95rem }
-#status { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background-color: var(--text-color-primary); color: var(--surface-color); padding: 12px 20px; border-radius: var(--border-radius); font-size: .9rem; font-weight: 500; box-shadow: var(--shadow-md); transition: opacity .3s, transform .3s; opacity: 0; transform: translate(-50%, 20px); pointer-events: none; z-index: 999 }
-#status.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Controle de Despesas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url(https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap);
+        :root {
+            --bg-color: #f4f7f9;
+            --surface-color: #ffffff;
+            --text-color-primary: #212529;
+            --text-color-secondary: #6c757d;
+            --border-color: #e9ecef;
+            --accent-color: #007bff;
+            --nubank-color: #820ad1;
+            --c6-color: #2b2b2b;
+            --danger-color: #dc3545;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --border-radius: 8px
+        }
+        body { font-family: Inter, sans-serif; background-color: var(--bg-color); color: var(--text-color-primary); margin: 0; padding: 2rem 1.5rem; -webkit-font-smoothing: antialiased; font-size: 14px }
+        #login-overlay { position: fixed; inset: 0; background-color: rgba(0, 0, 0, .6); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        #login-box { background: var(--surface-color); padding: 32px; border-radius: var(--border-radius); box-shadow: var(--shadow-md); text-align: center; width: 90%; max-width: 340px; }
+        #passcode-input { width: calc(100% - 24px); padding: 12px; font-size: 2.5rem; text-align: center; letter-spacing: .5em; border: 2px solid var(--border-color); border-radius: var(--border-radius); margin-bottom: 24px; background-color: var(--bg-color); outline: none; }
+        #login-button { width: 100%; padding: 14px; background-color: var(--accent-color); color: #fff; border: none; border-radius: var(--border-radius); font-size: 1rem; font-weight: 600; cursor: pointer; }
+        .container { max-width: 1600px; margin: auto; display: none; }
+        h1 { font-size: 2.2rem; font-weight: 700; text-align: center; margin-bottom: 2rem; color: var(--text-color-primary); }
+        h2 { font-size: 1.25rem; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 10px; color: var(--text-color-primary); }
+        h3 { font-size: 1rem; font-weight: 500; margin-bottom: 8px; color: var(--text-color-secondary); }
+        .month-navigation { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 2rem; gap: 1rem; background: var(--surface-color); padding: 1.2rem; border-radius: var(--border-radius); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm) }
+        .nav-group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap }
+        #currentMonthYear { margin: 0 15px; font-size: 1.3rem; font-weight: 600; color: var(--text-color-primary); }
+        .month-navigation button { background-color: var(--surface-color); border: 1px solid var(--border-color); cursor: pointer; border-radius: var(--border-radius); transition: 0.2s; height: 42px; padding: 0 16px; font-size: .9rem; display: flex; align-items: center; gap: 8px; color: var(--text-color-secondary); font-weight: 500; }
+        .month-navigation button:hover { border-color: var(--accent-color); color: var(--accent-color); background-color: #f8fbff; }
+        #clearAllBtn { color: var(--danger-color); border-color: var(--danger-color) }
+        #clearAllBtn:hover { background-color: var(--danger-color); color: #fff }
+        .summary-box { background-color: var(--surface-color); padding: 20px; border-radius: var(--border-radius); text-align: center; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); margin-bottom: 2rem }
+        #totalGeral { font-size: 1.8rem; font-weight: 800; color: #000; letter-spacing: -0.5px; }
+        .grid-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem }
+        .grid-item { background-color: var(--surface-color); border-radius: var(--border-radius); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); display: flex; flex-direction: column; }
+        .card-header-wrapper { padding: 15px 20px; border-bottom: 1px solid var(--border-color) }
+        .nubank-header { border-top: 5px solid var(--nubank-color) }
+        .c6-header { border-top: 5px solid var(--c6-color) }
+        .full-width-item { grid-column: 1/-1 }
+        table { width: 100%; border-collapse: collapse; }
+        td, th { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        th { font-size: 0.75rem; text-transform: uppercase; color: var(--text-color-secondary); letter-spacing: 0.8px; font-weight: 600; }
+        td[contenteditable=true]:focus { outline: 0; background-color: #f0f7ff; box-shadow: inset 0 0 0 1px var(--accent-color); }
+        tfoot td { font-weight: 700; background: #fafafa; color: var(--text-color-primary); }
+        #status { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); background: #212529; color: #fff; padding: 10px 20px; border-radius: 30px; font-size: 0.85rem; opacity: 0; transition: 0.3s; z-index: 1001; pointer-events: none; }
+        #status.show { opacity: 1; }
+        @media (max-width:1400px) { .grid-container { grid-template-columns: repeat(2, 1fr) } }
+        @media (max-width:768px) { .grid-container { grid-template-columns: 1fr } .month-navigation { flex-direction: column; align-items: stretch; } }
+    </style>
 </head>
 <body>
-<div id=login-overlay>
-<div id=login-box>
-<h2 id=login-title>Autenticação</h2>
-<p id=login-message>Para sua segurança, digite o código de acesso.</p>
-<input type=password id=passcode-input maxlength=4 inputmode=numeric pattern=\d{4}>
-<button id=login-button>Entrar</button>
+
+<div id="login-overlay">
+    <div id="login-box">
+        <h2>Autenticação</h2>
+        <p>Digite o código de acesso para continuar.</p>
+        <input type="password" id="passcode-input" maxlength="4" inputmode="numeric">
+        <button id="login-button">Acessar Sistema</button>
+    </div>
 </div>
+
+<div class="container">
+    <h1>Controle de Despesas</h1>
+    
+    <div class="month-navigation">
+        <div class="nav-group">
+            <button id="prevMonthBtn"><i class="fa-solid fa-chevron-left"></i></button>
+            <h2 id="currentMonthYear"></h2>
+            <button id="nextMonthBtn"><i class="fa-solid fa-chevron-right"></i></button>
+            <button id="todayBtn"><i class="fa-solid fa-calendar-day"></i> Hoje</button>
+        </div>
+        <div class="nav-group">
+            <input type="file" id="importFile" style="display:none" accept=".json">
+            <button id="restoreBtn"><i class="fa-solid fa-upload"></i> Restaurar JSON</button>
+            <button id="saveBtn"><i class="fa-solid fa-download"></i> Backup </button>
+            <button id="clearAllBtn"><i class="fa-solid fa-trash-can"></i> Limpar mês</button>
+        </div>
+    </div>
+
+    <div class="summary-box">
+        <h3>Total do Mês</h3>
+        <div id="totalGeral">R$ 0,00</div>
+    </div>
+
+    <div class="grid-container">
+        <div class="grid-item">
+            <div class="card-header-wrapper"><h2><i class="fa-solid fa-piggy-bank"></i> Fixas</h2></div>
+            <table>
+                <thead><tr><th>Descrição</th><th>Valor</th><th style="width: 40px;">Ok</th></tr></thead>
+                <tbody id="fixedTbody"></tbody>
+                <tfoot><tr><td>Total</td><td id="fixedTotal" colspan="2">R$ 0,00</td></tr></tfoot>
+            </table>
+        </div>
+        <div class="grid-item">
+            <div class="card-header-wrapper nubank-header"><h2><i class="fa-solid fa-credit-card"></i> Nubank</h2></div>
+            <table>
+                <thead><tr><th>Descrição</th><th>Valor</th><th>Parc.</th><th style="width: 40px;">Ok</th></tr></thead>
+                <tbody id="nubankTbody"></tbody>
+                <tfoot><tr><td>Total</td><td id="nubankTotal" colspan="3">R$ 0,00</td></tr></tfoot>
+            </table>
+        </div>
+        <div class="grid-item">
+            <div class="card-header-wrapper c6-header"><h2><i class="fa-solid fa-credit-card"></i> C6 Bank</h2></div>
+            <table>
+                <thead><tr><th>Descrição</th><th>Valor</th><th>Parc.</th><th style="width: 40px;">Ok</th></tr></thead>
+                <tbody id="c6Tbody"></tbody>
+                <tfoot><tr><td>Total</td><td id="c6Total" colspan="3">R$ 0,00</td></tr></tfoot>
+            </table>
+        </div>
+        <div class="grid-item">
+            <div class="card-header-wrapper"><h2><i class="fa-solid fa-receipt"></i> Diversos</h2></div>
+            <table>
+                <thead><tr><th>Descrição</th><th>Valor</th><th>Parc.</th><th style="width: 40px;">Ok</th></tr></thead>
+                <tbody id="diversosTbody"></tbody>
+                <tfoot><tr><td>Total</td><td id="diversosTotal" colspan="3">R$ 0,00</td></tr></tfoot>
+            </table>
+        </div>
+        <div class="grid-item full-width-item">
+            <div class="card-header-wrapper"><h2><i class="fa-solid fa-calendar-alt"></i> Vencimento das parcelas</h2></div>
+            <table id="summaryTable">
+                <thead><tr><th>Descrição</th><th>Banco/Cartão</th><th>Valor</th><th>Parcela</th><th>Mês Final</th></tr></thead>
+                <tbody></tbody>
+                <tfoot><tr><td colspan="2">Total Parcelado Pendente</td><td id="installmentsTotal" colspan="3">R$ 0,00</td></tr></tfoot>
+            </table>
+        </div>
+    </div>
 </div>
-<div class=container>
-<h1>Controle de Despesas</h1>
-<div class=month-navigation>
-<div class=nav-group>
-<button id=prevMonthBtn title="Mês Anterior"><i class="fa-solid fa-chevron-left"></i></button>
-<h2 id=currentMonthYear></h2>
-<button id=nextMonthBtn title="Próximo Mês"><i class="fa-solid fa-chevron-right"></i></button>
-<button id=todayBtn title="Voltar para o mês atual"><i class="fa-solid fa-calendar-day"></i>Hoje</button>
-</div>
-<div class=nav-group>
-<button id=compactTablesBtn title="Remover linhas vazias"><i class="fa-solid fa-compress"></i>Compactar</button>
-<button id=saveDataBtn title="Salvar backup local em .txt"><i class="fa-solid fa-floppy-disk"></i>Salvar</button>
-<button id=restoreDataBtn title="Restaurar dados a partir de um backup"><i class="fa-solid fa-upload"></i>Resgatar</button>
-<button id=clearAllBtn title="Limpar todos os dados deste mês"><i class="fa-solid fa-trash-can"></i>Limpar tudo</button>
-<input type=file id=restoreFileInput accept=.txt,.json style=display:none>
-</div>
-</div>
-<div class=summary-box>
-<h3>Total Geral do Mês</h3>
-<div id=totalGeral>R$ 0,00</div>
-</div>
-<div class=grid-container>
-<div class=grid-item>
-<div class=card-header-wrapper>
-<h2><i class="fa-solid fa-piggy-bank"></i>Despesas Fixas</h2>
-</div>
-<div class=table-container>
-<table id=fixedExpensesTable>
-<thead>
-<tr>
-<th>Descrição</th>
-<th>Valor (R$)</th>
-<th>Conferido</th>
-</tr>
-</thead>
-<tbody id=fixedExpensesTbody></tbody>
-<tfoot>
-<tr class=total-row>
-<td><strong>Total Fixo</strong></td>
-<td id=fixedTotal>R$ 0,00</td>
-<td></td>
-</tr>
-</tfoot>
-</table>
-</div>
-</div>
-<div class=grid-item>
-<div class="card-header-wrapper nubank-header">
-<h2><i class="fa-solid fa-credit-card"></i>Nubank</h2>
-</div>
-<div class=table-container>
-<table id=nubankTable>
-<thead>
-<tr>
-<th>Descrição</th>
-<th>Valor</th>
-<th>Parcela</th>
-<th>Conferido</th>
-</tr>
-</thead>
-<tbody id=nubankTbody></tbody>
-<tfoot>
-<tr class=total-row>
-<td colspan=1><strong>Total Nubank</strong></td>
-<td id=nubankTotal colspan=2>R$ 0,00</td>
-<td></td>
-</tr>
-</tfoot>
-</table>
-</div>
-</div>
-<div class=grid-item>
-<div class="card-header-wrapper c6-header">
-<h2><i class="fa-solid fa-credit-card"></i>C6 Bank</h2>
-</div>
-<div class=table-container>
-<table id=c6Table>
-<thead>
-<tr>
-<th>Descrição</th>
-<th>Valor</th>
-<th>Parcela</th>
-<th>Conferido</th>
-</tr>
-</thead>
-<tbody id=c6Tbody></tbody>
-<tfoot>
-<tr class=total-row>
-<td colspan=1><strong>Total C6</strong></td>
-<td id=c6Total colspan=2>R$ 0,00</td>
-<td></td>
-</tr>
-</tfoot>
-</table>
-</div>
-</div>
-<div class=grid-item>
-<div class=card-header-wrapper>
-<h2><i class="fa-solid fa-receipt"></i>Diversos</h2>
-</div>
-<div class=table-container>
-<table id=diversosTable>
-<thead>
-<tr>
-<th>Descrição</th>
-<th>Valor</th>
-<th>Parcela</th>
-<th>Conferido</th>
-</tr>
-</thead>
-<tbody id=diversosTbody></tbody>
-<tfoot>
-<tr class=total-row>
-<td colspan=1><strong>Total Diversos</strong></td>
-<td id=diversosTotal colspan=2>R$ 0,00</td>
-<td></td>
-</tr>
-</tfoot>
-</table>
-</div>
-</div>
-<div class="grid-item full-width-item">
-<div class=card-header-wrapper>
-<h2><i class="fa-solid fa-calendar-alt"></i>Vencimento das parcelas</h2>
-</div>
-<div class=table-container>
-<table id=installmentsSummaryTable>
-<thead>
-<tr>
-<th>Descrição</th>
-<th>Cartão</th>
-<th>Valor</th>
-<th>Parcela</th>
-<th>Mês Final</th>
-</tr>
-</thead>
-<tbody></tbody>
-<tfoot>
-<tr class=total-row>
-<td colspan=2><strong>Total Parcelado</strong></td>
-<td id=installmentsTotal>R$ 0,00</td>
-<td colspan=2></td>
-</tr>
-</tfoot>
-</table>
-</div>
-</div>
-</div>
-</div>
-<div id=status></div>
-<script type=module>
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
-const firebaseConfig = { apiKey: "AIzaSyDQOGFiqafMZh0ha6XW62P1DpIKJE8TBYc", authDomain: "agenda-online-7b71c.firebaseapp.com", databaseURL: "https://agenda-online-7b71c-default-rtdb.firebaseio.com", projectId: "agenda-online-7b71c", storageBucket: "agenda-online-7b71c.firebasestorage.app", messagingSenderId: "28125733214", appId: "1:28125733214:web:162d1cce5d14f55c24afcf" };
-const app = initializeApp(firebaseConfig);
-const database = getDatabase(app);
-let debounceTimer; 
-let current_date = new Date();
-current_date.setMonth(current_date.getMonth() + 1); 
-let currentMonthListener = null; 
-const ui = { loginOverlay: document.getElementById("login-overlay"), loginTitle: document.getElementById("login-title"), loginMessage: document.getElementById("login-message"), passcodeInput: document.getElementById("passcode-input"), loginButton: document.getElementById("login-button"), currentMonthYear: document.getElementById("currentMonthYear"), prevMonthBtn: document.getElementById("prevMonthBtn"), nextMonthBtn: document.getElementById("nextMonthBtn"), todayBtn: document.getElementById("todayBtn"), compactTablesBtn: document.getElementById("compactTablesBtn"), saveDataBtn: document.getElementById("saveDataBtn"), restoreDataBtn: document.getElementById("restoreDataBtn"), restoreFileInput: document.getElementById("restoreFileInput"), clearAllBtn: document.getElementById("clearAllBtn"), fixedExpensesTable: document.getElementById("fixedExpensesTbody"), diversosTable: document.getElementById("diversosTbody"), nubankTable: document.getElementById("nubankTbody"), c6Table: document.getElementById("c6Tbody"), installmentsSummaryTable: document.getElementById("installmentsSummaryTable").tBodies[0], fixedTotal: document.getElementById("fixedTotal"), diversosTotal: document.getElementById("diversosTotal"), nubankTotal: document.getElementById("nubankTotal"), c6Total: document.getElementById("c6Total"), totalGeral: document.getElementById("totalGeral"), status: document.getElementById("status") };
-function initLogin() { const e = ref(database, "passcode"); onValue(e, (e => { const t = e.val(); t ? setupLoginScreen(t) : setupFirstAccessScreen() }), { onlyOnce: !0 }) }
-function setupLoginScreen(e) { ui.loginTitle.textContent = "Acessar Painel", ui.loginMessage.textContent = "Digite seu código de 4 dígitos para continuar.", ui.loginButton.textContent = "Entrar"; const t = () => { ui.passcodeInput.value === e ? (ui.loginOverlay.style.opacity = "0", setTimeout((() => ui.loginOverlay.style.display = "none"), 300), startApp()) : (alert("Código incorreto!"), ui.passcodeInput.value = "") }; ui.loginButton.addEventListener("click", t), ui.passcodeInput.addEventListener("keyup", (e => { "Enter" === e.key && t() })), ui.passcodeInput.focus() }
-function setupFirstAccessScreen() { ui.loginTitle.textContent = "Primeiro Acesso", ui.loginMessage.textContent = "Crie um código de 4 dígitos para proteger seus dados.", ui.loginButton.textContent = "Salvar e Entrar"; const e = () => { const e = ui.passcodeInput.value; e && 4 === e.length && !isNaN(e) ? set(ref(database, "passcode"), e).then((() => { ui.loginOverlay.style.opacity = "0", setTimeout((() => ui.loginOverlay.style.display = "none"), 300), startApp() })).catch((e => alert("Erro ao salvar o código. Tente novamente."))) : alert("Por favor, insira um código de 4 números.") }; ui.loginButton.addEventListener("click", e), ui.passcodeInput.addEventListener("keyup", (t => { "Enter" === t.key && e() })), ui.passcodeInput.focus() }
-function startApp() { updateMonthDisplay(), loadData(), ui.prevMonthBtn.addEventListener("click", (() => changeMonth(-1))), ui.nextMonthBtn.addEventListener("click", (() => changeMonth(1))), ui.todayBtn.addEventListener("click", (() => { if (currentMonthListener) { currentMonthListener(); currentMonthListener = null; } current_date = new Date, updateMonthDisplay(), loadData() })), ui.compactTablesBtn.addEventListener("click", compactAllTables), ui.saveDataBtn.addEventListener("click", saveDataAsTxt), ui.restoreDataBtn.addEventListener("click", (() => ui.restoreFileInput.click())), ui.restoreFileInput.addEventListener("change", restoreDataFromFile), ui.clearAllBtn.addEventListener("click", clearAllData), setupTableListeners(ui.fixedExpensesTable, "fixed"), setupTableListeners(ui.diversosTable, "diversos"), setupTableListeners(ui.nubankTable, "nubank"), setupTableListeners(ui.c6Table, "c6") }
-function saveDataAsTxt() { const e = ref(database, "expenses/"); onValue(e, (e => { const t = e.val(); if (!t) return void showStatus("Não há dados para salvar.", 3e3); const n = JSON.stringify(t, null, 2), a = new Blob([n], { type: "application/json" }), o = URL.createObjectURL(a), s = document.createElement("a"); s.href = o; const r = (new Date).toISOString().slice(0, 10); s.download = `backup_despesas_${r}.txt`, document.body.appendChild(s), s.click(), document.body.removeChild(s), URL.revokeObjectURL(o), showStatus("Backup gerado com sucesso!", 3e3) }), { onlyOnce: !0 }) }
-function restoreDataFromFile(e) { if (!confirm("ATENÇÃO! Isto irá substituir TODOS os dados existentes na nuvem pelos dados do arquivo. Deseja continuar?")) return void(e.target.value = null); const t = e.target.files[0]; if (!t) return; const n = new FileReader; n.onload = t => { try { const n = JSON.parse(t.target.result), a = ref(database, "expenses/"); set(a, n).then((() => { showStatus("Dados restaurados com sucesso!", 3e3), loadData() })).catch((e => { showStatus("Erro ao salvar dados restaurados.", 5e3), console.error(e) })) } catch (e) { showStatus("Erro: Arquivo de backup inválido.", 5e3), console.error("Parse error:", e) } finally { e.target.value = null } }, n.readAsText(t) }
-function changeMonth(e) { saveData(!0); if (currentMonthListener) { currentMonthListener(); currentMonthListener = null; } current_date.setMonth(current_date.getMonth() + e); updateMonthDisplay(); loadData(); }
-function updateMonthDisplay() { const e = current_date.toLocaleString("pt-BR", { month: "long" }), t = current_date.getFullYear(); ui.currentMonthYear.textContent = `${e.charAt(0).toUpperCase()+e.slice(1)} de ${t}` }
-function getMonthYearKey(e) { return `${e.getFullYear()}_${(e.getMonth()+1).toString().padStart(2,"0")}` }
-function showStatus(e, t = 3e3) { ui.status.textContent = e, ui.status.classList.add("show"), setTimeout((() => { ui.status.classList.remove("show") }), t) }
-function saveData(e = !1) { clearTimeout(debounceTimer); const t = () => { const e = getMonthYearKey(current_date), t = { fixed: parseTableData(ui.fixedExpensesTable), diversos: parseTableData(ui.diversosTable), nubank: parseTableData(ui.nubankTable), c6: parseTableData(ui.c6Table) }; set(ref(database, "expenses/" + e), t).then((() => { if (!e) showStatus("Salvo!") })).catch((e => { console.error("Erro ao salvar: ", e), showStatus("Erro ao salvar!", 5e3) })) }; e ? t() : (showStatus("Salvando..."), debounceTimer = setTimeout(t, 1500)) }
-function loadData() { if (currentMonthListener) { currentMonthListener(); currentMonthListener = null; } const monthKey = getMonthYearKey(current_date); const currentMonthRef = ref(database, "expenses/" + monthKey); currentMonthListener = onValue(currentMonthRef, (currentSnapshot) => { const currentData = currentSnapshot.val(); if (currentData) { populateTable(ui.fixedExpensesTable, currentData.fixed || []); populateTable(ui.diversosTable, currentData.diversos || []); populateTable(ui.nubankTable, currentData.nubank || []); populateTable(ui.c6Table, currentData.c6 || []); [ui.fixedExpensesTable, ui.diversosTable, ui.nubankTable, ui.c6Table].forEach(ensureEmptyRow); updateAllTotals(); } else { const prevMonthDate = new Date(current_date); prevMonthDate.setMonth(prevMonthDate.getMonth() - 1); const prevMonthKey = getMonthYearKey(prevMonthDate); const prevMonthRef = ref(database, "expenses/" + prevMonthKey); onValue(prevMonthRef, (prevSnapshot) => { const prevData = prevSnapshot.val() || { fixed: [], diversos: [], nubank: [], c6: [] }; const newNubank = processContinuingInstallments(prevData.nubank || []); const newC6 = processContinuingInstallments(prevData.c6 || []); const newDiversos = processContinuingInstallments(prevData.diversos || []); const newFixed = (prevData.fixed || []).map((e => [e[0], e[1], !1])); const newDataForNewMonth = { fixed: newFixed, diversos: newDiversos, nubank: newNubank, c6: newC6 }; populateTable(ui.fixedExpensesTable, newDataForNewMonth.fixed); populateTable(ui.diversosTable, newDataForNewMonth.diversos); populateTable(ui.nubankTable, newDataForNewMonth.nubank); populateTable(ui.c6Table, newDataForNewMonth.c6); [ui.fixedExpensesTable, ui.diversosTable, ui.nubankTable, ui.c6Table].forEach(ensureEmptyRow); updateAllTotals(); set(currentMonthRef, newDataForNewMonth); }, { onlyOnce: true }); } }, (error) => { console.error("Erro ao ler dados do Firebase:", error); showStatus("Erro fatal ao carregar dados.", 5000); }); }
-// 🚨 CORREÇÃO 2: Salva um objeto vazio em vez de null para evitar a recriação automática
-function clearAllData() { if (!confirm("ATENÇÃO! Isso vai apagar todos os dados deste mês. Deseja continuar?")) return; const e = getMonthYearKey(current_date); set(ref(database, "expenses/" + e), { _manuallyCleared: true }).then((() => { showStatus("Dados do mês atual limpos com sucesso!", 3e3) })).catch((e => { console.error("Erro ao limpar dados: ", e), showStatus("Erro ao limpar os dados!", 5e3) })) }
-function processContinuingInstallments(e) { return e.reduce(((e, t) => { const n = (t[2] || "").match(/(\d+)\/(\d+)/); if (n && 3 === n.length) { const a = parseInt(n[1], 10), o = parseInt(n[2], 10); a < o && e.push([t[0], t[1], `${a+1}/${o}`, !1]) } return e }), []) }
-function populateTable(e, t) { e.innerHTML = ""; const n = "installmentsSummaryTable" !== e.id; t.forEach((t => { const a = e.insertRow(); t.forEach(((e, o) => { if (n && o === t.length - 1) return; const s = a.insertCell(); s.textContent = e, s.setAttribute("contenteditable", "true") })); if (n) { const e = a.insertCell(), n = document.createElement("input"); n.type = "checkbox"; n.checked = !0 === t[t.length - 1]; e.style.textAlign = "center"; e.appendChild(n); } })) }
-function parseTableData(e) { return Array.from(e.rows).map((e => { const t = Array.from(e.cells).map((e => e.querySelector('input[type="checkbox"]') ? e.querySelector('input[type="checkbox"]').checked : e.textContent.trim())), n = t.pop(); return t.some((e => "" !== e)) ? [...t, n] : null })).filter((e => null !== e)) }
-function ensureEmptyRow(e) { (0 === e.rows.length || e.rows.length > 0 && !(e => { for (let t = 0; t < e.cells.length - 1; t++) if ("" !== e.cells[t].textContent.trim()) return !1; return !0 })(e.rows[e.rows.length - 1])) && addNewRow(e) }
-function addNewRow(e, t = !1) { const n = e.insertRow(), a = e.parentElement.tHead.rows[0].cells.length; for (let e = 0; e < a - 1; e++) n.insertCell().setAttribute("contenteditable", "true"); const o = n.insertCell(), s = document.createElement("input"); s.type = "checkbox", o.style.textAlign = "center", o.appendChild(s), t && n.cells[0].focus() }
-function setupTableListeners(e, t) { e.addEventListener("focusout", (e => { if ("TD" === e.target.tagName && e.target.hasAttribute("contenteditable")) { const n = e.target; if (1 === n.cellIndex) { const e = n.textContent.trim(); if (e) { let a = parseCurrency(e); n.textContent = a.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), updateTotals(t), saveData() } } } })), e.addEventListener("input", (n => { n.target.hasAttribute("contenteditable") && (updateTotals(t), saveData(), ensureEmptyRow(e)) })), e.addEventListener("change", (e => { "checkbox" === e.target.type && saveData() })), e.addEventListener("keydown", (t => { if ("Enter" === t.key && "TD" === t.target.tagName && !t.shiftKey) { t.preventDefault(); const n = t.target.parentElement.nextElementSibling; n ? n.cells[0].focus() : addNewRow(e, !0) } })) }
-function compactAllTables() { const e = [ui.fixedExpensesTable, ui.nubankTable, ui.c6Table, ui.diversosTable]; let t = 0; e.forEach((e => { Array.from(e.rows).forEach((e => { let n = !0; for (let t = 0; t < e.cells.length - 1; t++) if ("" !== e.cells[t].textContent.trim()) { n = !1; break } n && (e.remove(), t++) })), ensureEmptyRow(e) })), t > 0 ? (showStatus("Linhas vazias removidas com sucesso!", 3e3), saveData(!0)) : showStatus("Nenhuma linha vazia para remover.", 3e3) }
-function formatCurrency(e) { return e.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) }
-function parseCurrency(e) { return parseFloat(String(e).replace(/[R$\s.]/g, "").replace(",", ".")) || 0 }
-function calculateColumnTotal(e, t) { return Array.from(e.rows).reduce(((e, n) => e + (n.cells[t] ? parseCurrency(n.cells[t].textContent) : 0)), 0) }
-function updateInstallmentSummary() { ui.installmentsSummaryTable.innerHTML = ""; const e = [...parseTableData(ui.nubankTable).map((e => ({ data: e, card: "Nubank" }))), ...parseTableData(ui.c6Table).map((e => ({ data: e, card: "C6 Bank" }))), ...parseTableData(ui.diversosTable).map((e => ({ data: e, card: "Diversos" })))].map((({ data: e, card: t }) => { const n = e[0], a = e[1], o = e[2] || "", s = o.match(/(\d+)\/(\d+)/); if (!s || !n || !a) return null; const r = parseInt(s[1], 10), l = parseInt(s[2], 10) - r; if (l < 0) return null; const i = new Date(current_date); return i.setMonth(i.getMonth() + l), i.setDate(1), { description: n, card: t, value: parseCurrency(a), installmentText: o, dueDate: i } })).filter((e => null !== e)); e.sort(((e, t) => e.dueDate - t.dueDate)); let t = 0; e.forEach((e => { t += e.value; const n = e.dueDate.toLocaleString("pt-BR", { month: "long" }), a = e.dueDate.getFullYear(), o = ui.installmentsSummaryTable.insertRow(); o.insertCell().textContent = e.description, o.insertCell().textContent = e.card, o.insertCell().textContent = e.value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), o.insertCell().textContent = e.installmentText, o.insertCell().textContent = `${n.charAt(0).toUpperCase()+n.slice(1)}/${a}` })), document.getElementById("installmentsTotal").textContent = formatCurrency(t) }
-function updateTotals(e) { const t = { fixed: { el: ui.fixedTotal, table: ui.fixedExpensesTable }, diversos: { el: ui.diversosTotal, table: ui.diversosTable }, nubank: { el: ui.nubankTotal, table: ui.nubankTable }, c6: { el: ui.c6Total, table: ui.c6Table } }; t[e] && (t[e].el.textContent = formatCurrency(calculateColumnTotal(t[e].table, 1))), updateAllTotals() }
-function updateAllTotals() { const e = calculateColumnTotal(ui.fixedExpensesTable, 1), t = calculateColumnTotal(ui.diversosTable, 1), n = calculateColumnTotal(ui.nubankTable, 1), a = calculateColumnTotal(ui.c6Table, 1); ui.fixedTotal.textContent = formatCurrency(e), ui.diversosTotal.textContent = formatCurrency(t), ui.nubankTotal.textContent = formatCurrency(n), ui.c6Total.textContent = formatCurrency(a); ui.totalGeral.textContent = formatCurrency(e + n + a); updateInstallmentSummary() }
-document.addEventListener("DOMContentLoaded", initLogin);
+
+<div id="status"></div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getDatabase, ref, set, onValue, get, remove } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDQOGFiqafMZh0ha6XW62P1DpIKJE8TBYc",
+        authDomain: "agenda-online-7b71c.firebaseapp.com",
+        databaseURL: "https://agenda-online-7b71c-default-rtdb.firebaseio.com",
+        projectId: "agenda-online-7b71c",
+        storageBucket: "agenda-online-7b71c.firebasestorage.app",
+        messagingSenderId: "28125733214",
+        appId: "1:28125733214:web:162d1cce5d14f55c24afcf"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+    let current_date = new Date();
+    let debounceTimer;
+
+    const ui = {
+        overlay: document.getElementById("login-overlay"),
+        passcodeInput: document.getElementById("passcode-input"),
+        loginBtn: document.getElementById("login-button"),
+        container: document.querySelector(".container"),
+        monthYear: document.getElementById("currentMonthYear"),
+        totalGeral: document.getElementById("totalGeral"),
+        status: document.getElementById("status"),
+        importFile: document.getElementById("importFile"),
+        tbodies: {
+            fixed: document.getElementById("fixedTbody"),
+            nubank: document.getElementById("nubankTbody"),
+            c6: document.getElementById("c6Tbody"),
+            diversos: document.getElementById("diversosTbody")
+        }
+    };
+
+    // AUTH
+    onValue(ref(database, "passcode"), snap => {
+        const code = snap.val();
+        const login = () => {
+            if(ui.passcodeInput.value === code) {
+                ui.overlay.style.display = "none";
+                ui.container.style.display = "block";
+                startApp();
+            } else { ui.passcodeInput.value = ""; }
+        };
+        ui.loginBtn.onclick = login;
+        ui.passcodeInput.onkeyup = e => e.key === "Enter" && login();
+        ui.passcodeInput.focus();
+    }, { onlyOnce: true });
+
+    function startApp() {
+        updateMonthDisplay();
+        loadData();
+        setupEvents();
+    }
+
+    function setupEvents() {
+        document.getElementById("prevMonthBtn").onclick = () => { current_date.setMonth(current_date.getMonth() - 1); refresh(); };
+        document.getElementById("nextMonthBtn").onclick = () => { current_date.setMonth(current_date.getMonth() + 1); refresh(); };
+        document.getElementById("todayBtn").onclick = () => { current_date = new Date(); refresh(); };
+        document.getElementById("clearAllBtn").onclick = clearMonth;
+        document.getElementById("saveBtn").onclick = exportBackup;
+        document.getElementById("restoreBtn").onclick = () => ui.importFile.click();
+        ui.importFile.onchange = importBackup;
+
+        Object.keys(ui.tbodies).forEach(k => {
+            const tb = ui.tbodies[k];
+            tb.addEventListener("input", e => { if(e.target.tagName === "TD") { ensureEmptyRow(tb); debouncedSave(); } });
+            tb.addEventListener("focusout", e => { 
+                if(e.target.cellIndex === 1) formatCurrency(e.target);
+                compactAndSave();
+            });
+        });
+    }
+
+    function refresh() { updateMonthDisplay(); loadData(); }
+
+    function updateMonthDisplay() {
+        const m = current_date.toLocaleString("pt-BR", { month: "long" });
+        ui.monthYear.textContent = `${m.charAt(0).toUpperCase() + m.slice(1)} de ${current_date.getFullYear()}`;
+    }
+
+    function getMonthKey(date) {
+        return `${date.getFullYear()}_${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+    }
+
+    async function loadData() {
+        const key = getMonthKey(current_date);
+        const snap = await get(ref(database, "expenses/" + key));
+        
+        if(snap.exists()) {
+            renderTables(snap.val());
+        } else {
+            const prevDate = new Date(current_date);
+            prevDate.setMonth(prevDate.getMonth() - 1);
+            const prevSnap = await get(ref(database, "expenses/" + getMonthKey(prevDate)));
+            const newData = prevSnap.exists() ? processNewMonth(prevSnap.val()) : {};
+            await set(ref(database, "expenses/" + key), newData);
+            renderTables(newData);
+        }
+    }
+
+    function processNewMonth(old) {
+        const d = { fixed: [], nubank: [], c6: [], diversos: [] };
+        if(old.fixed) d.fixed = old.fixed.map(r => [r[0], r[1], false]);
+        ["nubank", "c6", "diversos"].forEach(k => {
+            if(old[k]) {
+                old[k].forEach(r => {
+                    const m = r[2]?.match(/(\d+)\/(\d+)/);
+                    if(m && parseInt(m[1]) < parseInt(m[2])) {
+                        d[k].push([r[0], r[1], `${parseInt(m[1])+1}/${m[2]}`, false]);
+                    }
+                });
+            }
+        });
+        return d;
+    }
+
+    function renderTables(data) {
+        Object.keys(ui.tbodies).forEach(k => {
+            const tb = ui.tbodies[k];
+            tb.innerHTML = "";
+            (data[k] || []).forEach(rowData => addRow(tb, rowData));
+            ensureEmptyRow(tb);
+        });
+        updateTotals();
+    }
+
+    function addRow(tbody, data = []) {
+        const tr = tbody.insertRow();
+        const cols = (tbody.id === "fixedTbody") ? 2 : 3;
+        for(let i=0; i<cols; i++) {
+            const td = tr.insertCell();
+            td.contentEditable = true;
+            td.textContent = data[i] || "";
+        }
+        const ctd = tr.insertCell();
+        ctd.style.textAlign = "center";
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.checked = !!data[cols];
+        cb.onchange = debouncedSave;
+        ctd.appendChild(cb);
+    }
+
+    function ensureEmptyRow(tb) {
+        const last = tb.rows[tb.rows.length - 1];
+        if(!last || Array.from(last.cells).slice(0,-1).some(c => c.textContent.trim() !== "")) addRow(tb);
+    }
+
+    function compactAndSave() {
+        Object.keys(ui.tbodies).forEach(k => {
+            const tb = ui.tbodies[k];
+            Array.from(tb.rows).forEach((r, idx) => {
+                const textCells = Array.from(r.cells).slice(0,-1);
+                const isEmpty = textCells.every(c => c.textContent.trim() === "");
+                if(isEmpty && idx < tb.rows.length - 1) r.remove();
+            });
+        });
+        debouncedSave();
+    }
+
+    function debouncedSave() {
+        clearTimeout(debounceTimer);
+        showStatus("Processando...");
+        debounceTimer = setTimeout(save, 800);
+    }
+
+    async function save() {
+        const key = getMonthKey(current_date);
+        const data = {};
+        Object.keys(ui.tbodies).forEach(k => {
+            data[k] = Array.from(ui.tbodies[k].rows)
+                .map(tr => {
+                    const r = Array.from(tr.cells).slice(0,-1).map(c => c.textContent.trim());
+                    r.push(tr.cells[tr.cells.length-1].querySelector("input").checked);
+                    return r;
+                }).filter(r => r.slice(0,-1).some(t => t !== ""));
+        });
+        await set(ref(database, "expenses/" + key), data);
+        updateTotals();
+        showStatus("Dados Salvos!");
+    }
+
+    function updateTotals() {
+        let geral = 0;
+        let parcList = [];
+        const sumTable = document.getElementById("summaryTable").tBodies[0];
+        sumTable.innerHTML = "";
+
+        Object.keys(ui.tbodies).forEach(k => {
+            let sub = 0;
+            Array.from(ui.tbodies[k].rows).forEach(tr => {
+                const v = parseVal(tr.cells[1].textContent);
+                sub += v;
+                if(k !== "fixed") {
+                    const p = tr.cells[2].textContent;
+                    const m = p.match(/(\d+)\/(\d+)/);
+                    if(m) {
+                        const rest = parseInt(m[2]) - parseInt(m[1]);
+                        const dFinal = new Date(current_date); 
+                        dFinal.setMonth(dFinal.getMonth() + rest);
+                        
+                        const mStr = dFinal.toLocaleString("pt-BR", { month: "long" });
+                        const finalStr = `${mStr.charAt(0).toUpperCase() + mStr.slice(1)}/${dFinal.getFullYear()}`;
+                        
+                        parcList.push({
+                            desc: tr.cells[0].textContent,
+                            bank: k.toUpperCase(),
+                            val: v,
+                            parc: p,
+                            finalStr: finalStr,
+                            finalDate: dFinal.getTime()
+                        });
+                    }
+                }
+            });
+            const el = document.getElementById(k + "Total");
+            if(el) el.textContent = sub.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+            geral += sub;
+        });
+
+        parcList.sort((a, b) => a.finalDate - b.finalDate);
+        parcList.forEach(item => {
+            const sr = sumTable.insertRow();
+            sr.insertCell().textContent = item.desc;
+            sr.insertCell().textContent = item.bank;
+            sr.insertCell().textContent = item.val.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+            sr.insertCell().textContent = item.parc;
+            sr.insertCell().textContent = item.finalStr;
+        });
+
+        ui.totalGeral.textContent = geral.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+        const pTotal = parcList.reduce((acc, curr) => acc + curr.val, 0);
+        document.getElementById("installmentsTotal").textContent = pTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    }
+
+    async function clearMonth() {
+        if(!confirm("Deseja apagar todos os registros deste mês?")) return;
+        const key = getMonthKey(current_date);
+        await remove(ref(database, "expenses/" + key));
+        Object.keys(ui.tbodies).forEach(k => { ui.tbodies[k].innerHTML = ""; ensureEmptyRow(ui.tbodies[k]); });
+        updateTotals();
+        showStatus("Mês limpo!");
+    }
+
+    function exportBackup() {
+        get(ref(database, "expenses")).then(snap => {
+            const b = new Blob([JSON.stringify(snap.val(), null, 2)], { type: "application/json" });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(b);
+            a.download = `backup_financeiro_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+        });
+    }
+
+    function importBackup(e) {
+        const file = e.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = async (ev) => {
+            try {
+                const data = JSON.parse(ev.target.result);
+                if(confirm("ATENÇÃO: Isso apagará todos os dados atuais e restaurará os dados do arquivo. Confirmar?")) {
+                    await set(ref(database, "expenses"), data);
+                    refresh();
+                    showStatus("Restauração Concluída!");
+                }
+            } catch(err) { alert("Arquivo JSON inválido."); }
+        };
+        reader.readAsText(file);
+    }
+
+    function parseVal(v) { return parseFloat(String(v).replace(/[R$\s.]/g, "").replace(",", ".")) || 0; }
+    function formatCurrency(td) {
+        const v = parseVal(td.textContent);
+        if(v > 0) td.textContent = v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    function showStatus(t) { ui.status.textContent = t; ui.status.classList.add("show"); setTimeout(() => ui.status.classList.remove("show"), 2000); }
 </script>
 </body>
 </html>
