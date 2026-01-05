@@ -172,7 +172,6 @@
         }
     };
 
-    // AUTH
     onValue(ref(database, "passcode"), snap => {
         const code = snap.val();
         const login = () => {
@@ -343,9 +342,11 @@
                         const mStr = dFinal.toLocaleString("pt-BR", { month: "long" });
                         const finalStr = `${mStr.charAt(0).toUpperCase() + mStr.slice(1)}/${dFinal.getFullYear()}`;
                         
+                        const bankName = k === "nubank" ? "NUBANK" : k === "c6" ? "C6" : "DIVERSOS";
+                        
                         parcList.push({
                             desc: tr.cells[0].textContent,
-                            bank: k.toUpperCase(),
+                            bank: bankName,
                             val: v,
                             parc: p,
                             finalStr: finalStr,
