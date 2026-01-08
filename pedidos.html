@@ -1,0 +1,1633 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acompanhamento de Pedidos</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+            color: #333;
+            font-size: 12px;
+            text-transform: uppercase;
+            min-width: 1200px;
+        }
+
+        * {
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        .header {
+            background-color: #354a5f;
+            color: white;
+            padding: 8px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 4px solid #f0ab00;
+        }
+
+        .header-title {
+            font-size: 16px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        .mode-badge {
+            font-size: 11px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 8px;
+            border-radius: 3px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .container {
+            padding: 10px;
+            height: calc(100vh - 45px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        #login-overlay, #file-select-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(53, 74, 95, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        #file-select-overlay {
+            display: none;
+        }
+
+        .modal-box {
+            background: white;
+            padding: 30px;
+            border-radius: 4px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+            width: 400px;
+            text-align: center;
+            border-top: 5px solid #f0ab00;
+        }
+
+        .modal-box h3 {
+            margin: 0 0 20px 0;
+            color: #354a5f;
+        }
+
+        .modal-box input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .modal-box button {
+            background-color: #354a5f;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+            margin: 5px;
+        }
+
+        .modal-box button:hover {
+            background-color: #2c3e50;
+        }
+
+        .modal-box p {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        #confirm-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+
+        #confirm-box {
+            background: white;
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            width: 300px;
+            text-align: center;
+        }
+
+        #confirm-box button {
+            margin: 5px;
+            padding: 8px 15px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #confirm-box input {
+            margin-top: 10px;
+            width: 80%;
+            padding: 8px;
+            border: 1px solid #ccc;
+        }
+
+        .input-area {
+            background: white;
+            padding: 12px;
+            border: 1px solid #ddd;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            margin-bottom: 8px;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            gap: 8px;
+        }
+
+        .input-field label {
+            display: block;
+            font-size: 10px;
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 2px;
+            text-transform: uppercase;
+        }
+
+        .input-field input {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #ccc;
+            font-size: 12px;
+            text-transform: uppercase;
+            transition: 0.2s;
+        }
+
+        .input-field input:focus {
+            border-color: #354a5f;
+            background-color: #eef3fb;
+        }
+
+        #in-pedido {
+            border-left: 3px solid #f0ab00;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 8px;
+            align-items: center;
+            background: #e0e0e0;
+            padding: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .search-wrapper {
+            position: relative;
+            flex-grow: 2;
+            min-width: 500px;
+        }
+
+        .search-wrapper input {
+            width: 100%;
+            padding: 6px 30px 6px 30px !important;
+            border: 1px solid #aaa;
+            font-size: 12px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 8px;
+            top: 6px;
+            font-size: 14px;
+        }
+
+        .clear-btn {
+            position: absolute;
+            right: 8px;
+            top: 4px;
+            color: #c0392b;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            z-index: 5;
+        }
+
+        .clear-btn:hover {
+            color: red;
+            transform: scale(1.1);
+        }
+
+        .btn {
+            padding: 5px 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            height: 28px;
+        }
+
+        .btn-gray {
+            background-color: #7f8c8d;
+        }
+
+        .btn-gray:hover {
+            background-color: #95a5a6;
+        }
+
+        .btn-blue {
+            background-color: #2980b9;
+        }
+
+        .btn-blue:hover {
+            background-color: #3498db;
+        }
+
+        .btn-green {
+            background-color: #27ae60;
+        }
+
+        .btn-green:hover {
+            background-color: #2ecc71;
+        }
+
+        .btn-red {
+            background-color: #c0392b;
+        }
+
+        #filter-delivery {
+            padding: 5px;
+            border: 1px solid #aaa;
+            font-size: 11px;
+            font-weight: bold;
+            color: #354a5f;
+            height: 28px;
+            background: #fff;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+
+        .table-wrapper {
+            flex-grow: 1;
+            overflow: auto;
+            background: white;
+            border: 1px solid #ccc;
+            position: relative;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            min-width: 1400px;
+        }
+
+        thead {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th {
+            background-color: #e6e6e6;
+            border-bottom: 1px solid #bbb;
+            border-right: 1px solid #bbb;
+            padding: 6px;
+            text-align: center;
+            font-size: 11px;
+            color: #333;
+            position: relative;
+            white-space: nowrap;
+        }
+
+        th:nth-child(1) {
+            width: 30px;
+        }
+
+        th[data-key="status"] {
+            min-width: 100px;
+            max-width: 100px;
+        }
+
+        th[data-key="dtLancamento"] {
+            min-width: 80px;
+            max-width: 80px;
+        }
+
+        th[data-key="pedido"] {
+            min-width: 70px;
+            max-width: 70px;
+        }
+
+        th[data-key="forn"] {
+            min-width: 100px;
+            max-width: 150px;
+        }
+
+        th[data-key="comp"] {
+            min-width: 80px;
+            max-width: 100px;
+        }
+
+        th[data-key="setor"] {
+            min-width: 80px;
+            max-width: 80px;
+        }
+
+        th[data-key="nf"] {
+            min-width: 80px;
+            max-width: 80px;
+        }
+
+        th[data-key="vlrNf"] {
+            min-width: 100px;
+            max-width: 100px;
+        }
+
+        th[data-key="dt"] {
+            min-width: 80px;
+            max-width: 80px;
+        }
+
+        th[data-key="infTrans"] {
+            min-width: 150px;
+        }
+
+        th[data-key="venc"] {
+            min-width: 80px;
+            max-width: 80px;
+        }
+
+        th[data-key="vencCTe"] {
+            min-width: 80px;
+            max-width: 80px;
+        }
+
+        th[data-key="chave"] {
+            width: 50px;
+            max-width: 50px;
+        }
+
+        th[data-key="obs"] {
+            min-width: 150px;
+        }
+
+        td {
+            border-bottom: 1px solid #eee;
+            border-right: 1px solid #eee;
+            padding: 4px 6px;
+            white-space: nowrap;
+            vertical-align: middle;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .cell-chave {
+            max-width: 50px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: pointer;
+            background-color: #f9f9f9;
+            color: #555;
+            font-size: 10px;
+        }
+
+        .cell-chave:hover {
+            background-color: #e0e0e0;
+            color: #000;
+        }
+
+        .filter-btn {
+            float: right;
+            cursor: pointer;
+            color: #555;
+            font-size: 9px;
+            padding: 1px 3px;
+            background: #d0d0d0;
+            border-radius: 2px;
+            margin-left: 4px;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background-color: #f0ab00;
+            color: black;
+        }
+
+        .excel-menu {
+            position: absolute;
+            display: none;
+            background: white;
+            border: 1px solid #999;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            width: 200px;
+            padding: 5px;
+            top: 0;
+            left: 0;
+            font-size: 11px;
+        }
+
+        .excel-list {
+            max-height: 180px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            margin: 5px 0;
+            padding: 2px;
+            background: #fff;
+        }
+
+        .excel-item {
+            display: block;
+            padding: 2px;
+            cursor: pointer;
+        }
+
+        .excel-item:hover {
+            background-color: #eef;
+        }
+
+        .excel-actions {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 5px;
+            border-top: 1px solid #eee;
+        }
+
+        .excel-actions button {
+            font-size: 10px;
+            cursor: pointer;
+            padding: 2px 6px;
+        }
+
+        tr.st-faturado {
+            background-color: #dff0d8 !important;
+        }
+
+        tr.st-faturado td {
+            color: #3c763d;
+        }
+
+        tr.st-recebido {
+            background-color: #fcf8e3 !important;
+        }
+
+        tr.st-recebido td {
+            color: #8a6d3b;
+        }
+
+        tr.st-contato {
+            background-color: #f5f5f5 !important;
+            font-weight: bold;
+        }
+
+        tr.st-atencao {
+            background-color: #f2dede !important;
+        }
+
+        tr.st-atencao td {
+            color: #a94442;
+            font-weight: bold;
+        }
+
+        .status-sel {
+            border: none;
+            background: transparent;
+            width: 100%;
+            font-size: 11px;
+            cursor: pointer;
+            font-weight: inherit;
+            color: inherit;
+            text-align: center;
+        }
+
+        .status-sel option {
+            background: white;
+            color: black;
+            font-weight: normal;
+        }
+
+        .hl {
+            background-color: #fff59d !important;
+        }
+
+        td[data-key="vlrNf"] {
+            text-align: right;
+        }
+
+        #trash-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #f2f2f2;
+            z-index: 2000;
+            padding: 15px;
+        }
+
+        #trash-screen .header {
+            justify-content: flex-start;
+            gap: 10px;
+        }
+
+        #trash-screen .header .header-title {
+            flex-grow: 1;
+        }
+
+        #trash-table-wrapper {
+            height: calc(100% - 70px);
+            overflow: auto;
+            background: white;
+            border: 1px solid #ccc;
+            margin-top: 10px;
+        }
+
+        #trash-table {
+            min-width: 700px;
+        }
+
+        .save-indicator {
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 3px;
+            margin-left: 10px;
+        }
+
+        .save-indicator.saving {
+            background-color: #f0ab00;
+            color: #000;
+        }
+
+        .save-indicator.saved {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        .save-indicator.error {
+            background-color: #c0392b;
+            color: white;
+        }
+
+        .file-info {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-left: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div id="login-overlay">
+        <div class="modal-box">
+            <h3>ACESSO AO SISTEMA</h3>
+            <p id="login-msg" style="color:red; font-size:11px; min-height:15px;"></p>
+            <input type="password" id="senha" placeholder="INSIRA A SENHA" onkeydown="if(event.key==='Enter') login()">
+            <button onclick="login()">ENTRAR</button>
+        </div>
+    </div>
+
+    <div id="file-select-overlay">
+        <div class="modal-box">
+            <h3>📂 SELECIONE O ARQUIVO DE DADOS</h3>
+            <p>Para continuar, selecione o arquivo <strong>dados.json</strong> da pasta de rede compartilhada.</p>
+            <button onclick="selectFile()">📁 SELECIONAR ARQUIVO</button>
+            <p id="file-msg" style="color:red; font-size:11px; min-height:15px; margin-top:10px;"></p>
+        </div>
+    </div>
+
+    <div id="confirm-overlay">
+        <div id="confirm-box">
+            <h4 id="confirm-title"></h4>
+            <p style="font-size: 12px; margin: 10px 0;">DIGITE A SENHA:</p>
+            <input type="password" id="confirm-senha" placeholder="SENHA DE EDIÇÃO">
+            <p id="confirm-msg" style="color:red; font-size:11px; min-height:15px;"></p>
+            <button class="btn-green" onclick="processClear(true)">CONFIRMAR</button>
+            <button class="btn-red" onclick="processClear(false)">CANCELAR</button>
+        </div>
+    </div>
+
+    <div id="main-content" style="display: none;">
+        <div class="header">
+            <div class="header-title">ACOMPANHAMENTO DE PEDIDOS</div>
+            <div style="display: flex; align-items: center;">
+                <div class="mode-badge" id="mode-badge"></div>
+                <span id="save-indicator" class="save-indicator" style="display:none;"></span>
+                <span id="file-info" class="file-info"></span>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="input-area" id="input-area">
+                <div class="input-grid">
+                    <div class="input-field"><label>PEDIDO *</label><input type="text" id="in-pedido" placeholder="4500..." oninput="maskPedido(this)" onkeydown="nav(event, 'in-forn')"></div>
+                    <div class="input-field"><label>FORNECEDOR</label><input type="text" id="in-forn" oninput="forceUp(this)" onkeydown="nav(event, 'in-comp')"></div>
+                    <div class="input-field"><label>COMPRADOR</label><input type="text" id="in-comp" oninput="forceUp(this)" onkeydown="nav(event, 'in-setor')"></div>
+                    <div class="input-field">
+                        <label>SETOR ENTREGA</label>
+                        <input type="text" id="in-setor" oninput="forceUp(this)" onkeydown="nav(event, 'in-nf')" list="setor-list">
+                    </div>
+                    <div class="input-field"><label>NOTA FISCAL</label><input type="text" id="in-nf" oninput="forceUp(this)" onkeydown="nav(event, 'in-vlrNf')"></div>
+                    <div class="input-field"><label>VALOR NF</label><input type="text" id="in-vlrNf" placeholder="R$ 0,00" oninput="maskMoney(this)" onkeydown="nav(event, 'in-dt')"></div>
+                    <div class="input-field"><label>DATA ENTREGA</label><input type="text" id="in-dt" placeholder="DD/MM" maxlength="5" oninput="maskDate(this)" onkeydown="nav(event, 'in-venc')"></div>
+                    <div class="input-field"><label>VENCIMENTO NF</label><input type="text" id="in-venc" placeholder="DD/MM" maxlength="5" oninput="maskDate(this)" onkeydown="nav(event, 'in-vencCTe')"></div>
+                    <div class="input-field"><label>VENC. CTe</label><input type="text" id="in-vencCTe" placeholder="DD/MM" maxlength="5" oninput="maskDate(this)" onkeydown="nav(event, 'in-obs')"></div>
+                    <div class="input-field"><label>OBS</label><input type="text" id="in-obs" oninput="forceUp(this)" onkeydown="nav(event, 'in-pedido', true)"></div>
+                </div>
+            </div>
+
+            <div class="toolbar">
+                <div class="search-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="search-global" placeholder="Pesquisar..." oninput="renderMain()">
+                    <span class="clear-btn" onclick="clearSearch()">✖</span>
+                </div>
+                
+                <div id="calc-days-wrapper" style="display: none; align-items: center; gap: 5px; background: white; padding: 4px 8px; border: 1px solid #aaa;">
+                    <label style="font-size: 10px; font-weight: bold;">DIAS:</label>
+                    <input type="number" id="calc-days" min="0" max="99" style="width: 40px; padding: 3px; border: 1px solid #ccc; text-align: center; font-size: 11px;" oninput="calculateDate()">
+                    <label style="font-size: 10px;"><input type="radio" name="day-type" value="uteis" checked onchange="calculateDate()"> ÚTEIS</label>
+                    <label style="font-size: 10px;"><input type="radio" name="day-type" value="corridos" onchange="calculateDate()"> CORRIDOS</label>
+                    <span id="calc-result" style="font-weight: bold; color: #354a5f; font-size: 12px; min-width: 45px;">--/--</span>
+                </div>
+
+                <button class="btn btn-blue" onclick="reloadFile()" title="Recarrega os dados do arquivo">🔄 ATUALIZAR</button> 
+                
+                <div id="filter-delivery-wrapper" style="display: none; align-items: center;">
+                    <label style="font-weight:bold; font-size:11px; margin-right:5px;">FILTRO ENTREGA:</label>
+                    <select id="filter-delivery" onchange="renderMain()">
+                        <option value="0">VAZIO (TODOS)</option>
+                        <option value="8">1 SEMANA</option>
+                        <option value="15">2 SEMANAS</option>
+                        <option value="22">3 SEMANAS</option>
+                        <option value="30">1 MÊS</option>
+                    </select>
+                </div>
+
+                <div id="edit-buttons" style="display:none; gap:5px;">
+                    <button class="btn btn-gray" onclick="openTrash()">🗑️ EXCLUÍDOS</button>
+                    <button class="btn btn-blue" onclick="generateReport()">📄 RELATÓRIO</button>
+                    <button class="btn btn-green" onclick="doBackup()">💾 BACKUP</button>
+                    <button class="btn btn-green" onclick="doRestore()">📂 RECUPERAR</button>
+                    <button class="btn btn-red" onclick="clearAllFilters()">🧹 LIMPAR FILTROS</button>
+                </div>
+            </div>
+
+            <div class="table-wrapper" id="main-scroll">
+                <table id="main-table">
+                    <thead>
+                        <tr>
+                            <th style="width:30px;">#</th>
+                            <th data-key="status">STATUS <span class="filter-btn" onclick="showFilter(event, 'status')">▼</span></th>
+                            <th data-key="dtLancamento">LANÇAMENTO <span class="filter-btn" onclick="showFilter(event, 'dtLancamento')">▼</span></th>
+                            <th data-key="pedido">PEDIDO <span class="filter-btn" onclick="showFilter(event, 'pedido')">▼</span></th>
+                            <th data-key="forn">FORNECEDOR <span class="filter-btn" onclick="showFilter(event, 'forn')">▼</span></th>
+                            <th data-key="comp">COMPRADOR <span class="filter-btn" onclick="showFilter(event, 'comp')">▼</span></th>
+                            <th data-key="setor">SETOR <span class="filter-btn" onclick="showFilter(event, 'setor')">▼</span></th>
+                            <th data-key="nf">NF <span class="filter-btn" onclick="showFilter(event, 'nf')">▼</span></th>
+                            <th data-key="vlrNf">VALOR NF <span class="filter-btn" onclick="showFilter(event, 'vlrNf')">▼</span></th>
+                            <th data-key="dt">ENTREGA <span class="filter-btn" onclick="showFilter(event, 'dt')">▼</span></th>
+                            <th data-key="infTrans">INF. TRANSP. <span class="filter-btn" onclick="showFilter(event, 'infTrans')">▼</span></th>
+                            <th data-key="venc">VENC. NF <span class="filter-btn" onclick="showFilter(event, 'venc')">▼</span></th>
+                            <th data-key="vencCTe">VENC. CTe <span class="filter-btn" onclick="showFilter(event, 'vencCTe')">▼</span></th>
+                            <th data-key="chave">CHAVE</th>
+                            <th data-key="obs">OBS <span class="filter-btn" onclick="showFilter(event, 'obs')">▼</span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="main-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="trash-screen">
+        <div class="header">
+            <div class="header-title">ITENS EXCLUÍDOS</div>
+            <button class="btn btn-red" onclick="prepareClear('TRASH')">🧹 LIMPAR LIXEIRA</button>
+            <button class="btn btn-red" onclick="closeTrash()">FECHAR ✖</button>
+        </div>
+        <div style="margin-top:10px;">
+            <input type="text" id="search-trash" placeholder="Pesquisar na lixeira..." style="width:100%; padding:8px;" oninput="renderTrash()">
+        </div>
+        <div id="trash-table-wrapper">
+            <table id="trash-table">
+                <thead style="background:#ddd;">
+                    <tr>
+                        <th style="width:80px;">AÇÃO</th>
+                        <th>PEDIDO</th>
+                        <th>DATA LANÇAMENTO</th>
+                        <th>DATA EXCLUSÃO</th>
+                        <th>FORNECEDOR</th>
+                        <th>NF</th>
+                    </tr>
+                </thead>
+                <tbody id="trash-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="excel-menu" class="excel-menu">
+        <div style="border-bottom:1px solid #eee; padding-bottom:3px;">
+            <label><input type="checkbox" id="chk-all" onchange="toggleFilterAll(this)"> (Selecionar Tudo)</label>
+        </div>
+        <div id="excel-list" class="excel-list"></div>
+        <div class="excel-actions">
+            <button onclick="applyFilter()">OK</button>
+            <button onclick="closeFilter()">Cancelar</button>
+        </div>
+    </div>
+
+    <datalist id="setor-list">
+        <option value="ALMOXARIFADO">
+        <option value="FARMÁCIA">
+        <option value="RASCUNHO">
+    </datalist>
+
+    <script>
+        let db = [];
+        let trash = [];
+        let isEdit = false;
+        let clearTarget = null;
+        let activeFilters = {};
+        let targetCol = null;
+        let fileHandle = null;
+        let fileName = '';
+
+        const EDIT_PASSWORD = '4321';
+        const VIEW_PASSWORD = '1234';
+        const CHAVE_MIN_LENGTH = 44;
+
+        window.onload = () => document.getElementById('senha').focus();
+
+        // Atalhos de teclado globais
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+F para focar na busca
+            if (e.ctrlKey && e.key.toLowerCase() === 'f') {
+                e.preventDefault();
+                const searchInput = document.getElementById('search-global');
+                if (searchInput && document.getElementById('main-content').style.display !== 'none') {
+                    searchInput.focus();
+                    searchInput.select();
+                }
+            }
+        });
+
+        function getTodayDate() {
+            const d = new Date();
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        function getFilenameTimestamp() {
+            const d = new Date();
+            const dStr = String(d.getDate()).padStart(2, '0') + String(d.getMonth() + 1).padStart(2, '0') + d.getFullYear();
+            const tStr = String(d.getHours()).padStart(2, '0') + String(d.getMinutes()).padStart(2, '0');
+            return `${dStr}_${tStr}`;
+        }
+
+        function clearSearch() {
+            document.getElementById('search-global').value = '';
+            renderMain();
+        }
+
+        function forceUp(el) {
+            el.value = el.value.toUpperCase();
+        }
+
+        function maskPedido(el) {
+            let v = el.value.replace(/\D/g, '');
+            if (v.length > 0 && !v.startsWith('4500')) {
+                if (v.startsWith('450')) v = v.substring(3);
+                else if (v.length > 4) v = v.substring(4);
+                el.value = '4500' + v;
+            } else if (v.length > 0 && v.length < 4) {
+                el.value = '4500';
+            } else {
+                el.value = v;
+            }
+            if (el.value.length > 10) el.value = el.value.substring(0, 10);
+        }
+
+        function maskDate(el) {
+            let v = el.value.replace(/[^0-9]/g, '');
+            let day = v.substring(0, 2);
+            let month = v.substring(2, 4);
+            if (day.length === 2) {
+                day = parseInt(day);
+                if (day > 31) day = 31;
+                day = String(day).padStart(2, '0');
+            }
+            if (month.length === 2) {
+                month = parseInt(month);
+                if (month > 12) month = 12;
+                month = String(month).padStart(2, '0');
+            }
+            if (v.length > 2) el.value = day + '/' + month;
+            else el.value = day;
+        }
+
+        function maskMoney(el) {
+            let v = el.value.replace(/\D/g, '');
+            if (v.length === 0) {
+                el.value = '';
+                return;
+            }
+            v = v.padStart(3, '0');
+            v = v.replace(/(\d)(\d{2})$/, '$1,$2');
+            v = v.replace(/(\d+)(\d{3},\d{2})$/, '$1.$2');
+            v = v.replace(/(\d+)(\d{3}\.\d{3},\d{2})$/, '$1.$2');
+            v = v.replace(/^0+(?=\d)/, '');
+            el.value = (v.length > 0) ? 'R$ ' + v : '';
+        }
+
+        function formatCellDate(text) {
+            let v = text.replace(/[^0-9]/g, '');
+            let day = v.substring(0, 2);
+            let month = v.substring(2, 4);
+            if (day.length === 2) {
+                day = parseInt(day);
+                if (day > 31) day = 31;
+                day = String(day).padStart(2, '0');
+            }
+            if (month.length === 2) {
+                month = parseInt(month);
+                if (month > 12) month = 12;
+                month = String(month).padStart(2, '0');
+            }
+            if (v.length >= 3) return day + '/' + month;
+            else if (v.length > 0) return day;
+            return '';
+        }
+
+        function nav(e, nextId, isLast = false) {
+            const isEnter = e.key.toUpperCase() === 'ENTER';
+            const isTabForward = e.key.toUpperCase() === 'TAB' && !e.shiftKey;
+            if (isEnter || isTabForward) {
+                e.preventDefault();
+                if (isLast) {
+                    addItem();
+                    setTimeout(() => document.getElementById(nextId).focus(), 0);
+                } else {
+                    document.getElementById(nextId).focus();
+                }
+            }
+        }
+
+        function navTable(e, currentCell) {
+            if (e.key.toUpperCase() !== 'ENTER') return;
+            e.preventDefault();
+            
+            const row = currentCell.parentElement;
+            const cells = Array.from(row.querySelectorAll('td[contenteditable="true"]'));
+            const currentIndex = cells.indexOf(currentCell);
+            
+            if (currentIndex < cells.length - 1) {
+                // Próxima célula na mesma linha
+                cells[currentIndex + 1].focus();
+            } else {
+                // Primeira célula editável da próxima linha
+                const nextRow = row.nextElementSibling;
+                if (nextRow) {
+                    const nextCells = nextRow.querySelectorAll('td[contenteditable="true"]');
+                    if (nextCells.length > 0) {
+                        nextCells[0].focus();
+                    }
+                }
+            }
+        }
+
+        function parseDeliveryDate(dateStr) {
+            if (!dateStr || dateStr.length !== 5) return null;
+            const parts = dateStr.split('/');
+            if (parts.length !== 2) return null;
+            let day = parseInt(parts[0], 10);
+            let month = parseInt(parts[1], 10) - 1;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const currentYear = today.getFullYear();
+            let date = new Date(currentYear, month, day);
+            if (date < today) {
+                date.setFullYear(currentYear + 1);
+            }
+            if (date.getDate() !== day || date.getMonth() !== month) return null;
+            return date;
+        }
+
+        function showSaveIndicator(status) {
+            const indicator = document.getElementById('save-indicator');
+            indicator.style.display = 'block';
+            indicator.className = 'save-indicator ' + status;
+            
+            if (status === 'saving') {
+                indicator.innerText = 'SALVANDO...';
+            } else if (status === 'saved') {
+                indicator.innerText = '✓ SALVO';
+                setTimeout(() => {
+                    indicator.style.display = 'none';
+                }, 2000);
+            } else if (status === 'error') {
+                indicator.innerText = '✗ ERRO';
+            }
+        }
+
+        async function selectFile() {
+            try {
+                if (!window.showOpenFilePicker) {
+                    alert('Seu navegador não suporta esta funcionalidade.\n\nUse Chrome ou Edge (versão mais recente).');
+                    return;
+                }
+
+                // Tenta recuperar o arquivo salvo anteriormente
+                const savedHandle = await getSavedFileHandle();
+                
+                if (savedHandle) {
+                    // Verifica se ainda tem permissão
+                    const permission = await verifyPermission(savedHandle);
+                    
+                    if (permission) {
+                        fileHandle = savedHandle;
+                        fileName = savedHandle.name;
+                        await loadFileData();
+                        return;
+                    }
+                }
+
+                // Se não tem arquivo salvo ou perdeu permissão, abre o seletor
+                const [handle] = await window.showOpenFilePicker({
+                    types: [{
+                        description: 'JSON de Pedidos',
+                        accept: { 'application/json': ['.json'] },
+                    }],
+                    multiple: false
+                });
+
+                fileHandle = handle;
+                fileName = handle.name;
+                
+                // Salva a referência do arquivo
+                await saveFileHandle(handle);
+                
+                await loadFileData();
+
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    document.getElementById('file-msg').innerText = 'Seleção cancelada. Selecione o arquivo para continuar.';
+                } else {
+                    console.error('Erro ao abrir arquivo:', error);
+                    document.getElementById('file-msg').innerText = 'ERRO ao ler o arquivo. Verifique se é um JSON válido.';
+                }
+            }
+        }
+
+        async function loadFileData() {
+            try {
+                const file = await fileHandle.getFile();
+                const content = await file.text();
+                const data = JSON.parse(content);
+
+                db = data.db_pedidos || [];
+                trash = data.db_lixeira || [];
+
+                document.getElementById('file-select-overlay').style.display = 'none';
+                document.getElementById('main-content').style.display = 'block';
+                document.getElementById('file-info').innerText = `📁 ${fileName}`;
+
+                renderMain();
+
+                if (isEdit) {
+                    setTimeout(() => document.getElementById('in-pedido').focus(), 100);
+                }
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+                document.getElementById('file-msg').innerText = 'ERRO ao ler o arquivo. Verifique se é um JSON válido.';
+            }
+        }
+
+        async function saveFileHandle(handle) {
+            try {
+                // Usa IndexedDB para salvar a referência do arquivo
+                const db = await openDB();
+                const transaction = db.transaction(['fileHandles'], 'readwrite');
+                const store = transaction.objectStore('fileHandles');
+                await store.put(handle, FILE_HANDLE_KEY);
+            } catch (error) {
+                console.warn('Não foi possível salvar a referência do arquivo:', error);
+            }
+        }
+
+        async function getSavedFileHandle() {
+            try {
+                const db = await openDB();
+                const transaction = db.transaction(['fileHandles'], 'readonly');
+                const store = transaction.objectStore('fileHandles');
+                const handle = await store.get(FILE_HANDLE_KEY);
+                return handle;
+            } catch (error) {
+                console.warn('Não foi possível recuperar a referência do arquivo:', error);
+                return null;
+            }
+        }
+
+        async function verifyPermission(handle) {
+            const options = { mode: 'readwrite' };
+            
+            if ((await handle.queryPermission(options)) === 'granted') {
+                return true;
+            }
+            
+            if ((await handle.requestPermission(options)) === 'granted') {
+                return true;
+            }
+            
+            return false;
+        }
+
+        function openDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('PedidosDB', 1);
+                
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => resolve(request.result);
+                
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains('fileHandles')) {
+                        db.createObjectStore('fileHandles');
+                    }
+                };
+            });
+        }
+
+        async function reloadFile() {
+            if (!fileHandle) {
+                alert('Nenhum arquivo carregado. Reabra o sistema.');
+                return;
+            }
+
+            try {
+                const file = await fileHandle.getFile();
+                const content = await file.text();
+                const data = JSON.parse(content);
+
+                db = data.db_pedidos || [];
+                trash = data.db_lixeira || [];
+
+                renderMain();
+
+            } catch (error) {
+                console.error('Erro ao recarregar:', error);
+                alert('ERRO ao recarregar o arquivo. Tente novamente.');
+            }
+        }
+
+        async function saveToFile() {
+            if (!isEdit || !fileHandle) return;
+
+            const dadosParaSalvar = {
+                db_pedidos: db,
+                db_lixeira: trash,
+                timestamp: getTodayDate() + ' ' + new Date().toLocaleTimeString('pt-BR')
+            };
+
+            try {
+                showSaveIndicator('saving');
+
+                const writable = await fileHandle.createWritable();
+                await writable.write(JSON.stringify(dadosParaSalvar, null, 2));
+                await writable.close();
+
+                showSaveIndicator('saved');
+                return true;
+
+            } catch (error) {
+                console.error('Erro ao salvar:', error);
+                showSaveIndicator('error');
+                return false;
+            }
+        }
+
+        function login() {
+            const s = document.getElementById('senha').value.toUpperCase();
+
+            if (s === VIEW_PASSWORD) {
+                isEdit = false;
+                document.getElementById('mode-badge').innerText = "VISUALIZAÇÃO";
+                document.getElementById('input-area').style.display = 'none';
+                document.getElementById('edit-buttons').style.display = 'none';
+                document.getElementById('calc-days-wrapper').style.display = 'none';
+                document.getElementById('filter-delivery-wrapper').style.display = 'none';
+            } else if (s === EDIT_PASSWORD) {
+                isEdit = true;
+                document.getElementById('mode-badge').innerText = "EDIÇÃO";
+                document.getElementById('input-area').style.display = 'block';
+                document.getElementById('edit-buttons').style.display = 'flex';
+                document.getElementById('calc-days-wrapper').style.display = 'flex';
+                document.getElementById('filter-delivery-wrapper').style.display = 'flex';
+            } else {
+                document.getElementById('login-msg').innerText = "Senha Incorreta";
+                return;
+            }
+
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('file-select-overlay').style.display = 'flex';
+        }
+
+        async function addItem() {
+            if (!isEdit) {
+                alert('Apenas Visualização');
+                return;
+            }
+            
+            const pedido = document.getElementById('in-pedido').value;
+            if (!pedido || pedido.trim() === '' || pedido === '4500') {
+                alert('O campo PEDIDO é obrigatório!');
+                document.getElementById('in-pedido').focus();
+                return;
+            }
+
+            const novo = {
+                id: Date.now(),
+                dtLancamento: getTodayDate(),
+                status: '',
+                pedido: pedido,
+                forn: document.getElementById('in-forn').value,
+                comp: document.getElementById('in-comp').value,
+                setor: document.getElementById('in-setor').value || 'RASCUNHO',
+                nf: document.getElementById('in-nf').value,
+                vlrNf: document.getElementById('in-vlrNf').value,
+                dt: document.getElementById('in-dt').value,
+                infTrans: '',
+                venc: document.getElementById('in-venc').value,
+                vencCTe: document.getElementById('in-vencCTe').value,
+                chave: '',
+                obs: document.getElementById('in-obs').value
+            };
+
+            db.push(novo);
+            db.sort((a, b) => a.id - b.id);
+            await saveToFile();
+
+            document.querySelectorAll('.input-grid input').forEach(i => { i.value = ''; });
+            document.getElementById('in-pedido').value = '4500';
+            renderMain();
+            
+            const scrollDiv = document.getElementById('main-scroll');
+            scrollDiv.scrollTop = scrollDiv.scrollHeight;
+            document.getElementById('in-pedido').focus();
+        }
+
+        async function updateCell(id, key, val) {
+            if (!isEdit) {
+                renderMain();
+                return;
+            }
+
+            const item = db.find(x => x.id == id);
+            let newValue = val.trim();
+
+            if (key === 'vlrNf') {
+                const tempInput = document.createElement('input');
+                tempInput.value = newValue;
+                maskMoney(tempInput);
+                newValue = tempInput.value;
+                document.getElementById(`cell-${id}-${key}`).innerText = newValue;
+            } else {
+                newValue = newValue.toUpperCase();
+            }
+
+            if (key === 'chave' && newValue.length > 0 && newValue.length < CHAVE_MIN_LENGTH) {
+                console.warn(`AVISO: O campo CHAVE deve ter 44 caracteres ou ficar em branco. Valor atual: ${newValue.length} caracteres.`);
+            }
+
+            if (item) {
+                item[key] = newValue;
+                await saveToFile();
+            }
+        }
+
+        async function updateCellDate(el, id, key) {
+            if (!isEdit) {
+                renderMain();
+                return;
+            }
+
+            let text = el.innerText.trim();
+            const formatted = formatCellDate(text);
+            el.innerText = formatted;
+            
+            const item = db.find(x => x.id == id);
+            if (item) {
+                item[key] = formatted;
+                await saveToFile();
+            }
+        }
+
+        async function changeStatus(id, val) {
+            if (!isEdit) {
+                renderMain();
+                return;
+            }
+
+            const idx = db.findIndex(x => x.id == id);
+            if (idx === -1) return;
+
+            const statusMap = { 'FEITO CONTATO': 'CONTATO' };
+            const finalVal = statusMap[val] || val;
+
+            if (finalVal === 'FINALIZADO') {
+                const r = prompt("FINALIZAR E MOVER PARA EXCLUÍDOS? (S/N)");
+                if (r && r.toUpperCase() === 'S') {
+                    const item = JSON.parse(JSON.stringify(db[idx]));
+                    db.splice(idx, 1);
+                    item.status = 'FINALIZADO';
+                    item.dtExclusao = getTodayDate();
+                    trash.unshift(item);
+                    await saveToFile();
+                    renderMain();
+                } else {
+                    renderMain();
+                }
+            } else {
+                db[idx].status = finalVal;
+                await saveToFile();
+                renderMain();
+            }
+        }
+
+        function copyChaveIfPopulated(el) {
+            if (!isEdit) return;
+            const keyVal = el.innerText.trim();
+            if (keyVal.length > 0) {
+                navigator.clipboard.writeText(keyVal).then(() => {
+                    // Copiado com sucesso - feedback visual apenas
+                    el.style.backgroundColor = '#d4edda';
+                    setTimeout(() => {
+                        el.style.backgroundColor = '';
+                    }, 500);
+                }).catch(e => console.error("ERRO AO COPIAR:", e));
+            }
+            el.focus();
+        }
+
+        function showFilter(e, key) {
+            e.stopPropagation();
+            targetCol = key;
+            const menu = document.getElementById('excel-menu');
+            const list = document.getElementById('excel-list');
+            list.innerHTML = '';
+            
+            const values = [...new Set(db.map(r => r[key] || ""))].sort();
+            const currentSelected = activeFilters[key];
+            document.getElementById('chk-all').checked = (!currentSelected || currentSelected.length === values.length);
+            
+            values.forEach(v => {
+                const label = v === "" ? "(Vazio)" : v;
+                const isChecked = !currentSelected || currentSelected.includes(v);
+                const div = document.createElement('div');
+                div.className = 'excel-item';
+                div.innerHTML = `<label style="cursor:pointer; width:100%; display:block;"><input type="checkbox" value="${v}" class="chk-item" ${isChecked ? 'checked' : ''}> ${label}</label>`;
+                list.appendChild(div);
+            });
+            
+            const rect = e.target.getBoundingClientRect();
+            menu.style.display = 'block';
+            menu.style.left = (rect.left - 100) + 'px';
+            if (menu.style.left < 0) menu.style.left = '10px';
+            menu.style.top = (rect.bottom + 2) + 'px';
+        }
+
+        function toggleFilterAll(source) {
+            document.querySelectorAll('.chk-item').forEach(c => c.checked = source.checked);
+        }
+
+        function applyFilter() {
+            const chks = document.querySelectorAll('.chk-item');
+            const selected = [];
+            chks.forEach(c => {
+                if (c.checked) selected.push(c.value);
+            });
+            activeFilters[targetCol] = selected;
+            closeFilter();
+            renderMain();
+        }
+
+        function closeFilter() {
+            document.getElementById('excel-menu').style.display = 'none';
+        }
+
+        document.addEventListener('click', e => {
+            if (!e.target.closest('.excel-menu') && !e.target.classList.contains('filter-btn')) closeFilter();
+        });
+
+        function renderMain() {
+            const tbody = document.getElementById('main-body');
+            tbody.innerHTML = '';
+            const termo = document.getElementById('search-global').value.toUpperCase();
+            
+            const deliveryFilterDays = parseInt(document.getElementById('filter-delivery').value, 10);
+            let today = new Date();
+            today.setHours(0, 0, 0, 0);
+            let filterLimitDate = null;
+            if (deliveryFilterDays > 0) {
+                filterLimitDate = new Date(today);
+                filterLimitDate.setDate(today.getDate() + deliveryFilterDays);
+            }
+            
+            db.forEach((item, index) => {
+                const rowStr = Object.values(item).map(v => v || '').join(' ').toUpperCase();
+                let highlight = false;
+
+                if (termo.length >= 3) {
+                    if (!rowStr.includes(termo)) return;
+                    highlight = true;
+                }
+
+                for (let k in activeFilters) {
+                    const permitidos = activeFilters[k];
+                    const val = item[k] || "";
+                    if (!permitidos.includes(val)) return;
+                }
+
+                if (deliveryFilterDays > 0) {
+                    const dtEntrega = parseDeliveryDate(item.dt);
+                    if (!dtEntrega) return;
+                    if (dtEntrega < today || dtEntrega >= filterLimitDate) return;
+                }
+
+                let trClass = '';
+                if (item.status === 'FATURADO') trClass = 'st-faturado';
+                else if (item.status === 'RECEBIDO') trClass = 'st-recebido';
+                else if (item.status === 'CONTATO') trClass = 'st-contato';
+                else if (item.status === 'ATENÇÃO') trClass = 'st-atencao';
+
+                const tr = document.createElement('tr');
+                tr.className = trClass;
+                const disabled = isEdit ? '' : 'disabled';
+                const opts = `<option value="" ${item.status == '' ? 'selected' : ''}></option><option value="ATENÇÃO" ${item.status == 'ATENÇÃO' ? 'selected' : ''}>ATENÇÃO</option><option value="CONTATO" ${item.status == 'CONTATO' ? 'selected' : ''}>CONTATO</option><option value="FATURADO" ${item.status == 'FATURADO' ? 'selected' : ''}>FATURADO</option><option value="RECEBIDO" ${item.status == 'RECEBIDO' ? 'selected' : ''}>RECEBIDO</option><option value="FINALIZADO">FINALIZADO</option>`;
+                const hl = highlight ? 'hl' : '';
+                const dv = (v) => v || '';
+                const isCellEditable = isEdit ? 'true' : 'false';
+
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td><select class="status-sel" ${disabled} onchange="changeStatus(${item.id}, this.value)">${opts}</select></td>
+                    <td>${dv(item.dtLancamento)}</td>
+                    <td contenteditable="${isCellEditable}" class="${hl}" id="cell-${item.id}-pedido" onblur="updateCell(${item.id}, 'pedido', this.innerText)" onkeydown="navTable(event, this)">${dv(item.pedido)}</td>
+                    <td contenteditable="${isCellEditable}" class="${hl}" id="cell-${item.id}-forn" onblur="updateCell(${item.id}, 'forn', this.innerText)" onkeydown="navTable(event, this)">${dv(item.forn)}</td>
+                    <td contenteditable="${isCellEditable}" class="${hl}" id="cell-${item.id}-comp" onblur="updateCell(${item.id}, 'comp', this.innerText)" onkeydown="navTable(event, this)">${dv(item.comp)}</td>
+                    <td contenteditable="${isCellEditable}" class="${hl}" id="cell-${item.id}-setor" onblur="updateCell(${item.id}, 'setor', this.innerText)" onkeydown="navTable(event, this)">${dv(item.setor)}</td>
+                    <td contenteditable="${isCellEditable}" class="${hl}" id="cell-${item.id}-nf" onblur="updateCell(${item.id}, 'nf', this.innerText)" onkeydown="navTable(event, this)">${dv(item.nf)}</td>
+                    <td contenteditable="${isCellEditable}" class="${hl}" data-key="vlrNf" id="cell-${item.id}-vlrNf" onblur="updateCell(${item.id}, 'vlrNf', this.innerText)" onkeydown="navTable(event, this)">${dv(item.vlrNf)}</td>
+                    <td contenteditable="${isCellEditable}" class="${hl}" id="cell-${item.id}-dt" onblur="updateCellDate(this, ${item.id}, 'dt')" onkeydown="navTable(event, this)">${dv(item.dt)}</td>
+                    <td contenteditable="${isCellEditable}" class="${hl}" id="cell-${item.id}-infTrans" onblur="updateCell(${item.id}, 'infTrans', this.innerText)" onkeydown="navTable(event, this)">${dv(item.infTrans)}</td>
+                    <td contenteditable="${isCellEditable}" class="${hl}" id="cell-${item.id}-venc" onblur="updateCellDate(this, ${item.id}, 'venc')" onkeydown="navTable(event, this)">${dv(item.venc)}</td>
+                    <td contenteditable="${isCellEditable}" class="${hl}" id="cell-${item.id}-vencCTe" onblur="updateCellDate(this, ${item.id}, 'vencCTe')" onkeydown="navTable(event, this)">${dv(item.vencCTe)}</td>
+                    <td contenteditable="${isCellEditable}" class="cell-chave ${hl}" id="cell-${item.id}-chave" onblur="updateCell(${item.id}, 'chave', this.innerText)" onclick="${isEdit ? 'copyChaveIfPopulated(this)' : ''}" onkeydown="navTable(event, this)" title="Clique para Copiar/Editar">${dv(item.chave)}</td>
+                    <td contenteditable="${isCellEditable}" class="${hl}" id="cell-${item.id}-obs" onblur="updateCell(${item.id}, 'obs', this.innerText)" onkeydown="navTable(event, this)">${dv(item.obs)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                const k = btn.parentElement.getAttribute('data-key');
+                if (activeFilters[k]) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+        }
+
+        function openTrash() {
+            document.getElementById('trash-screen').style.display = 'block';
+            renderTrash();
+        }
+
+        function closeTrash() {
+            document.getElementById('trash-screen').style.display = 'none';
+        }
+
+        function renderTrash() {
+            const tb = document.getElementById('trash-body');
+            tb.innerHTML = '';
+            const s = document.getElementById('search-trash').value.toUpperCase();
+            
+            trash.forEach(item => {
+                const rowStr = Object.values(item).map(v => v || '').join(' ').toUpperCase();
+                if (s.length >= 3 && !rowStr.includes(s)) return;
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><button class="btn btn-green" style="padding:2px 6px;" onclick="restore(${item.id})">RECUPERAR</button></td>
+                    <td>${item.pedido || ''}</td>
+                    <td>${item.dtLancamento || ''}</td>
+                    <td>${item.dtExclusao || ''}</td>
+                    <td>${item.forn || ''}</td>
+                    <td>${item.nf || ''}</td>
+                `;
+                tb.appendChild(tr);
+            });
+        }
+
+        async function restore(id) {
+            if (!isEdit) {
+                return;
+            }
+            if (!confirm('Recuperar item para a posição original?')) return;
+            
+            const idx = trash.findIndex(x => x.id == id);
+            const item = trash.splice(idx, 1)[0];
+            item.status = '';
+            delete item.dtExclusao;
+            
+            db.push(item);
+            db.sort((a, b) => a.id - b.id);
+            
+            await saveToFile();
+            renderTrash();
+            renderMain();
+        }
+
+        function generateReport() {
+            const win = window.open('', '', 'width=1000,height=600');
+            let h = `<html><head><title>RELATÓRIO</title><style>body{font-family:sans-serif;font-size:10px;text-transform:uppercase;} table{width:100%;border-collapse:collapse;} th,td{border:1px solid #999;padding:3px; text-align: center;}</style></head><body><h2>RELATÓRIO DE PEDIDOS ATIVOS - ${getTodayDate()}</h2><table><thead><tr><th>STATUS</th><th>PEDIDO</th><th>FORNECEDOR</th><th>NF</th><th>VALOR NF</th><th>ENTREGA</th><th>OBS</th></tr></thead><tbody>`;
+            
+            db.forEach(i => {
+                h += `<tr><td>${i.status || ''}</td><td>${i.pedido || ''}</td><td>${i.forn || ''}</td><td>${i.nf || ''}</td><td>${i.vlrNf || ''}</td><td>${i.dt || ''}</td><td>${i.obs || ''}</td></tr>`;
+            });
+            
+            h += `</tbody></table><br><button onclick="window.print()">IMPRIMIR</button></body></html>`;
+            win.document.write(h);
+        }
+
+        function downloadData(data, prefix) {
+            const filename = `${prefix}_${getFilenameTimestamp()}.json`;
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function doBackup() {
+            if (!isEdit) {
+                return;
+            }
+            const fullData = { db_pedidos: db, db_lixeira: trash };
+            downloadData(fullData, 'BACKUP_PEDIDOS');
+        }
+
+        async function doRestore() {
+            if (!isEdit) {
+                return;
+            }
+            if (!confirm('ATENÇÃO: Isso irá substituir os dados atuais.\n\nContinuar?')) return;
+            
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = async function (e) {
+                    try {
+                        const restoredData = JSON.parse(e.target.result);
+                        db = restoredData.db_pedidos || db;
+                        trash = restoredData.db_lixeira || trash;
+                        
+                        db.sort((a, b) => a.id - b.id);
+                        
+                        await saveToFile();
+                        renderMain();
+                    } catch (err) {
+                        alert('Erro ao ler o arquivo JSON de backup.');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        function clearAllFilters() {
+            activeFilters = {};
+            document.getElementById('search-global').value = '';
+            document.getElementById('filter-delivery').value = '0';
+            renderMain();
+        }
+
+        function isBusinessDay(date) {
+            const day = date.getDay();
+            return day !== 0 && day !== 6;
+        }
+
+        function addBusinessDays(startDate, daysToAdd) {
+            let currentDate = new Date(startDate);
+            let addedDays = 0;
+
+            while (addedDays < daysToAdd) {
+                currentDate.setDate(currentDate.getDate() + 1);
+                if (isBusinessDay(currentDate)) {
+                    addedDays++;
+                }
+            }
+
+            return currentDate;
+        }
+
+        function calculateDate() {
+            const daysInput = document.getElementById('calc-days');
+            const resultSpan = document.getElementById('calc-result');
+            const isUteis = document.querySelector('input[name="day-type"]:checked').value === 'uteis';
+            
+            const days = parseInt(daysInput.value, 10);
+            
+            if (!days || days <= 0) {
+                resultSpan.innerText = '--/--';
+                return;
+            }
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            let targetDate;
+            if (isUteis) {
+                targetDate = addBusinessDays(today, days);
+            } else {
+                targetDate = new Date(today);
+                targetDate.setDate(today.getDate() + days);
+            }
+
+            const day = String(targetDate.getDate()).padStart(2, '0');
+            const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+            
+            resultSpan.innerText = `${day}/${month}`;
+        }
+
+        function prepareClear(target) {
+            if (!isEdit) {
+                return;
+            }
+            clearTarget = target;
+            
+            document.getElementById('confirm-title').innerText = 'LIMPAR LIXEIRA?';
+            document.getElementById('confirm-overlay').style.display = 'flex';
+            document.getElementById('confirm-senha').value = '';
+            document.getElementById('confirm-msg').innerText = '';
+            setTimeout(() => document.getElementById('confirm-senha').focus(), 0);
+        }
+
+        async function processClear(confirm) {
+            if (!confirm) {
+                document.getElementById('confirm-overlay').style.display = 'none';
+                return;
+            }
+            
+            const s = document.getElementById('confirm-senha').value.toUpperCase();
+            if (s !== EDIT_PASSWORD) {
+                document.getElementById('confirm-msg').innerText = 'Senha Incorreta!';
+                return;
+            }
+
+            if (clearTarget === 'TRASH') {
+                if (window.confirm('CONFIRMA LIMPEZA DA LIXEIRA?')) {
+                    trash = [];
+                    await saveToFile();
+                    renderTrash();
+                }
+            }
+            
+            document.getElementById('confirm-overlay').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
