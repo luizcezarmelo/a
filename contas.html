@@ -24,6 +24,7 @@
         body { font-family: Inter, sans-serif; background-color: var(--bg-color); color: var(--text-color-primary); margin: 0; padding: 2rem 1.5rem; -webkit-font-smoothing: antialiased; font-size: 14px }
         #login-overlay { position: fixed; inset: 0; background-color: rgba(0, 0, 0, .6); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         #login-box { background: var(--surface-color); padding: 32px; border-radius: var(--border-radius); box-shadow: var(--shadow-md); text-align: center; width: 90%; max-width: 340px; }
+        #login-message { margin-bottom: 16px; font-size: 0.95rem; color: var(--text-color-secondary); }
         #passcode-input { width: calc(100% - 24px); padding: 12px; font-size: 2.5rem; text-align: center; letter-spacing: .5em; border: 2px solid var(--border-color); border-radius: var(--border-radius); margin-bottom: 24px; background-color: var(--bg-color); outline: none; }
         #login-button { width: 100%; padding: 14px; background-color: var(--accent-color); color: #fff; border: none; border-radius: var(--border-radius); font-size: 1rem; font-weight: 600; cursor: pointer; }
         .container { max-width: 1600px; margin: auto; display: none; }
@@ -61,7 +62,7 @@
 <div id="login-overlay">
     <div id="login-box">
         <h2>Autenticação</h2>
-        <p>Digite o código de acesso para continuar.</p>
+        <p id="login-message">Digite o código de acesso para continuar.</p>
         <input type="password" id="passcode-input" maxlength="4" inputmode="numeric">
         <button id="login-button">Acessar Sistema</button>
     </div>
@@ -159,6 +160,7 @@
         overlay: document.getElementById("login-overlay"),
         passcodeInput: document.getElementById("passcode-input"),
         loginBtn: document.getElementById("login-button"),
+        loginMessage: document.getElementById("login-message"),
         container: document.querySelector(".container"),
         monthYear: document.getElementById("currentMonthYear"),
         totalGeral: document.getElementById("totalGeral"),
@@ -172,19 +174,56 @@
         }
     };
 
-    onValue(ref(database, "passcode"), snap => {
-        const code = snap.val();
-        const login = () => {
-            if(ui.passcodeInput.value === code) {
-                ui.overlay.style.display = "none";
-                ui.container.style.display = "block";
-                startApp();
-            } else { ui.passcodeInput.value = ""; }
-        };
-        ui.loginBtn.onclick = login;
-        ui.passcodeInput.onkeyup = e => e.key === "Enter" && login();
+    // Sistema de login modificado
+    get(ref(database, "passcode")).then(snap => {
+        const storedCode = snap.val();
+        
+        if (!storedCode) {
+            // Não existe senha no Firebase - solicitar criação de nova senha
+            ui.loginMessage.textContent = "Crie uma nova senha de 4 dígitos:";
+            ui.loginBtn.textContent = "Criar Senha";
+            
+            const createPassword = async () => {
+                const newPass = ui.passcodeInput.value;
+                if (newPass.length === 4 && /^\d{4}$/.test(newPass)) {
+                    await set(ref(database, "passcode"), newPass);
+                    ui.overlay.style.display = "none";
+                    ui.container.style.display = "block";
+                    startApp();
+                } else {
+                    ui.passcodeInput.value = "";
+                    ui.passcodeInput.focus();
+                }
+            };
+            
+            ui.loginBtn.onclick = createPassword;
+            ui.passcodeInput.onkeyup = e => {
+                if (e.key === "Enter") createPassword();
+            };
+        } else {
+            // Existe senha no Firebase - solicitar autenticação
+            ui.loginMessage.textContent = "Digite o código de acesso para continuar.";
+            ui.loginBtn.textContent = "Acessar Sistema";
+            
+            const login = () => {
+                if (ui.passcodeInput.value === storedCode) {
+                    ui.overlay.style.display = "none";
+                    ui.container.style.display = "block";
+                    startApp();
+                } else {
+                    ui.passcodeInput.value = "";
+                    ui.passcodeInput.focus();
+                }
+            };
+            
+            ui.loginBtn.onclick = login;
+            ui.passcodeInput.onkeyup = e => {
+                if (e.key === "Enter") login();
+            };
+        }
+        
         ui.passcodeInput.focus();
-    }, { onlyOnce: true });
+    });
 
     function startApp() {
         updateMonthDisplay();
