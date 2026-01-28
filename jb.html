@@ -46,7 +46,7 @@
             const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
             const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
             const [investimentoTopo, setInvestimentoTopo] = useState('');
-            const [horariosAtivos, setHorariosAtivos] = useState({ '14h': true, '16h': true, '19h': true });
+            const [horariosAtivos, setHorariosAtivos] = useState({ '14h': true, '16h': false, '19h': false });
             const [dados, setDados] = useState({});
             const [loading, setLoading] = useState(true);
             const [mostrarRelatorio, setMostrarRelatorio] = useState(false);
