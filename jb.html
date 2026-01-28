@@ -153,7 +153,9 @@
 
             const parseMoeda = (valor) => {
                 if (typeof valor === 'number') return valor;
-                const limpo = valor.replace(/\./g, '').replace(',', '.');
+                if (!valor || valor.trim() === '') return 0;
+                // Aceita tanto vírgula quanto ponto como separador decimal
+                const limpo = String(valor).replace(',', '.');
                 const num = parseFloat(limpo) || 0;
                 return Math.min(num, 100000);
             };
@@ -437,19 +439,57 @@
                                                                     <input 
                                                                         ref={isPrimeiroInput ? primeiroInputRef : null}
                                                                         type="text"
-                                                                        key={`${dia}-${linha}-I-${d.I}`}
                                                                         defaultValue={d.I === 0 ? '' : d.I.toFixed(2)}
-                                                                        onBlur={(e) => handleUpdateTabela(dia, linha, 'I', e.target.value)}
-                                                                        onKeyDown={(e) => e.key === 'Enter' && e.target.blur()}
+                                                                        onBlur={(e) => {
+                                                                            const valor = e.target.value;
+                                                                            if (valor.trim() !== '') {
+                                                                                handleUpdateTabela(dia, linha, 'I', valor);
+                                                                            }
+                                                                        }}
+                                                                        onKeyDown={(e) => {
+                                                                            if (e.key === 'Enter' || e.key === 'Tab') {
+                                                                                e.preventDefault();
+                                                                                const valor = e.target.value;
+                                                                                if (valor.trim() !== '') {
+                                                                                    handleUpdateTabela(dia, linha, 'I', valor);
+                                                                                }
+                                                                                // Move para o próximo campo (G)
+                                                                                const nextInput = e.target.nextElementSibling;
+                                                                                if (nextInput) {
+                                                                                    setTimeout(() => nextInput.focus(), 50);
+                                                                                }
+                                                                            }
+                                                                        }}
                                                                         placeholder="I"
                                                                         className="w-full text-center font-semibold bg-blue-50 border border-blue-200 rounded p-1 focus:ring-1 focus:ring-blue-500 outline-none"
                                                                     />
                                                                     <input 
                                                                         type="text"
-                                                                        key={`${dia}-${linha}-G-${d.G}`}
                                                                         defaultValue={d.G === 0 ? '' : d.G.toFixed(2)}
-                                                                        onBlur={(e) => handleUpdateTabela(dia, linha, 'G', e.target.value)}
-                                                                        onKeyDown={(e) => e.key === 'Enter' && e.target.blur()}
+                                                                        onBlur={(e) => {
+                                                                            const valor = e.target.value;
+                                                                            if (valor.trim() !== '') {
+                                                                                handleUpdateTabela(dia, linha, 'G', valor);
+                                                                            }
+                                                                        }}
+                                                                        onKeyDown={(e) => {
+                                                                            if (e.key === 'Enter' || e.key === 'Tab') {
+                                                                                e.preventDefault();
+                                                                                const valor = e.target.value;
+                                                                                if (valor.trim() !== '') {
+                                                                                    handleUpdateTabela(dia, linha, 'G', valor);
+                                                                                }
+                                                                                // Move para o próximo input I da próxima linha
+                                                                                const currentRow = e.target.closest('.bg-slate-50');
+                                                                                const nextRow = currentRow?.nextElementSibling;
+                                                                                if (nextRow) {
+                                                                                    const nextInput = nextRow.querySelector('input');
+                                                                                    if (nextInput) {
+                                                                                        setTimeout(() => nextInput.focus(), 50);
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }}
                                                                         placeholder="G"
                                                                         className="w-full text-center font-semibold bg-green-50 border border-green-200 rounded p-1 focus:ring-1 focus:ring-green-500 outline-none"
                                                                     />
