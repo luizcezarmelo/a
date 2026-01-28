@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -447,7 +448,7 @@
                                                                             }
                                                                         }}
                                                                         onKeyDown={(e) => {
-                                                                            if (e.key === 'Enter' || e.key === 'Tab') {
+                                                                            if (e.key === 'Enter') {
                                                                                 e.preventDefault();
                                                                                 const valor = e.target.value;
                                                                                 if (valor.trim() !== '') {
@@ -456,7 +457,7 @@
                                                                                 // Move para o próximo campo (G)
                                                                                 const nextInput = e.target.nextElementSibling;
                                                                                 if (nextInput) {
-                                                                                    setTimeout(() => nextInput.focus(), 50);
+                                                                                    setTimeout(() => nextInput.focus(), 10);
                                                                                 }
                                                                             }
                                                                         }}
@@ -473,7 +474,7 @@
                                                                             }
                                                                         }}
                                                                         onKeyDown={(e) => {
-                                                                            if (e.key === 'Enter' || e.key === 'Tab') {
+                                                                            if (e.key === 'Enter') {
                                                                                 e.preventDefault();
                                                                                 const valor = e.target.value;
                                                                                 if (valor.trim() !== '') {
@@ -485,7 +486,7 @@
                                                                                 if (nextRow) {
                                                                                     const nextInput = nextRow.querySelector('input');
                                                                                     if (nextInput) {
-                                                                                        setTimeout(() => nextInput.focus(), 50);
+                                                                                        setTimeout(() => nextInput.focus(), 10);
                                                                                     }
                                                                                 }
                                                                             }
