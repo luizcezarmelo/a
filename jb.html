@@ -442,21 +442,15 @@
                                                                         defaultValue={d.I === 0 ? '' : d.I.toFixed(2)}
                                                                         onBlur={(e) => {
                                                                             const valor = e.target.value;
-                                                                            if (valor.trim() !== '') {
-                                                                                handleUpdateTabela(dia, linha, 'I', valor);
-                                                                            }
+                                                                            handleUpdateTabela(dia, linha, 'I', valor);
                                                                         }}
                                                                         onKeyDown={(e) => {
                                                                             if (e.key === 'Enter') {
-                                                                                const valor = e.target.value;
-                                                                                if (valor.trim() !== '') {
-                                                                                    handleUpdateTabela(dia, linha, 'I', valor);
-                                                                                }
+                                                                                e.preventDefault();
                                                                                 // Move para o próximo campo (G) no mesmo container
                                                                                 const parent = e.target.parentElement;
                                                                                 const inputs = parent.querySelectorAll('input');
                                                                                 if (inputs[1]) {
-                                                                                    e.preventDefault();
                                                                                     inputs[1].focus();
                                                                                     inputs[1].select();
                                                                                 }
@@ -470,16 +464,11 @@
                                                                         defaultValue={d.G === 0 ? '' : d.G.toFixed(2)}
                                                                         onBlur={(e) => {
                                                                             const valor = e.target.value;
-                                                                            if (valor.trim() !== '') {
-                                                                                handleUpdateTabela(dia, linha, 'G', valor);
-                                                                            }
+                                                                            handleUpdateTabela(dia, linha, 'G', valor);
                                                                         }}
                                                                         onKeyDown={(e) => {
                                                                             if (e.key === 'Enter') {
-                                                                                const valor = e.target.value;
-                                                                                if (valor.trim() !== '') {
-                                                                                    handleUpdateTabela(dia, linha, 'G', valor);
-                                                                                }
+                                                                                e.preventDefault();
                                                                                 // Move para o input I da próxima linha
                                                                                 const currentContainer = e.target.closest('.bg-slate-50');
                                                                                 const parentDiv = currentContainer.parentElement;
@@ -490,7 +479,6 @@
                                                                                     const nextContainer = allContainers[currentIndex + 1];
                                                                                     const nextInput = nextContainer.querySelector('input');
                                                                                     if (nextInput) {
-                                                                                        e.preventDefault();
                                                                                         nextInput.focus();
                                                                                         nextInput.select();
                                                                                     }
