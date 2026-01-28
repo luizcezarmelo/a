@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -53,6 +54,7 @@
             const [dataFinal, setDataFinal] = useState('');
             const [relatorioGerado, setRelatorioGerado] = useState(null);
             const primeiroInputRef = useRef(null);
+            const inputRefs = useRef({});
 
             const meses = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
             const hoje = new Date();
@@ -111,10 +113,15 @@
                     setLoading(true);
                     const monthKey = getMonthKey(selectedMonth, selectedYear);
                     const dadosRef = window.firebaseDB.ref(window.firebaseDB.database, `jogos/${monthKey}`);
+                    let isFirstLoad = true;
                     const unsubscribe = window.firebaseDB.onValue(dadosRef, (snapshot) => {
                         setDados(snapshot.val() || {});
                         setLoading(false);
-                        setTimeout(() => primeiroInputRef.current?.focus(), 100);
+                        // Só foca no primeiro input no carregamento inicial
+                        if (isFirstLoad) {
+                            setTimeout(() => primeiroInputRef.current?.focus(), 100);
+                            isFirstLoad = false;
+                        }
                     });
                     return () => unsubscribe();
                 }
@@ -174,6 +181,46 @@
                 novosDados[dia][linha][campo] = valorNum;
                 
                 await salvarDados(novosDados);
+            };
+
+            const navegarProximoCampo = (diaAtual, linhaAtual, campoAtual) => {
+                // Define a ordem de navegação
+                const linhas = ['linha1', 'linha2', 'linha3'];
+                const campos = ['I', 'G'];
+                
+                const linhaIdx = linhas.indexOf(linhaAtual);
+                const campoIdx = campos.indexOf(campoAtual);
+                
+                let proximoDia = diaAtual;
+                let proximaLinha = linhaAtual;
+                let proximoCampo = campoAtual;
+                
+                if (campoAtual === 'I') {
+                    // Se está no I, vai pro G da mesma linha
+                    proximoCampo = 'G';
+                } else if (campoAtual === 'G') {
+                    // Se está no G, vai pro I da próxima linha
+                    if (linhaIdx < linhas.length - 1) {
+                        proximaLinha = linhas[linhaIdx + 1];
+                        proximoCampo = 'I';
+                    } else {
+                        // Se é a última linha, vai pro primeiro I do próximo dia
+                        proximoDia = diaAtual + 1;
+                        proximaLinha = 'linha1';
+                        proximoCampo = 'I';
+                    }
+                }
+                
+                // Busca o próximo input
+                const proximoRef = `${proximoDia}-${proximaLinha}-${proximoCampo}`;
+                const proximoInput = inputRefs.current[proximoRef];
+                
+                if (proximoInput) {
+                    setTimeout(() => {
+                        proximoInput.focus();
+                        proximoInput.select();
+                    }, 10);
+                }
             };
 
             const calcularTotais = () => {
@@ -434,55 +481,40 @@
                                                         const isPrimeiroInput = isHoje && idx === 0;
                                                         
                                                         return (
-                                                            <div key={linha} className="bg-slate-50 rounded p-1 border border-slate-200">
+                                                            <div key={`${dia}-${linha}`} className="bg-slate-50 rounded p-1 border border-slate-200">
                                                                 <div className="grid grid-cols-2 gap-0.5 text-[10px]">
                                                                     <input 
-                                                                        ref={isPrimeiroInput ? primeiroInputRef : null}
+                                                                        ref={(el) => {
+                                                                            inputRefs.current[`${dia}-${linha}-I`] = el;
+                                                                            if (isPrimeiroInput) primeiroInputRef.current = el;
+                                                                        }}
                                                                         type="text"
                                                                         defaultValue={d.I === 0 ? '' : d.I.toFixed(2)}
                                                                         onBlur={(e) => {
-                                                                            const valor = e.target.value;
-                                                                            handleUpdateTabela(dia, linha, 'I', valor);
+                                                                            handleUpdateTabela(dia, linha, 'I', e.target.value);
                                                                         }}
                                                                         onKeyDown={(e) => {
                                                                             if (e.key === 'Enter') {
                                                                                 e.preventDefault();
-                                                                                // Move para o próximo campo (G) no mesmo container
-                                                                                const parent = e.target.parentElement;
-                                                                                const inputs = parent.querySelectorAll('input');
-                                                                                if (inputs[1]) {
-                                                                                    inputs[1].focus();
-                                                                                    inputs[1].select();
-                                                                                }
+                                                                                handleUpdateTabela(dia, linha, 'I', e.target.value);
+                                                                                navegarProximoCampo(dia, linha, 'I');
                                                                             }
                                                                         }}
                                                                         placeholder="I"
                                                                         className="w-full text-center font-semibold bg-blue-50 border border-blue-200 rounded p-1 focus:ring-1 focus:ring-blue-500 outline-none"
                                                                     />
                                                                     <input 
+                                                                        ref={(el) => inputRefs.current[`${dia}-${linha}-G`] = el}
                                                                         type="text"
                                                                         defaultValue={d.G === 0 ? '' : d.G.toFixed(2)}
                                                                         onBlur={(e) => {
-                                                                            const valor = e.target.value;
-                                                                            handleUpdateTabela(dia, linha, 'G', valor);
+                                                                            handleUpdateTabela(dia, linha, 'G', e.target.value);
                                                                         }}
                                                                         onKeyDown={(e) => {
                                                                             if (e.key === 'Enter') {
                                                                                 e.preventDefault();
-                                                                                // Move para o input I da próxima linha
-                                                                                const currentContainer = e.target.closest('.bg-slate-50');
-                                                                                const parentDiv = currentContainer.parentElement;
-                                                                                const allContainers = Array.from(parentDiv.querySelectorAll('.bg-slate-50'));
-                                                                                const currentIndex = allContainers.indexOf(currentContainer);
-                                                                                
-                                                                                if (currentIndex < allContainers.length - 1) {
-                                                                                    const nextContainer = allContainers[currentIndex + 1];
-                                                                                    const nextInput = nextContainer.querySelector('input');
-                                                                                    if (nextInput) {
-                                                                                        nextInput.focus();
-                                                                                        nextInput.select();
-                                                                                    }
-                                                                                }
+                                                                                handleUpdateTabela(dia, linha, 'G', e.target.value);
+                                                                                navegarProximoCampo(dia, linha, 'G');
                                                                             }
                                                                         }}
                                                                         placeholder="G"
