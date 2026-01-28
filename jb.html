@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -449,15 +448,17 @@
                                                                         }}
                                                                         onKeyDown={(e) => {
                                                                             if (e.key === 'Enter') {
-                                                                                e.preventDefault();
                                                                                 const valor = e.target.value;
                                                                                 if (valor.trim() !== '') {
                                                                                     handleUpdateTabela(dia, linha, 'I', valor);
                                                                                 }
-                                                                                // Move para o próximo campo (G)
-                                                                                const nextInput = e.target.nextElementSibling;
-                                                                                if (nextInput) {
-                                                                                    setTimeout(() => nextInput.focus(), 10);
+                                                                                // Move para o próximo campo (G) no mesmo container
+                                                                                const parent = e.target.parentElement;
+                                                                                const inputs = parent.querySelectorAll('input');
+                                                                                if (inputs[1]) {
+                                                                                    e.preventDefault();
+                                                                                    inputs[1].focus();
+                                                                                    inputs[1].select();
                                                                                 }
                                                                             }
                                                                         }}
@@ -475,18 +476,23 @@
                                                                         }}
                                                                         onKeyDown={(e) => {
                                                                             if (e.key === 'Enter') {
-                                                                                e.preventDefault();
                                                                                 const valor = e.target.value;
                                                                                 if (valor.trim() !== '') {
                                                                                     handleUpdateTabela(dia, linha, 'G', valor);
                                                                                 }
-                                                                                // Move para o próximo input I da próxima linha
-                                                                                const currentRow = e.target.closest('.bg-slate-50');
-                                                                                const nextRow = currentRow?.nextElementSibling;
-                                                                                if (nextRow) {
-                                                                                    const nextInput = nextRow.querySelector('input');
+                                                                                // Move para o input I da próxima linha
+                                                                                const currentContainer = e.target.closest('.bg-slate-50');
+                                                                                const parentDiv = currentContainer.parentElement;
+                                                                                const allContainers = Array.from(parentDiv.querySelectorAll('.bg-slate-50'));
+                                                                                const currentIndex = allContainers.indexOf(currentContainer);
+                                                                                
+                                                                                if (currentIndex < allContainers.length - 1) {
+                                                                                    const nextContainer = allContainers[currentIndex + 1];
+                                                                                    const nextInput = nextContainer.querySelector('input');
                                                                                     if (nextInput) {
-                                                                                        setTimeout(() => nextInput.focus(), 10);
+                                                                                        e.preventDefault();
+                                                                                        nextInput.focus();
+                                                                                        nextInput.select();
                                                                                     }
                                                                                 }
                                                                             }
