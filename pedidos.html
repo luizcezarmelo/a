@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -280,6 +281,10 @@
             background-color: #c0392b;
         }
 
+        .btn-red:hover {
+            background-color: #d9534f;
+        }
+
         #filter-delivery {
             padding: 5px;
             border: 1px solid #aaa;
@@ -323,6 +328,7 @@
             color: #333;
             position: relative;
             white-space: nowrap;
+            user-select: none;
         }
 
         th:nth-child(1) {
@@ -383,7 +389,7 @@
             max-width: 80px;
         }
 
-        th[data-key="vencCTe"] {
+        th[data-key="frete"] {
             min-width: 80px;
             max-width: 80px;
         }
@@ -532,6 +538,16 @@
             font-weight: normal;
         }
 
+        .frete-sel {
+            border: 1px solid #ddd;
+            background: transparent;
+            width: 100%;
+            font-size: 11px;
+            cursor: pointer;
+            padding: 2px;
+            text-align: center;
+        }
+
         .hl {
             background-color: #fff59d !important;
         }
@@ -600,15 +616,38 @@
             color: rgba(255, 255, 255, 0.8);
             margin-left: 15px;
         }
+
+        .resize-handle {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            width: 5px;
+            background: transparent;
+            cursor: col-resize;
+            z-index: 100;
+        }
     </style>
 </head>
 <body>
+    <!-- TELA DE LOGIN MODIFICADA -->
     <div id="login-overlay">
         <div class="modal-box">
             <h3>ACESSO AO SISTEMA</h3>
-            <p id="login-msg" style="color:red; font-size:11px; min-height:15px;"></p>
-            <input type="password" id="senha" placeholder="INSIRA A SENHA" onkeydown="if(event.key==='Enter') login()">
-            <button onclick="login()">ENTRAR</button>
+            <p>Escolha o modo de acesso:</p>
+            <div style="display: flex; gap: 10px; margin: 20px 0;">
+                <button onclick="enterViewMode()" style="flex: 1; padding: 15px; background: #2980b9; color: white; border: none; cursor: pointer; font-weight: bold;">
+                    👁️ VISUALIZAÇÃO
+                </button>
+                <button onclick="showEditLogin()" style="flex: 1; padding: 15px; background: #27ae60; color: white; border: none; cursor: pointer; font-weight: bold;">
+                    ✏️ EDIÇÃO
+                </button>
+            </div>
+            <div id="edit-login" style="display: none; margin-top: 20px;">
+                <p id="login-msg" style="color:red; font-size:11px; min-height:15px;"></p>
+                <input type="password" id="senha" placeholder="SENHA DE EDIÇÃO" onkeydown="if(event.key==='Enter') loginEdit()">
+                <button onclick="loginEdit()">ENTRAR</button>
+            </div>
         </div>
     </div>
 
@@ -655,8 +694,8 @@
                     <div class="input-field"><label>NOTA FISCAL</label><input type="text" id="in-nf" oninput="forceUp(this)" onkeydown="nav(event, 'in-vlrNf')"></div>
                     <div class="input-field"><label>VALOR NF</label><input type="text" id="in-vlrNf" placeholder="R$ 0,00" oninput="maskMoney(this)" onkeydown="nav(event, 'in-dt')"></div>
                     <div class="input-field"><label>DATA ENTREGA</label><input type="text" id="in-dt" placeholder="DD/MM" maxlength="5" oninput="maskDate(this)" onkeydown="nav(event, 'in-venc')"></div>
-                    <div class="input-field"><label>VENCIMENTO NF</label><input type="text" id="in-venc" placeholder="DD/MM" maxlength="5" oninput="maskDate(this)" onkeydown="nav(event, 'in-vencCTe')"></div>
-                    <div class="input-field"><label>VENC. CTe</label><input type="text" id="in-vencCTe" placeholder="DD/MM" maxlength="5" oninput="maskDate(this)" onkeydown="nav(event, 'in-obs')"></div>
+                    <div class="input-field"><label>VENCIMENTO NF</label><input type="text" id="in-venc" placeholder="DD/MM" maxlength="5" oninput="maskDate(this)" onkeydown="nav(event, 'in-obs')"></div>
+                    <!-- REMOVIDO O CAMPO VENC. CTe DO FORMULÁRIO -->
                     <div class="input-field"><label>OBS</label><input type="text" id="in-obs" oninput="forceUp(this)" onkeydown="nav(event, 'in-pedido', true)"></div>
                 </div>
             </div>
@@ -714,7 +753,8 @@
                             <th data-key="dt">ENTREGA <span class="filter-btn" onclick="showFilter(event, 'dt')">▼</span></th>
                             <th data-key="infTrans">INF. TRANSP. <span class="filter-btn" onclick="showFilter(event, 'infTrans')">▼</span></th>
                             <th data-key="venc">VENC. NF <span class="filter-btn" onclick="showFilter(event, 'venc')">▼</span></th>
-                            <th data-key="vencCTe">VENC. CTe <span class="filter-btn" onclick="showFilter(event, 'vencCTe')">▼</span></th>
+                            <!-- COLUNA ALTERADA DE VENC. CTe PARA FRETE -->
+                            <th data-key="frete">FRETE <span class="filter-btn" onclick="showFilter(event, 'frete')">▼</span></th>
                             <th data-key="chave">CHAVE</th>
                             <th data-key="obs">OBS <span class="filter-btn" onclick="showFilter(event, 'obs')">▼</span></th>
                         </tr>
@@ -769,198 +809,154 @@
     </datalist>
 
     <script>
-        let db = [];
-        let trash = [];
-        let isEdit = false;
-        let clearTarget = null;
-        let activeFilters = {};
-        let targetCol = null;
-        let fileHandle = null;
-        let fileName = '';
+        // =============================================
+        // CONSTANTES GLOBAIS
+        // =============================================
+        const EDIT_PASSWORD = '1234'; // Senha para modo edição
+        const VIEW_PASSWORD = ''; // Modo visualização não precisa de senha
+        const CHAVE_MIN_LENGTH = 44; // Tamanho mínimo para chave de acesso
+        const FILE_HANDLE_KEY = 'pedidosFileHandle'; // Chave para armazenar referência do arquivo
 
-        const EDIT_PASSWORD = '4321';
-        const VIEW_PASSWORD = '1234';
-        const CHAVE_MIN_LENGTH = 44;
+        // =============================================
+        // VARIÁVEIS GLOBAIS
+        // =============================================
+        let db = []; // Array principal de pedidos
+        let trash = []; // Array de itens excluídos
+        let isEdit = false; // Modo atual (edição/visualização)
+        let clearTarget = null; // Alvo para limpeza
+        let activeFilters = {}; // Filtros ativos por coluna
+        let targetCol = null; // Coluna alvo para filtro
+        let fileHandle = null; // Manipulador do arquivo
+        let fileName = ''; // Nome do arquivo carregado
+        let columnSizes = JSON.parse(localStorage.getItem('columnSizes')) || {}; // Tamanhos das colunas salvos
 
-        window.onload = () => document.getElementById('senha').focus();
+        // =============================================
+        // FUNÇÕES DE INICIALIZAÇÃO
+        // =============================================
 
-        // Atalhos de teclado globais
-        document.addEventListener('keydown', function(e) {
-            // Ctrl+F para focar na busca
-            if (e.ctrlKey && e.key.toLowerCase() === 'f') {
-                e.preventDefault();
-                const searchInput = document.getElementById('search-global');
-                if (searchInput && document.getElementById('main-content').style.display !== 'none') {
-                    searchInput.focus();
-                    searchInput.select();
-                }
+        /**
+         * Inicializa o sistema quando a página carrega
+         * Aplica tamanhos de coluna salvos e inicia estilos
+         */
+        window.onload = function() {
+            // Aplicar tamanhos de coluna salvos
+            if (Object.keys(columnSizes).length > 0) {
+                const style = document.createElement('style');
+                let css = '';
+                Object.entries(columnSizes).forEach(([key, size]) => {
+                    css += `th[data-key="${key}"] { min-width: ${size}px !important; max-width: none !important; }\n`;
+                });
+                style.textContent = css;
+                document.head.appendChild(style);
             }
-        });
-
-        function getTodayDate() {
-            const d = new Date();
-            const day = String(d.getDate()).padStart(2, '0');
-            const month = String(d.getMonth() + 1).padStart(2, '0');
-            const year = d.getFullYear();
-            return `${day}/${month}/${year}`;
-        }
-
-        function getFilenameTimestamp() {
-            const d = new Date();
-            const dStr = String(d.getDate()).padStart(2, '0') + String(d.getMonth() + 1).padStart(2, '0') + d.getFullYear();
-            const tStr = String(d.getHours()).padStart(2, '0') + String(d.getMinutes()).padStart(2, '0');
-            return `${dStr}_${tStr}`;
-        }
-
-        function clearSearch() {
-            document.getElementById('search-global').value = '';
-            renderMain();
-        }
-
-        function forceUp(el) {
-            el.value = el.value.toUpperCase();
-        }
-
-        function maskPedido(el) {
-            let v = el.value.replace(/\D/g, '');
-            if (v.length > 0 && !v.startsWith('4500')) {
-                if (v.startsWith('450')) v = v.substring(3);
-                else if (v.length > 4) v = v.substring(4);
-                el.value = '4500' + v;
-            } else if (v.length > 0 && v.length < 4) {
-                el.value = '4500';
-            } else {
-                el.value = v;
-            }
-            if (el.value.length > 10) el.value = el.value.substring(0, 10);
-        }
-
-        function maskDate(el) {
-            let v = el.value.replace(/[^0-9]/g, '');
-            let day = v.substring(0, 2);
-            let month = v.substring(2, 4);
-            if (day.length === 2) {
-                day = parseInt(day);
-                if (day > 31) day = 31;
-                day = String(day).padStart(2, '0');
-            }
-            if (month.length === 2) {
-                month = parseInt(month);
-                if (month > 12) month = 12;
-                month = String(month).padStart(2, '0');
-            }
-            if (v.length > 2) el.value = day + '/' + month;
-            else el.value = day;
-        }
-
-        function maskMoney(el) {
-            let v = el.value.replace(/\D/g, '');
-            if (v.length === 0) {
-                el.value = '';
-                return;
-            }
-            v = v.padStart(3, '0');
-            v = v.replace(/(\d)(\d{2})$/, '$1,$2');
-            v = v.replace(/(\d+)(\d{3},\d{2})$/, '$1.$2');
-            v = v.replace(/(\d+)(\d{3}\.\d{3},\d{2})$/, '$1.$2');
-            v = v.replace(/^0+(?=\d)/, '');
-            el.value = (v.length > 0) ? 'R$ ' + v : '';
-        }
-
-        function formatCellDate(text) {
-            let v = text.replace(/[^0-9]/g, '');
-            let day = v.substring(0, 2);
-            let month = v.substring(2, 4);
-            if (day.length === 2) {
-                day = parseInt(day);
-                if (day > 31) day = 31;
-                day = String(day).padStart(2, '0');
-            }
-            if (month.length === 2) {
-                month = parseInt(month);
-                if (month > 12) month = 12;
-                month = String(month).padStart(2, '0');
-            }
-            if (v.length >= 3) return day + '/' + month;
-            else if (v.length > 0) return day;
-            return '';
-        }
-
-        function nav(e, nextId, isLast = false) {
-            const isEnter = e.key.toUpperCase() === 'ENTER';
-            const isTabForward = e.key.toUpperCase() === 'TAB' && !e.shiftKey;
-            if (isEnter || isTabForward) {
-                e.preventDefault();
-                if (isLast) {
-                    addItem();
-                    setTimeout(() => document.getElementById(nextId).focus(), 0);
-                } else {
-                    document.getElementById(nextId).focus();
-                }
-            }
-        }
-
-        function navTable(e, currentCell) {
-            if (e.key.toUpperCase() !== 'ENTER') return;
-            e.preventDefault();
             
-            const row = currentCell.parentElement;
-            const cells = Array.from(row.querySelectorAll('td[contenteditable="true"]'));
-            const currentIndex = cells.indexOf(currentCell);
-            
-            if (currentIndex < cells.length - 1) {
-                // Próxima célula na mesma linha
-                cells[currentIndex + 1].focus();
-            } else {
-                // Primeira célula editável da próxima linha
-                const nextRow = row.nextElementSibling;
-                if (nextRow) {
-                    const nextCells = nextRow.querySelectorAll('td[contenteditable="true"]');
-                    if (nextCells.length > 0) {
-                        nextCells[0].focus();
+            // Configurar atalhos de teclado globais
+            document.addEventListener('keydown', function(e) {
+                // Ctrl+F para focar na busca
+                if (e.ctrlKey && e.key.toLowerCase() === 'f') {
+                    e.preventDefault();
+                    const searchInput = document.getElementById('search-global');
+                    if (searchInput && document.getElementById('main-content').style.display !== 'none') {
+                        searchInput.focus();
+                        searchInput.select();
                     }
                 }
-            }
-        }
+            });
+        };
 
-        function parseDeliveryDate(dateStr) {
-            if (!dateStr || dateStr.length !== 5) return null;
-            const parts = dateStr.split('/');
-            if (parts.length !== 2) return null;
-            let day = parseInt(parts[0], 10);
-            let month = parseInt(parts[1], 10) - 1;
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const currentYear = today.getFullYear();
-            let date = new Date(currentYear, month, day);
-            if (date < today) {
-                date.setFullYear(currentYear + 1);
-            }
-            if (date.getDate() !== day || date.getMonth() !== month) return null;
-            return date;
-        }
+        // =============================================
+        // FUNÇÕES DE LOGIN E ACESSO
+        // =============================================
 
-        function showSaveIndicator(status) {
-            const indicator = document.getElementById('save-indicator');
-            indicator.style.display = 'block';
-            indicator.className = 'save-indicator ' + status;
+        /**
+         * Entra no modo de visualização sem necessidade de senha
+         * Configura a interface para modo somente leitura
+         */
+        function enterViewMode() {
+            isEdit = false;
+            document.getElementById('mode-badge').innerText = "VISUALIZAÇÃO";
+            document.getElementById('input-area').style.display = 'none';
+            document.getElementById('edit-buttons').style.display = 'none';
+            document.getElementById('calc-days-wrapper').style.display = 'none';
+            document.getElementById('filter-delivery-wrapper').style.display = 'none';
             
-            if (status === 'saving') {
-                indicator.innerText = 'SALVANDO...';
-            } else if (status === 'saved') {
-                indicator.innerText = '✓ SALVO';
-                setTimeout(() => {
-                    indicator.style.display = 'none';
-                }, 2000);
-            } else if (status === 'error') {
-                indicator.innerText = '✗ ERRO';
+            document.getElementById('login-overlay').style.display = 'none';
+            tryAutoLoad();
+        }
+
+        /**
+         * Exibe o campo para inserir senha de edição
+         */
+        function showEditLogin() {
+            document.getElementById('edit-login').style.display = 'block';
+            setTimeout(() => document.getElementById('senha').focus(), 0);
+        }
+
+        /**
+         * Valida a senha de edição e entra no modo edição
+         */
+        function loginEdit() {
+            const s = document.getElementById('senha').value.toUpperCase();
+            
+            if (s === EDIT_PASSWORD) {
+                isEdit = true;
+                document.getElementById('mode-badge').innerText = "EDIÇÃO";
+                document.getElementById('input-area').style.display = 'block';
+                document.getElementById('edit-buttons').style.display = 'flex';
+                document.getElementById('calc-days-wrapper').style.display = 'flex';
+                document.getElementById('filter-delivery-wrapper').style.display = 'flex';
+                
+                document.getElementById('login-overlay').style.display = 'none';
+                tryAutoLoad();
+            } else {
+                document.getElementById('login-msg').innerText = "Senha Incorreta";
             }
         }
 
+        // =============================================
+        // FUNÇÕES DE CARREGAMENTO DE ARQUIVO
+        // =============================================
+
+        /**
+         * Tenta carregar automaticamente o arquivo dados.json
+         * Se não encontrar, exibe seletor de arquivo
+         */
+        async function tryAutoLoad() {
+            try {
+                const response = await fetch('dados.json');
+                if (!response.ok) throw new Error('Arquivo não encontrado');
+                
+                const data = await response.json();
+                db = data.db_pedidos || [];
+                trash = data.db_lixeira || [];
+                
+                // Ordenar por ID
+                db.sort((a, b) => a.id - b.id);
+                
+                document.getElementById('main-content').style.display = 'block';
+                document.getElementById('file-info').innerText = '📁 dados.json (automático)';
+                
+                renderMain();
+                
+                if (isEdit) {
+                    setTimeout(() => document.getElementById('in-pedido').focus(), 100);
+                }
+                
+            } catch (error) {
+                console.log('Arquivo não encontrado, solicitando seleção manual');
+                document.getElementById('file-select-overlay').style.display = 'flex';
+            }
+        }
+
+        /**
+         * Seleciona manualmente o arquivo JSON
+         * Usa File System Access API quando disponível
+         */
         async function selectFile() {
             try {
                 if (!window.showOpenFilePicker) {
                     alert('Seu navegador não suporta esta funcionalidade.\n\nUse Chrome ou Edge (versão mais recente).');
+                    document.getElementById('file-msg').innerText = 'Navegador não compatível com File System Access API';
                     return;
                 }
 
@@ -969,13 +965,17 @@
                 
                 if (savedHandle) {
                     // Verifica se ainda tem permissão
-                    const permission = await verifyPermission(savedHandle);
-                    
-                    if (permission) {
-                        fileHandle = savedHandle;
-                        fileName = savedHandle.name;
-                        await loadFileData();
-                        return;
+                    try {
+                        const permission = await verifyPermission(savedHandle);
+                        
+                        if (permission) {
+                            fileHandle = savedHandle;
+                            fileName = savedHandle.name;
+                            await loadFileData();
+                            return;
+                        }
+                    } catch (error) {
+                        console.log('Permissão perdida, solicitando novo arquivo:', error);
                     }
                 }
 
@@ -1006,6 +1006,9 @@
             }
         }
 
+        /**
+         * Carrega os dados do arquivo selecionado
+         */
         async function loadFileData() {
             try {
                 const file = await fileHandle.getFile();
@@ -1019,6 +1022,8 @@
                 document.getElementById('main-content').style.display = 'block';
                 document.getElementById('file-info').innerText = `📁 ${fileName}`;
 
+                // Ordenar por ID
+                db.sort((a, b) => a.id - b.id);
                 renderMain();
 
                 if (isEdit) {
@@ -1030,9 +1035,11 @@
             }
         }
 
+        /**
+         * Salva a referência do arquivo no IndexedDB
+         */
         async function saveFileHandle(handle) {
             try {
-                // Usa IndexedDB para salvar a referência do arquivo
                 const db = await openDB();
                 const transaction = db.transaction(['fileHandles'], 'readwrite');
                 const store = transaction.objectStore('fileHandles');
@@ -1042,6 +1049,9 @@
             }
         }
 
+        /**
+         * Recupera a referência do arquivo salva anteriormente
+         */
         async function getSavedFileHandle() {
             try {
                 const db = await openDB();
@@ -1055,20 +1065,41 @@
             }
         }
 
+        /**
+         * Verifica permissões de acesso ao arquivo
+         * Versão compatível com diferentes navegadores
+         */
         async function verifyPermission(handle) {
-            const options = { mode: 'readwrite' };
-            
-            if ((await handle.queryPermission(options)) === 'granted') {
-                return true;
+            try {
+                // Método moderno (Chrome/Edge)
+                if (handle.queryPermission) {
+                    const options = { mode: 'readwrite' };
+                    
+                    if ((await handle.queryPermission(options)) === 'granted') {
+                        return true;
+                    }
+                    
+                    if ((await handle.requestPermission(options)) === 'granted') {
+                        return true;
+                    }
+                } 
+                // Método alternativo
+                else {
+                    // Tenta acessar o arquivo diretamente
+                    const file = await handle.getFile();
+                    if (file) return true;
+                }
+                
+                return false;
+            } catch (error) {
+                console.warn('Erro ao verificar permissão:', error);
+                return false;
             }
-            
-            if ((await handle.requestPermission(options)) === 'granted') {
-                return true;
-            }
-            
-            return false;
         }
 
+        /**
+         * Abre conexão com o IndexedDB
+         */
         function openDB() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open('PedidosDB', 1);
@@ -1085,6 +1116,9 @@
             });
         }
 
+        /**
+         * Recarrega os dados do arquivo atual
+         */
         async function reloadFile() {
             if (!fileHandle) {
                 alert('Nenhum arquivo carregado. Reabra o sistema.');
@@ -1099,6 +1133,8 @@
                 db = data.db_pedidos || [];
                 trash = data.db_lixeira || [];
 
+                // Ordenar por ID
+                db.sort((a, b) => a.id - b.id);
                 renderMain();
 
             } catch (error) {
@@ -1107,58 +1143,14 @@
             }
         }
 
-        async function saveToFile() {
-            if (!isEdit || !fileHandle) return;
+        // =============================================
+        // FUNÇÕES DE MANIPULAÇÃO DE DADOS
+        // =============================================
 
-            const dadosParaSalvar = {
-                db_pedidos: db,
-                db_lixeira: trash,
-                timestamp: getTodayDate() + ' ' + new Date().toLocaleTimeString('pt-BR')
-            };
-
-            try {
-                showSaveIndicator('saving');
-
-                const writable = await fileHandle.createWritable();
-                await writable.write(JSON.stringify(dadosParaSalvar, null, 2));
-                await writable.close();
-
-                showSaveIndicator('saved');
-                return true;
-
-            } catch (error) {
-                console.error('Erro ao salvar:', error);
-                showSaveIndicator('error');
-                return false;
-            }
-        }
-
-        function login() {
-            const s = document.getElementById('senha').value.toUpperCase();
-
-            if (s === VIEW_PASSWORD) {
-                isEdit = false;
-                document.getElementById('mode-badge').innerText = "VISUALIZAÇÃO";
-                document.getElementById('input-area').style.display = 'none';
-                document.getElementById('edit-buttons').style.display = 'none';
-                document.getElementById('calc-days-wrapper').style.display = 'none';
-                document.getElementById('filter-delivery-wrapper').style.display = 'none';
-            } else if (s === EDIT_PASSWORD) {
-                isEdit = true;
-                document.getElementById('mode-badge').innerText = "EDIÇÃO";
-                document.getElementById('input-area').style.display = 'block';
-                document.getElementById('edit-buttons').style.display = 'flex';
-                document.getElementById('calc-days-wrapper').style.display = 'flex';
-                document.getElementById('filter-delivery-wrapper').style.display = 'flex';
-            } else {
-                document.getElementById('login-msg').innerText = "Senha Incorreta";
-                return;
-            }
-
-            document.getElementById('login-overlay').style.display = 'none';
-            document.getElementById('file-select-overlay').style.display = 'flex';
-        }
-
+        /**
+         * Adiciona um novo pedido ao sistema
+         * Valida campos obrigatórios e salva automaticamente
+         */
         async function addItem() {
             if (!isEdit) {
                 alert('Apenas Visualização');
@@ -1185,7 +1177,7 @@
                 dt: document.getElementById('in-dt').value,
                 infTrans: '',
                 venc: document.getElementById('in-venc').value,
-                vencCTe: document.getElementById('in-vencCTe').value,
+                frete: '', // Nova coluna frete (substitui vencCTe)
                 chave: '',
                 obs: document.getElementById('in-obs').value
             };
@@ -1194,15 +1186,21 @@
             db.sort((a, b) => a.id - b.id);
             await saveToFile();
 
+            // Limpar campos do formulário
             document.querySelectorAll('.input-grid input').forEach(i => { i.value = ''; });
             document.getElementById('in-pedido').value = '4500';
             renderMain();
             
+            // Rolar para o final da tabela
             const scrollDiv = document.getElementById('main-scroll');
             scrollDiv.scrollTop = scrollDiv.scrollHeight;
             document.getElementById('in-pedido').focus();
         }
 
+        /**
+         * Atualiza o valor de uma célula editável
+         * Salva automaticamente após a edição
+         */
         async function updateCell(id, key, val) {
             if (!isEdit) {
                 renderMain();
@@ -1212,6 +1210,7 @@
             const item = db.find(x => x.id == id);
             let newValue = val.trim();
 
+            // Formatação especial para valor monetário
             if (key === 'vlrNf') {
                 const tempInput = document.createElement('input');
                 tempInput.value = newValue;
@@ -1222,6 +1221,7 @@
                 newValue = newValue.toUpperCase();
             }
 
+            // Validação para campo chave
             if (key === 'chave' && newValue.length > 0 && newValue.length < CHAVE_MIN_LENGTH) {
                 console.warn(`AVISO: O campo CHAVE deve ter 44 caracteres ou ficar em branco. Valor atual: ${newValue.length} caracteres.`);
             }
@@ -1232,6 +1232,9 @@
             }
         }
 
+        /**
+         * Atualiza uma célula de data com formatação automática
+         */
         async function updateCellDate(el, id, key) {
             if (!isEdit) {
                 renderMain();
@@ -1249,6 +1252,26 @@
             }
         }
 
+        /**
+         * Atualiza o tipo de frete (CIF, FOB ou LOCAL)
+         */
+        async function updateFrete(id, val) {
+            if (!isEdit) {
+                renderMain();
+                return;
+            }
+            
+            const item = db.find(x => x.id == id);
+            if (item) {
+                item.frete = val;
+                await saveToFile();
+            }
+        }
+
+        /**
+         * Altera o status de um pedido
+         * Se for FINALIZADO, move para a lixeira
+         */
         async function changeStatus(id, val) {
             if (!isEdit) {
                 renderMain();
@@ -1262,8 +1285,8 @@
             const finalVal = statusMap[val] || val;
 
             if (finalVal === 'FINALIZADO') {
-                const r = prompt("FINALIZAR E MOVER PARA EXCLUÍDOS? (S/N)");
-                if (r && r.toUpperCase() === 'S') {
+                // Usa confirm em vez de prompt
+                if (confirm("FINALIZAR E MOVER PARA EXCLUÍDOS?")) {
                     const item = JSON.parse(JSON.stringify(db[idx]));
                     db.splice(idx, 1);
                     item.status = 'FINALIZADO';
@@ -1272,6 +1295,7 @@
                     await saveToFile();
                     renderMain();
                 } else {
+                    // Reverter a seleção
                     renderMain();
                 }
             } else {
@@ -1281,12 +1305,381 @@
             }
         }
 
+        /**
+         * Salva os dados no arquivo JSON
+         * Exibe indicador visual de status
+         */
+        async function saveToFile() {
+            if (!isEdit || !fileHandle) return;
+
+            const dadosParaSalvar = {
+                db_pedidos: db,
+                db_lixeira: trash,
+                timestamp: getTodayDate() + ' ' + new Date().toLocaleTimeString('pt-BR')
+            };
+
+            try {
+                showSaveIndicator('saving');
+
+                const writable = await fileHandle.createWritable();
+                await writable.write(JSON.stringify(dadosParaSalvar, null, 2));
+                await writable.close();
+
+                showSaveIndicator('saved');
+                return true;
+
+            } catch (error) {
+                console.error('Erro ao salvar:', error);
+                showSaveIndicator('error');
+                return false;
+            }
+        }
+
+        // =============================================
+        // FUNÇÕES DE RENDERIZAÇÃO DA TABELA
+        // =============================================
+
+        /**
+         * Renderiza a tabela principal com todos os pedidos
+         * Aplica filtros e busca
+         */
+        function renderMain() {
+            const tbody = document.getElementById('main-body');
+            tbody.innerHTML = '';
+            const termo = document.getElementById('search-global').value.toUpperCase();
+            
+            const deliveryFilterDays = parseInt(document.getElementById('filter-delivery').value, 10);
+            let today = new Date();
+            today.setHours(0, 0, 0, 0);
+            let filterLimitDate = null;
+            if (deliveryFilterDays > 0) {
+                filterLimitDate = new Date(today);
+                filterLimitDate.setDate(today.getDate() + deliveryFilterDays);
+            }
+            
+            db.forEach((item, index) => {
+                const rowStr = Object.values(item).map(v => v || '').join(' ').toUpperCase();
+                let highlight = false;
+
+                // Filtro por termo de busca
+                if (termo.length >= 3) {
+                    if (!rowStr.includes(termo)) return;
+                    highlight = true;
+                }
+
+                // Filtros por coluna
+                for (let k in activeFilters) {
+                    const permitidos = activeFilters[k];
+                    const val = item[k] || "";
+                    if (!permitidos.includes(val)) return;
+                }
+
+                // Filtro por data de entrega
+                if (deliveryFilterDays > 0) {
+                    const dtEntrega = parseDeliveryDate(item.dt);
+                    if (!dtEntrega) return;
+                    if (dtEntrega < today || dtEntrega >= filterLimitDate) return;
+                }
+
+                // Classes CSS baseadas no status
+                let trClass = '';
+                if (item.status === 'FATURADO') trClass = 'st-faturado';
+                else if (item.status === 'RECEBIDO') trClass = 'st-recebido';
+                else if (item.status === 'CONTATO') trClass = 'st-contato';
+                else if (item.status === 'ATENÇÃO') trClass = 'st-atencao';
+
+                const tr = document.createElement('tr');
+                tr.className = trClass;
+                const disabled = isEdit ? '' : 'disabled';
+                const hl = highlight ? 'hl' : '';
+                const dv = (v) => v || '';
+                const isCellEditable = isEdit ? 'true' : 'false';
+
+                // Opções para status
+                const statusOpts = `
+                    <option value="" ${item.status == '' ? 'selected' : ''}></option>
+                    <option value="ATENÇÃO" ${item.status == 'ATENÇÃO' ? 'selected' : ''}>ATENÇÃO</option>
+                    <option value="CONTATO" ${item.status == 'CONTATO' ? 'selected' : ''}>CONTATO</option>
+                    <option value="FATURADO" ${item.status == 'FATURADO' ? 'selected' : ''}>FATURADO</option>
+                    <option value="RECEBIDO" ${item.status == 'RECEBIDO' ? 'selected' : ''}>RECEBIDO</option>
+                    <option value="FINALIZADO">FINALIZADO</option>
+                `;
+
+                // Opções para frete
+                const freteOpts = `
+                    <option value=""></option>
+                    <option value="CIF" ${item.frete == 'CIF' ? 'selected' : ''}>CIF</option>
+                    <option value="FOB" ${item.frete == 'FOB' ? 'selected' : ''}>FOB</option>
+                    <option value="LOCAL" ${item.frete == 'LOCAL' ? 'selected' : ''}>LOCAL</option>
+                `;
+
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td><select class="status-sel" ${disabled} onchange="changeStatus(${item.id}, this.value)">${statusOpts}</select></td>
+                    <td>${dv(item.dtLancamento)}</td>
+                    <td contenteditable="${isCellEditable}" class="${hl}" id="cell-${item.id}-pedido" onblur="updateCell(${item.id}, 'pedido', this.innerText)" onkeydown="navTable(event, this)">${dv(item.pedido)}</td>
+                    <td contenteditable="${isCellEditable}" class="${hl}" id="cell-${item.id}-forn" onblur="updateCell(${item.id}, 'forn', this.innerText)" onkeydown="navTable(event, this)">${dv(item.forn)}</td>
+                    <td contenteditable="${isCellEditable}" class="${hl}" id="cell-${item.id}-comp" onblur="updateCell(${item.id}, 'comp', this.innerText)" onkeydown="navTable(event, this)">${dv(item.comp)}</td>
+                    <td contenteditable="${isCellEditable}" class="${hl}" id="cell-${item.id}-setor" onblur="updateCell(${item.id}, 'setor', this.innerText)" onkeydown="navTable(event, this)">${dv(item.setor)}</td>
+                    <td contenteditable="${isCellEditable}" class="${hl}" id="cell-${item.id}-nf" onblur="updateCell(${item.id}, 'nf', this.innerText)" onkeydown="navTable(event, this)">${dv(item.nf)}</td>
+                    <td contenteditable="${isCellEditable}" class="${hl}" data-key="vlrNf" id="cell-${item.id}-vlrNf" onblur="updateCell(${item.id}, 'vlrNf', this.innerText)" onkeydown="navTable(event, this)">${dv(item.vlrNf)}</td>
+                    <td contenteditable="${isCellEditable}" class="${hl}" id="cell-${item.id}-dt" onblur="updateCellDate(this, ${item.id}, 'dt')" onkeydown="navTable(event, this)">${dv(item.dt)}</td>
+                    <td contenteditable="${isCellEditable}" class="${hl}" id="cell-${item.id}-infTrans" onblur="updateCell(${item.id}, 'infTrans', this.innerText)" onkeydown="navTable(event, this)">${dv(item.infTrans)}</td>
+                    <td contenteditable="${isCellEditable}" class="${hl}" id="cell-${item.id}-venc" onblur="updateCellDate(this, ${item.id}, 'venc')" onkeydown="navTable(event, this)">${dv(item.venc)}</td>
+                    <td>
+                        <select class="frete-sel" ${disabled} onchange="updateFrete(${item.id}, this.value)" style="width:100%; font-size:11px;">
+                            ${freteOpts}
+                        </select>
+                    </td>
+                    <td contenteditable="${isCellEditable}" class="cell-chave ${hl}" id="cell-${item.id}-chave" onblur="updateCell(${item.id}, 'chave', this.innerText)" onclick="${isEdit ? 'copyChaveIfPopulated(this)' : ''}" onkeydown="navTable(event, this)" title="Clique para Copiar/Editar">${dv(item.chave)}</td>
+                    <td contenteditable="${isCellEditable}" class="${hl}" id="cell-${item.id}-obs" onblur="updateCell(${item.id}, 'obs', this.innerText)" onkeydown="navTable(event, this)">${dv(item.obs)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Atualizar estado dos botões de filtro
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                const k = btn.parentElement.getAttribute('data-key');
+                if (activeFilters[k]) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+            
+            // Aplicar redimensionamento após renderizar
+            setTimeout(makeColumnsResizable, 50);
+        }
+
+        /**
+         * Habilita redimensionamento das colunas com o mouse
+         * Salva os tamanhos no localStorage
+         */
+        function makeColumnsResizable() {
+            const headers = document.querySelectorAll('th');
+            headers.forEach((header) => {
+                // Remover handlers antigos
+                const oldHandle = header.querySelector('.resize-handle');
+                if (oldHandle) oldHandle.remove();
+                
+                // Aplicar tamanho salvo
+                const key = header.getAttribute('data-key');
+                if (key && columnSizes[key]) {
+                    header.style.minWidth = columnSizes[key] + 'px';
+                    header.style.maxWidth = 'none';
+                }
+                
+                // Criar novo handle de redimensionamento
+                const resizeHandle = document.createElement('div');
+                resizeHandle.className = 'resize-handle';
+                
+                header.style.position = 'relative';
+                header.appendChild(resizeHandle);
+                
+                let startX, startWidth;
+                
+                resizeHandle.addEventListener('mousedown', initResize);
+                
+                function initResize(e) {
+                    startX = e.clientX;
+                    startWidth = header.offsetWidth;
+                    document.documentElement.style.cursor = 'col-resize';
+                    document.body.style.userSelect = 'none';
+                    
+                    document.addEventListener('mousemove', doResize);
+                    document.addEventListener('mouseup', stopResize);
+                }
+                
+                function doResize(e) {
+                    const width = startWidth + (e.clientX - startX);
+                    if (width > 30) {
+                        header.style.minWidth = width + 'px';
+                        header.style.maxWidth = 'none';
+                    }
+                }
+                
+                function stopResize() {
+                    const key = header.getAttribute('data-key');
+                    if (key) {
+                        columnSizes[key] = header.offsetWidth;
+                        localStorage.setItem('columnSizes', JSON.stringify(columnSizes));
+                    }
+                    
+                    document.documentElement.style.cursor = '';
+                    document.body.style.userSelect = '';
+                    document.removeEventListener('mousemove', doResize);
+                    document.removeEventListener('mouseup', stopResize);
+                }
+            });
+        }
+
+        // =============================================
+        // FUNÇÕES DE UTILITÁRIOS
+        // =============================================
+
+        /**
+         * Retorna a data atual no formato DD/MM/AAAA
+         */
+        function getTodayDate() {
+            const d = new Date();
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        /**
+         * Retorna timestamp para nome de arquivo
+         */
+        function getFilenameTimestamp() {
+            const d = new Date();
+            const dStr = String(d.getDate()).padStart(2, '0') + String(d.getMonth() + 1).padStart(2, '0') + d.getFullYear();
+            const tStr = String(d.getHours()).padStart(2, '0') + String(d.getMinutes()).padStart(2, '0');
+            return `${dStr}_${tStr}`;
+        }
+
+        /**
+         * Limpa o campo de busca
+         */
+        function clearSearch() {
+            document.getElementById('search-global').value = '';
+            renderMain();
+        }
+
+        /**
+         * Converte texto para maiúsculas
+         */
+        function forceUp(el) {
+            el.value = el.value.toUpperCase();
+        }
+
+        /**
+         * Formata número do pedido com prefixo 4500
+         */
+        function maskPedido(el) {
+            let v = el.value.replace(/\D/g, '');
+            if (v.length > 0 && !v.startsWith('4500')) {
+                if (v.startsWith('450')) v = v.substring(3);
+                else if (v.length > 4) v = v.substring(4);
+                el.value = '4500' + v;
+            } else if (v.length > 0 && v.length < 4) {
+                el.value = '4500';
+            } else {
+                el.value = v;
+            }
+            if (el.value.length > 10) el.value = el.value.substring(0, 10);
+        }
+
+        /**
+         * Formata data no formato DD/MM
+         */
+        function maskDate(el) {
+            let v = el.value.replace(/[^0-9]/g, '');
+            let day = v.substring(0, 2);
+            let month = v.substring(2, 4);
+            if (day.length === 2) {
+                day = parseInt(day);
+                if (day > 31) day = 31;
+                day = String(day).padStart(2, '0');
+            }
+            if (month.length === 2) {
+                month = parseInt(month);
+                if (month > 12) month = 12;
+                month = String(month).padStart(2, '0');
+            }
+            if (v.length > 2) el.value = day + '/' + month;
+            else el.value = day;
+        }
+
+        /**
+         * Formata valor monetário
+         */
+        function maskMoney(el) {
+            let v = el.value.replace(/\D/g, '');
+            if (v.length === 0) {
+                el.value = '';
+                return;
+            }
+            v = v.padStart(3, '0');
+            v = v.replace(/(\d)(\d{2})$/, '$1,$2');
+            v = v.replace(/(\d+)(\d{3},\d{2})$/, '$1.$2');
+            v = v.replace(/(\d+)(\d{3}\.\d{3},\d{2})$/, '$1.$2');
+            v = v.replace(/^0+(?=\d)/, '');
+            el.value = (v.length > 0) ? 'R$ ' + v : '';
+        }
+
+        /**
+         * Formata texto de célula como data
+         */
+        function formatCellDate(text) {
+            let v = text.replace(/[^0-9]/g, '');
+            let day = v.substring(0, 2);
+            let month = v.substring(2, 4);
+            if (day.length === 2) {
+                day = parseInt(day);
+                if (day > 31) day = 31;
+                day = String(day).padStart(2, '0');
+            }
+            if (month.length === 2) {
+                month = parseInt(month);
+                if (month > 12) month = 12;
+                month = String(month).padStart(2, '0');
+            }
+            if (v.length >= 3) return day + '/' + month;
+            else if (v.length > 0) return day;
+            return '';
+        }
+
+        /**
+         * Navegação por teclado entre campos do formulário
+         * Campo OBS salva automaticamente com Enter
+         */
+        function nav(e, nextId, isLast = false) {
+            const isEnter = e.key.toUpperCase() === 'ENTER';
+            const isTabForward = e.key.toUpperCase() === 'TAB' && !e.shiftKey;
+            if (isEnter || isTabForward) {
+                e.preventDefault();
+                if (isLast) {
+                    addItem();
+                    setTimeout(() => document.getElementById(nextId).focus(), 0);
+                } else {
+                    document.getElementById(nextId).focus();
+                }
+            }
+        }
+
+        /**
+         * Navegação por teclado na tabela
+         */
+        function navTable(e, currentCell) {
+            if (e.key.toUpperCase() !== 'ENTER') return;
+            e.preventDefault();
+            
+            const row = currentCell.parentElement;
+            const cells = Array.from(row.querySelectorAll('td[contenteditable="true"]'));
+            const currentIndex = cells.indexOf(currentCell);
+            
+            if (currentIndex < cells.length - 1) {
+                // Próxima célula na mesma linha
+                cells[currentIndex + 1].focus();
+            } else {
+                // Primeira célula editável da próxima linha
+                const nextRow = row.nextElementSibling;
+                if (nextRow) {
+                    const nextCells = nextRow.querySelectorAll('td[contenteditable="true"]');
+                    if (nextCells.length > 0) {
+                        nextCells[0].focus();
+                    }
+                }
+            }
+        }
+
+        /**
+         * Copia conteúdo da chave para área de transferência
+         */
         function copyChaveIfPopulated(el) {
             if (!isEdit) return;
             const keyVal = el.innerText.trim();
             if (keyVal.length > 0) {
                 navigator.clipboard.writeText(keyVal).then(() => {
-                    // Copiado com sucesso - feedback visual apenas
+                    // Feedback visual de cópia bem-sucedida
                     el.style.backgroundColor = '#d4edda';
                     setTimeout(() => {
                         el.style.backgroundColor = '';
@@ -1296,6 +1689,53 @@
             el.focus();
         }
 
+        /**
+         * Analisa string de data de entrega para objeto Date
+         */
+        function parseDeliveryDate(dateStr) {
+            if (!dateStr || dateStr.length !== 5) return null;
+            const parts = dateStr.split('/');
+            if (parts.length !== 2) return null;
+            let day = parseInt(parts[0], 10);
+            let month = parseInt(parts[1], 10) - 1;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const currentYear = today.getFullYear();
+            let date = new Date(currentYear, month, day);
+            if (date < today) {
+                date.setFullYear(currentYear + 1);
+            }
+            if (date.getDate() !== day || date.getMonth() !== month) return null;
+            return date;
+        }
+
+        /**
+         * Exibe indicador visual de status do salvamento
+         */
+        function showSaveIndicator(status) {
+            const indicator = document.getElementById('save-indicator');
+            indicator.style.display = 'block';
+            indicator.className = 'save-indicator ' + status;
+            
+            if (status === 'saving') {
+                indicator.innerText = 'SALVANDO...';
+            } else if (status === 'saved') {
+                indicator.innerText = '✓ SALVO';
+                setTimeout(() => {
+                    indicator.style.display = 'none';
+                }, 2000);
+            } else if (status === 'error') {
+                indicator.innerText = '✗ ERRO';
+            }
+        }
+
+        // =============================================
+        // FUNÇÕES DE FILTROS
+        // =============================================
+
+        /**
+         * Exibe menu de filtro para uma coluna específica
+         */
         function showFilter(e, key) {
             e.stopPropagation();
             targetCol = key;
@@ -1323,10 +1763,16 @@
             menu.style.top = (rect.bottom + 2) + 'px';
         }
 
+        /**
+         * Seleciona/deseleciona todos os itens do filtro
+         */
         function toggleFilterAll(source) {
             document.querySelectorAll('.chk-item').forEach(c => c.checked = source.checked);
         }
 
+        /**
+         * Aplica os filtros selecionados
+         */
         function applyFilter() {
             const chks = document.querySelectorAll('.chk-item');
             const selected = [];
@@ -1338,99 +1784,50 @@
             renderMain();
         }
 
+        /**
+         * Fecha o menu de filtros
+         */
         function closeFilter() {
             document.getElementById('excel-menu').style.display = 'none';
         }
 
+        // Fechar filtro ao clicar fora
         document.addEventListener('click', e => {
             if (!e.target.closest('.excel-menu') && !e.target.classList.contains('filter-btn')) closeFilter();
         });
 
-        function renderMain() {
-            const tbody = document.getElementById('main-body');
-            tbody.innerHTML = '';
-            const termo = document.getElementById('search-global').value.toUpperCase();
-            
-            const deliveryFilterDays = parseInt(document.getElementById('filter-delivery').value, 10);
-            let today = new Date();
-            today.setHours(0, 0, 0, 0);
-            let filterLimitDate = null;
-            if (deliveryFilterDays > 0) {
-                filterLimitDate = new Date(today);
-                filterLimitDate.setDate(today.getDate() + deliveryFilterDays);
-            }
-            
-            db.forEach((item, index) => {
-                const rowStr = Object.values(item).map(v => v || '').join(' ').toUpperCase();
-                let highlight = false;
-
-                if (termo.length >= 3) {
-                    if (!rowStr.includes(termo)) return;
-                    highlight = true;
-                }
-
-                for (let k in activeFilters) {
-                    const permitidos = activeFilters[k];
-                    const val = item[k] || "";
-                    if (!permitidos.includes(val)) return;
-                }
-
-                if (deliveryFilterDays > 0) {
-                    const dtEntrega = parseDeliveryDate(item.dt);
-                    if (!dtEntrega) return;
-                    if (dtEntrega < today || dtEntrega >= filterLimitDate) return;
-                }
-
-                let trClass = '';
-                if (item.status === 'FATURADO') trClass = 'st-faturado';
-                else if (item.status === 'RECEBIDO') trClass = 'st-recebido';
-                else if (item.status === 'CONTATO') trClass = 'st-contato';
-                else if (item.status === 'ATENÇÃO') trClass = 'st-atencao';
-
-                const tr = document.createElement('tr');
-                tr.className = trClass;
-                const disabled = isEdit ? '' : 'disabled';
-                const opts = `<option value="" ${item.status == '' ? 'selected' : ''}></option><option value="ATENÇÃO" ${item.status == 'ATENÇÃO' ? 'selected' : ''}>ATENÇÃO</option><option value="CONTATO" ${item.status == 'CONTATO' ? 'selected' : ''}>CONTATO</option><option value="FATURADO" ${item.status == 'FATURADO' ? 'selected' : ''}>FATURADO</option><option value="RECEBIDO" ${item.status == 'RECEBIDO' ? 'selected' : ''}>RECEBIDO</option><option value="FINALIZADO">FINALIZADO</option>`;
-                const hl = highlight ? 'hl' : '';
-                const dv = (v) => v || '';
-                const isCellEditable = isEdit ? 'true' : 'false';
-
-                tr.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td><select class="status-sel" ${disabled} onchange="changeStatus(${item.id}, this.value)">${opts}</select></td>
-                    <td>${dv(item.dtLancamento)}</td>
-                    <td contenteditable="${isCellEditable}" class="${hl}" id="cell-${item.id}-pedido" onblur="updateCell(${item.id}, 'pedido', this.innerText)" onkeydown="navTable(event, this)">${dv(item.pedido)}</td>
-                    <td contenteditable="${isCellEditable}" class="${hl}" id="cell-${item.id}-forn" onblur="updateCell(${item.id}, 'forn', this.innerText)" onkeydown="navTable(event, this)">${dv(item.forn)}</td>
-                    <td contenteditable="${isCellEditable}" class="${hl}" id="cell-${item.id}-comp" onblur="updateCell(${item.id}, 'comp', this.innerText)" onkeydown="navTable(event, this)">${dv(item.comp)}</td>
-                    <td contenteditable="${isCellEditable}" class="${hl}" id="cell-${item.id}-setor" onblur="updateCell(${item.id}, 'setor', this.innerText)" onkeydown="navTable(event, this)">${dv(item.setor)}</td>
-                    <td contenteditable="${isCellEditable}" class="${hl}" id="cell-${item.id}-nf" onblur="updateCell(${item.id}, 'nf', this.innerText)" onkeydown="navTable(event, this)">${dv(item.nf)}</td>
-                    <td contenteditable="${isCellEditable}" class="${hl}" data-key="vlrNf" id="cell-${item.id}-vlrNf" onblur="updateCell(${item.id}, 'vlrNf', this.innerText)" onkeydown="navTable(event, this)">${dv(item.vlrNf)}</td>
-                    <td contenteditable="${isCellEditable}" class="${hl}" id="cell-${item.id}-dt" onblur="updateCellDate(this, ${item.id}, 'dt')" onkeydown="navTable(event, this)">${dv(item.dt)}</td>
-                    <td contenteditable="${isCellEditable}" class="${hl}" id="cell-${item.id}-infTrans" onblur="updateCell(${item.id}, 'infTrans', this.innerText)" onkeydown="navTable(event, this)">${dv(item.infTrans)}</td>
-                    <td contenteditable="${isCellEditable}" class="${hl}" id="cell-${item.id}-venc" onblur="updateCellDate(this, ${item.id}, 'venc')" onkeydown="navTable(event, this)">${dv(item.venc)}</td>
-                    <td contenteditable="${isCellEditable}" class="${hl}" id="cell-${item.id}-vencCTe" onblur="updateCellDate(this, ${item.id}, 'vencCTe')" onkeydown="navTable(event, this)">${dv(item.vencCTe)}</td>
-                    <td contenteditable="${isCellEditable}" class="cell-chave ${hl}" id="cell-${item.id}-chave" onblur="updateCell(${item.id}, 'chave', this.innerText)" onclick="${isEdit ? 'copyChaveIfPopulated(this)' : ''}" onkeydown="navTable(event, this)" title="Clique para Copiar/Editar">${dv(item.chave)}</td>
-                    <td contenteditable="${isCellEditable}" class="${hl}" id="cell-${item.id}-obs" onblur="updateCell(${item.id}, 'obs', this.innerText)" onkeydown="navTable(event, this)">${dv(item.obs)}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                const k = btn.parentElement.getAttribute('data-key');
-                if (activeFilters[k]) btn.classList.add('active');
-                else btn.classList.remove('active');
-            });
+        /**
+         * Remove todos os filtros aplicados
+         */
+        function clearAllFilters() {
+            activeFilters = {};
+            document.getElementById('search-global').value = '';
+            document.getElementById('filter-delivery').value = '0';
+            renderMain();
         }
 
+        // =============================================
+        // FUNÇÕES DA LIXEIRA
+        // =============================================
+
+        /**
+         * Abre a tela de itens excluídos
+         */
         function openTrash() {
             document.getElementById('trash-screen').style.display = 'block';
             renderTrash();
         }
 
+        /**
+         * Fecha a tela de itens excluídos
+         */
         function closeTrash() {
             document.getElementById('trash-screen').style.display = 'none';
         }
 
+        /**
+         * Renderiza a tabela de itens excluídos
+         */
         function renderTrash() {
             const tb = document.getElementById('trash-body');
             tb.innerHTML = '';
@@ -1453,6 +1850,9 @@
             });
         }
 
+        /**
+         * Restaura um item da lixeira para a tabela principal
+         */
         async function restore(id) {
             if (!isEdit) {
                 return;
@@ -1472,18 +1872,70 @@
             renderMain();
         }
 
+        /**
+         * Prepara limpeza da lixeira com confirmação de senha
+         */
+        function prepareClear(target) {
+            if (!isEdit) {
+                return;
+            }
+            clearTarget = target;
+            
+            document.getElementById('confirm-title').innerText = 'LIMPAR LIXEIRA?';
+            document.getElementById('confirm-overlay').style.display = 'flex';
+            document.getElementById('confirm-senha').value = '';
+            document.getElementById('confirm-msg').innerText = '';
+            setTimeout(() => document.getElementById('confirm-senha').focus(), 0);
+        }
+
+        /**
+         * Processa limpeza da lixeira após confirmação
+         */
+        async function processClear(confirm) {
+            if (!confirm) {
+                document.getElementById('confirm-overlay').style.display = 'none';
+                return;
+            }
+            
+            const s = document.getElementById('confirm-senha').value.toUpperCase();
+            if (s !== EDIT_PASSWORD) {
+                document.getElementById('confirm-msg').innerText = 'Senha Incorreta!';
+                return;
+            }
+
+            if (clearTarget === 'TRASH') {
+                if (window.confirm('CONFIRMA LIMPEZA DA LIXEIRA?')) {
+                    trash = [];
+                    await saveToFile();
+                    renderTrash();
+                }
+            }
+            
+            document.getElementById('confirm-overlay').style.display = 'none';
+        }
+
+        // =============================================
+        // FUNÇÕES DE RELATÓRIO E BACKUP
+        // =============================================
+
+        /**
+         * Gera relatório HTML para impressão
+         */
         function generateReport() {
             const win = window.open('', '', 'width=1000,height=600');
-            let h = `<html><head><title>RELATÓRIO</title><style>body{font-family:sans-serif;font-size:10px;text-transform:uppercase;} table{width:100%;border-collapse:collapse;} th,td{border:1px solid #999;padding:3px; text-align: center;}</style></head><body><h2>RELATÓRIO DE PEDIDOS ATIVOS - ${getTodayDate()}</h2><table><thead><tr><th>STATUS</th><th>PEDIDO</th><th>FORNECEDOR</th><th>NF</th><th>VALOR NF</th><th>ENTREGA</th><th>OBS</th></tr></thead><tbody>`;
+            let h = `<html><head><title>RELATÓRIO</title><style>body{font-family:sans-serif;font-size:10px;text-transform:uppercase;} table{width:100%;border-collapse:collapse;} th,td{border:1px solid #999;padding:3px; text-align: center;}</style></head><body><h2>RELATÓRIO DE PEDIDOS ATIVOS - ${getTodayDate()}</h2><table><thead><tr><th>STATUS</th><th>PEDIDO</th><th>FORNECEDOR</th><th>NF</th><th>VALOR NF</th><th>ENTREGA</th><th>FRETE</th><th>OBS</th></tr></thead><tbody>`;
             
             db.forEach(i => {
-                h += `<tr><td>${i.status || ''}</td><td>${i.pedido || ''}</td><td>${i.forn || ''}</td><td>${i.nf || ''}</td><td>${i.vlrNf || ''}</td><td>${i.dt || ''}</td><td>${i.obs || ''}</td></tr>`;
+                h += `<tr><td>${i.status || ''}</td><td>${i.pedido || ''}</td><td>${i.forn || ''}</td><td>${i.nf || ''}</td><td>${i.vlrNf || ''}</td><td>${i.dt || ''}</td><td>${i.frete || ''}</td><td>${i.obs || ''}</td></tr>`;
             });
             
             h += `</tbody></table><br><button onclick="window.print()">IMPRIMIR</button></body></html>`;
             win.document.write(h);
         }
 
+        /**
+         * Realiza download dos dados como arquivo JSON
+         */
         function downloadData(data, prefix) {
             const filename = `${prefix}_${getFilenameTimestamp()}.json`;
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -1497,6 +1949,9 @@
             URL.revokeObjectURL(url);
         }
 
+        /**
+         * Cria backup dos dados atuais
+         */
         function doBackup() {
             if (!isEdit) {
                 return;
@@ -1505,6 +1960,9 @@
             downloadData(fullData, 'BACKUP_PEDIDOS');
         }
 
+        /**
+         * Restaura dados a partir de um arquivo de backup
+         */
         async function doRestore() {
             if (!isEdit) {
                 return;
@@ -1538,18 +1996,21 @@
             input.click();
         }
 
-        function clearAllFilters() {
-            activeFilters = {};
-            document.getElementById('search-global').value = '';
-            document.getElementById('filter-delivery').value = '0';
-            renderMain();
-        }
+        // =============================================
+        // FUNÇÕES DE CÁLCULO DE DIAS
+        // =============================================
 
+        /**
+         * Verifica se uma data é dia útil
+         */
         function isBusinessDay(date) {
             const day = date.getDay();
             return day !== 0 && day !== 6;
         }
 
+        /**
+         * Adiciona dias úteis a uma data
+         */
         function addBusinessDays(startDate, daysToAdd) {
             let currentDate = new Date(startDate);
             let addedDays = 0;
@@ -1564,6 +2025,9 @@
             return currentDate;
         }
 
+        /**
+         * Calcula data futura baseada em dias úteis ou corridos
+         */
         function calculateDate() {
             const daysInput = document.getElementById('calc-days');
             const resultSpan = document.getElementById('calc-result');
@@ -1591,42 +2055,6 @@
             const month = String(targetDate.getMonth() + 1).padStart(2, '0');
             
             resultSpan.innerText = `${day}/${month}`;
-        }
-
-        function prepareClear(target) {
-            if (!isEdit) {
-                return;
-            }
-            clearTarget = target;
-            
-            document.getElementById('confirm-title').innerText = 'LIMPAR LIXEIRA?';
-            document.getElementById('confirm-overlay').style.display = 'flex';
-            document.getElementById('confirm-senha').value = '';
-            document.getElementById('confirm-msg').innerText = '';
-            setTimeout(() => document.getElementById('confirm-senha').focus(), 0);
-        }
-
-        async function processClear(confirm) {
-            if (!confirm) {
-                document.getElementById('confirm-overlay').style.display = 'none';
-                return;
-            }
-            
-            const s = document.getElementById('confirm-senha').value.toUpperCase();
-            if (s !== EDIT_PASSWORD) {
-                document.getElementById('confirm-msg').innerText = 'Senha Incorreta!';
-                return;
-            }
-
-            if (clearTarget === 'TRASH') {
-                if (window.confirm('CONFIRMA LIMPEZA DA LIXEIRA?')) {
-                    trash = [];
-                    await saveToFile();
-                    renderTrash();
-                }
-            }
-            
-            document.getElementById('confirm-overlay').style.display = 'none';
         }
     </script>
 </body>
