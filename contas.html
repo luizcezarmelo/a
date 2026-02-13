@@ -132,6 +132,14 @@
                 <tfoot><tr><td colspan="2">Total Parcelado Pendente</td><td id="installmentsTotal" colspan="3">R$ 0,00</td></tr></tfoot>
             </table>
         </div>
+        <div class="grid-item">
+            <div class="card-header-wrapper nubank-header"><h2><i class="fa-solid fa-circle-question"></i> Aleatórios</h2></div>
+            <table>
+                <thead><tr><th>Descrição</th><th>Valor</th><th style="width: 40px;">Ok</th></tr></thead>
+                <tbody id="aleatoriosTbody"></tbody>
+                <tfoot><tr><td>Total</td><td id="aleatoriosTotal" colspan="2">R$ 0,00</td></tr></tfoot>
+            </table>
+        </div>
     </div>
 </div>
 
@@ -170,7 +178,8 @@
             fixed: document.getElementById("fixedTbody"),
             nubank: document.getElementById("nubankTbody"),
             c6: document.getElementById("c6Tbody"),
-            diversos: document.getElementById("diversosTbody")
+            diversos: document.getElementById("diversosTbody"),
+            aleatorios: document.getElementById("aleatoriosTbody")
         }
     };
 
@@ -243,8 +252,8 @@
         Object.keys(ui.tbodies).forEach(k => {
             const tb = ui.tbodies[k];
             tb.addEventListener("input", e => { if(e.target.tagName === "TD") { ensureEmptyRow(tb); debouncedSave(); } });
-            tb.addEventListener("focusout", e => { 
-                if(e.target.cellIndex === 1) formatCurrency(e.target);
+            tb.addEventListener("focusout", e => {
+                 if(e.target.cellIndex === 1) formatCurrency(e.target);
                 compactAndSave();
             });
         });
@@ -278,7 +287,7 @@
     }
 
     function processNewMonth(old) {
-        const d = { fixed: [], nubank: [], c6: [], diversos: [] };
+        const d = { fixed: [], nubank: [], c6: [], diversos: [], aleatorios: [] };
         if(old.fixed) d.fixed = old.fixed.map(r => [r[0], r[1], false]);
         ["nubank", "c6", "diversos"].forEach(k => {
             if(old[k]) {
@@ -305,7 +314,7 @@
 
     function addRow(tbody, data = []) {
         const tr = tbody.insertRow();
-        const cols = (tbody.id === "fixedTbody") ? 2 : 3;
+        const cols = (tbody.id === "fixedTbody" || tbody.id === "aleatoriosTbody") ? 2 : 3;
         for(let i=0; i<cols; i++) {
             const td = tr.insertCell();
             td.contentEditable = true;
@@ -370,12 +379,13 @@
             Array.from(ui.tbodies[k].rows).forEach(tr => {
                 const v = parseVal(tr.cells[1].textContent);
                 sub += v;
-                if(k !== "fixed") {
+                if(k !== "fixed" && k !== "aleatorios") {
                     const p = tr.cells[2].textContent;
                     const m = p.match(/(\d+)\/(\d+)/);
                     if(m) {
                         const rest = parseInt(m[2]) - parseInt(m[1]);
-                        const dFinal = new Date(current_date); 
+                        const dFinal = new Date(current_date);
+                        
                         dFinal.setMonth(dFinal.getMonth() + rest);
                         
                         const mStr = dFinal.toLocaleString("pt-BR", { month: "long" });
@@ -396,7 +406,9 @@
             });
             const el = document.getElementById(k + "Total");
             if(el) el.textContent = sub.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-            geral += sub;
+            if(k !== "aleatorios") {
+                geral += sub;
+            }
         });
 
         parcList.sort((a, b) => a.finalDate - b.finalDate);
