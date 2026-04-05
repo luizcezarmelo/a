@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -183,15 +184,11 @@
         }
     };
 
-    // Sistema de login modificado
     get(ref(database, "passcode")).then(snap => {
         const storedCode = snap.val();
-        
         if (!storedCode) {
-            // Não existe senha no Firebase - solicitar criação de nova senha
             ui.loginMessage.textContent = "Crie uma nova senha de 4 dígitos:";
             ui.loginBtn.textContent = "Criar Senha";
-            
             const createPassword = async () => {
                 const newPass = ui.passcodeInput.value;
                 if (newPass.length === 4 && /^\d{4}$/.test(newPass)) {
@@ -204,16 +201,11 @@
                     ui.passcodeInput.focus();
                 }
             };
-            
             ui.loginBtn.onclick = createPassword;
-            ui.passcodeInput.onkeyup = e => {
-                if (e.key === "Enter") createPassword();
-            };
+            ui.passcodeInput.onkeyup = e => { if (e.key === "Enter") createPassword(); };
         } else {
-            // Existe senha no Firebase - solicitar autenticação
             ui.loginMessage.textContent = "Digite o código de acesso para continuar.";
             ui.loginBtn.textContent = "Acessar Sistema";
-            
             const login = () => {
                 if (ui.passcodeInput.value === storedCode) {
                     ui.overlay.style.display = "none";
@@ -224,13 +216,9 @@
                     ui.passcodeInput.focus();
                 }
             };
-            
             ui.loginBtn.onclick = login;
-            ui.passcodeInput.onkeyup = e => {
-                if (e.key === "Enter") login();
-            };
+            ui.passcodeInput.onkeyup = e => { if (e.key === "Enter") login(); };
         }
-        
         ui.passcodeInput.focus();
     });
 
@@ -253,7 +241,7 @@
             const tb = ui.tbodies[k];
             tb.addEventListener("input", e => { if(e.target.tagName === "TD") { ensureEmptyRow(tb); debouncedSave(); } });
             tb.addEventListener("focusout", e => {
-                 if(e.target.cellIndex === 1) formatCurrency(e.target);
+                if(e.target.cellIndex === 1) formatCurrency(e.target);
                 compactAndSave();
             });
         });
@@ -270,17 +258,36 @@
         return `${date.getFullYear()}_${(date.getMonth() + 1).toString().padStart(2, '0')}`;
     }
 
+    function isCleared(val) {
+        return val && val.__cleared === true;
+    }
+
+    async function findLastRealData(fromDate) {
+        const searchDate = new Date(fromDate);
+        for (let i = 0; i < 12; i++) {
+            searchDate.setMonth(searchDate.getMonth() - 1);
+            const snap = await get(ref(database, "expenses/" + getMonthKey(searchDate)));
+            if (snap.exists() && !isCleared(snap.val())) {
+                return snap.val();
+            }
+        }
+        return null;
+    }
+
     async function loadData() {
         const key = getMonthKey(current_date);
         const snap = await get(ref(database, "expenses/" + key));
-        
-        if(snap.exists()) {
+
+        if (snap.exists() && !isCleared(snap.val())) {
+            // Mês existe com dados reais: renderiza normalmente
             renderTables(snap.val());
         } else {
-            const prevDate = new Date(current_date);
-            prevDate.setMonth(prevDate.getMonth() - 1);
-            const prevSnap = await get(ref(database, "expenses/" + getMonthKey(prevDate)));
-            const newData = prevSnap.exists() ? processNewMonth(prevSnap.val()) : {};
+            // Mês não existe OU foi limpo: remove marcador (se houver) e copia do anterior
+            if (snap.exists() && isCleared(snap.val())) {
+                await remove(ref(database, "expenses/" + key));
+            }
+            const prevData = await findLastRealData(current_date);
+            const newData = prevData ? processNewMonth(prevData) : {};
             await set(ref(database, "expenses/" + key), newData);
             renderTables(newData);
         }
@@ -385,14 +392,10 @@
                     if(m) {
                         const rest = parseInt(m[2]) - parseInt(m[1]);
                         const dFinal = new Date(current_date);
-                        
                         dFinal.setMonth(dFinal.getMonth() + rest);
-                        
                         const mStr = dFinal.toLocaleString("pt-BR", { month: "long" });
                         const finalStr = `${mStr.charAt(0).toUpperCase() + mStr.slice(1)}/${dFinal.getFullYear()}`;
-                        
                         const bankName = k === "nubank" ? "NUBANK" : k === "c6" ? "C6" : "DIVERSOS";
-                        
                         parcList.push({
                             desc: tr.cells[0].textContent,
                             bank: bankName,
@@ -429,7 +432,7 @@
     async function clearMonth() {
         if(!confirm("Deseja apagar todos os registros deste mês?")) return;
         const key = getMonthKey(current_date);
-        await remove(ref(database, "expenses/" + key));
+        await set(ref(database, "expenses/" + key), { __cleared: true });
         Object.keys(ui.tbodies).forEach(k => { ui.tbodies[k].innerHTML = ""; ensureEmptyRow(ui.tbodies[k]); });
         updateTotals();
         showStatus("Mês limpo!");
