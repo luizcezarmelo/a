@@ -6,25 +6,26 @@
     <title>Lista de Materiais - Prótese Total 2026</title>
     <style>
         :root {
-            --primary-color: #4a90e2;
-            --primary-hover: #357abd;
-            --bg-color: #f5f7fa;
-            --card-bg: #ffffff;
-            --text-color: #333333;
-            --text-muted: #777777;
-            --border-color: #e1e4e8;
+            --primary: #4a90e2;
+            --primary-dark: #357abd;
+            --accent: #e67e22;
+            --bg: #f5f7fa;
+            --card: #ffffff;
+            --text: #333333;
+            --muted: #888888;
+            --border: #e1e4e8;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', system-ui, sans-serif;
         }
 
         body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            background-color: var(--bg);
+            color: var(--text);
             padding: 20px;
             display: flex;
             justify-content: center;
@@ -32,89 +33,74 @@
 
         .container {
             width: 100%;
-            max-width: 800px;
-            background: var(--card-bg);
-            padding: 30px;
+            max-width: 700px;
+            background: var(--card);
+            padding: 25px;
             border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
 
         h1 {
-            font-size: 1.8rem;
-            margin-bottom: 10px;
+            text-align: center;
             color: #2c3e50;
-            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.6rem;
         }
 
-        .subtitle {
-            text-align: center;
-            color: var(--text-muted);
-            margin-bottom: 25px;
-            font-size: 0.95rem;
-        }
-
-        .controls {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 25px;
+        .btn-container {
             position: sticky;
-            top: 10px;
-            z-index: 10;
+            top: 0;
+            background: var(--card);
+            padding: 10px 0;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            z-index: 100;
         }
 
         .btn {
-            background-color: var(--primary-color);
+            display: block;
+            width: 100%;
+            background-color: var(--primary);
             color: white;
             border: none;
-            padding: 12px 24px;
+            padding: 14px;
             font-size: 1rem;
-            font-weight: 600;
+            font-weight: bold;
             border-radius: 8px;
             cursor: pointer;
-            transition: background 0.2s, transform 0.1s;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: background 0.2s;
+            text-align: center;
         }
 
-        .btn:hover {
-            background-color: var(--primary-hover);
+        .btn.active {
+            background-color: var(--accent);
         }
 
-        .btn:active {
-            transform: scale(0.98);
-        }
-
-        .category-title {
-            font-size: 1.2rem;
-            color: var(--primary-color);
-            margin: 20px 0 10px 0;
+        .category {
+            font-weight: bold;
+            color: var(--primary);
+            margin: 25px 0 10px 0;
+            font-size: 1.1rem;
+            border-bottom: 2px solid var(--border);
             padding-bottom: 5px;
-            border-bottom: 2px solid var(--border-color);
         }
 
-        .list-group {
-            list-style: none;
-            margin-bottom: 20px;
-        }
-
-        .item-row {
+        .item {
             display: flex;
             align-items: flex-start;
-            padding: 12px 10px;
-            border-bottom: 1px solid var(--border-color);
-            transition: background 0.2s;
+            padding: 12px 8px;
+            border-bottom: 1px solid var(--border);
             cursor: pointer;
+            user-select: none;
         }
 
-        .item-row:hover {
+        .item:hover {
             background-color: #f9fbfd;
         }
 
-        .checkbox-container {
-            margin-right: 15px;
+        .item input {
+            margin-right: 12px;
             margin-top: 3px;
-        }
-
-        .checkbox-container input[type="checkbox"] {
             width: 18px;
             height: 18px;
             cursor: pointer;
@@ -124,186 +110,143 @@
             flex: 1;
             font-size: 1rem;
             line-height: 1.4;
-            transition: all 0.2s;
         }
 
-        /* Estado Tachado */
-        .item-row.checked .item-text {
+        /* Estilo quando está selecionado (Tachado) */
+        .item.checked .item-text {
             text-decoration: line-through;
-            color: var(--text-muted);
+            color: var(--muted);
             opacity: 0.6;
         }
 
-        /* Ocultar elementos quando o filtro estiver ativo */
-        .hide-checked .item-row.checked {
-            display: none;
+        /* Classe disparada pelo botão para esconder os marcados */
+        .hide-completed .item.checked {
+            display: none !important;
         }
 
-        /* Responsividade para telas menores */
-        @media (max-width: 600px) {
-            body {
-                padding: 10px;
-            }
-            .container {
-                padding: 15px;
-            }
-            h1 {
-                font-size: 1.4rem;
-            }
-            .btn {
-                width: 100%;
-                padding: 14px;
-            }
-            .item-text {
-                font-size: 0.95rem;
-            }
+        @media (max-width: 480px) {
+            body { padding: 10px; }
+            .container { padding: 15px; }
+            h1 { font-size: 1.3rem; }
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Lista de Materiais 2026</h1> [cite: 1]
-    <p class="subtitle">Prótese Total - Organize seus itens para as aulas práticas</p> [cite: 1, 2]
+    <h1>Lista de Materiais 2026</h1>
 
-    <div class="controls">
-        <button id="toggleFilterBtn" class="btn">Mostrar Apenas Não Marcados</button>
+    <div class="btn-container">
+        <button id="filterBtn" class="btn">Mostrar Apenas Não Marcados</button>
     </div>
 
-    <div class="category-title">Equipamentos e Instrumentos</div>
-    <ul class="list-group" id="lista-equipamentos">
-        </ul>
-
-    <div class="category-title">Brocas e Desgaste/Polimento</div>
-    <ul class="list-group" id="lista-brocas"></ul>
-
-    <div class="category-title">Recipientes e Organização</div>
-    <ul class="list-group" id="lista-recipientes"></ul>
-
-    <div class="category-title">Químicos, Ceras e Insumos</div>
-    <ul class="list-group" id="lista-quimicos"></ul>
-
-    <div class="category-title">EPIs (Obrigatórios)</div>
-    <ul class="list-group" id="lista-epis"></ul>
+    <div id="lista-dinamica"></div>
 </div>
 
 <script>
-    // Dados organizados da primeira página do PDF [cite: 1]
-    const materiais = {
-        equipamentos: [
-            "Articulador Semi Ajustável - BioArt A7 FIX (sem arco facial) [OBS: Uso no 3º mês dependendo do ritmo da turma]", [cite: 2]
-            "Modelos de Estudo (Adquiridos na ETEFOR)", [cite: 3]
-            "2x Placas de Vidro (NÃO TÃO FINA) - vende só em dentais", [cite: 4]
-            "Lapiseira 0.7", [cite: 5]
-            "Espatulas: Lecron, nº 07, nº 31 e nº 36", [cite: 6]
-            "Lamparina a Álcool", [cite: 7]
-            "Concha para Cera com base segura ou flexível", [cite: 8]
-            "Flambador (Lamparina de Hanau)", [cite: 9]
-            "Mesa de Camper plástico", [cite: 12]
-            "1 Motor de Acabamento de 35.000 RPM (Maraton, Talmax, Kota ou motor de chicote)", [cite: 14, 15]
-            "Espátula de metal para gesso", [cite: 27]
-            "Régua Flexível pequena", [cite: 28]
-            "2 conta-gotas (bisnaga)" [cite: 37]
+    // Todos os materiais estruturados diretamente por categorias
+    const dados = {
+        "Equipamentos e Instrumentos": [
+            "Articulador Semi Ajustável - BioArt A7 FIX (sem arco facial) [OBS: Uso no 3º mês dependendo do ritmo da turma] [cite: 2]",
+            "Modelos de Estudo (Adquiridos na ETEFOR) [cite: 3]",
+            "2x Placas de Vidro (NÃO TÃO FINA) - vende só em dentais [cite: 4]",
+            "Lapiseira 0.7 [cite: 5]",
+            "Espátulas: Lecron, nº 07, nº 31 e nº 36 [cite: 6]",
+            "Lamparina a Álcool [cite: 7]",
+            "Concha para Cera com base segura ou flexível [cite: 8]",
+            "Flambador (Lamparina de Hanau) [cite: 9]",
+            "Mesa de Camper plástico [cite: 12]",
+            "1 Motor de Acabamento de 35.000 RPM (Maraton, Talmax, Kota ou motor de chicote) [cite: 14, 15]",
+            "Espátula de metal para gesso [cite: 27]",
+            "Régua Flexível pequena [cite: 28]",
+            "2 conta-gotas (bisnaga) [cite: 37]"
         ],
-        brocas: [
-            "Broca Maxicut nº 1251 (American ou outra marca)", [cite: 13]
-            "Broca Minicut nº 1520 (American ou outra marca)", [cite: 13]
-            "Broca Carbide 700 PM da JET", [cite: 13]
-            "Mandril para Lixa", [cite: 13]
-            "Brocas de acabamentos de resinas PM (Kit de polidores acrílicos 3 cores: cinza 2141, verde 2143 e amarela 2145 - American ou outra)" [cite: 13]
+        "Brocas e Desgaste/Polimento": [
+            "Broca Maxicut nº 1251 (American ou outra marca) [cite: 13]",
+            "Broca Minicut nº 1520 (American ou outra marca) [cite: 13]",
+            "Broca Carbide 700 PM da JET [cite: 13]",
+            "Mandril para Lixa [cite: 13]",
+            "Brocas de acabamentos de resinas PM (Kit de polidores acrílicos 3 cores: cinza 2141, verde 2143 e amarela 2145 - American ou outra) [cite: 13]"
         ],
-        recipientes: [
-            "Pote Paladon silicone", [cite: 11]
-            "Pote Dappen (silicone) - de preferência o grande", [cite: 12]
-            "Cuba de borracha - de preferência grande" [cite: 25]
+        "Recipientes e Organização": [
+            "Pote Paladon silicone [cite: 11]",
+            "Pote Dappen (silicone) - de preferência o grande [cite: 12]",
+            "Cuba de borracha - de preferência grande [cite: 25]"
         ],
-        quimicos: [
-            "2x Pincel comum de pintura nº 10 e 12 (1 para Isolante e 1 para Vaselina)", [cite: 10]
-            "Vaselina Sólida (bisnaga de 30g individual ou quantidade maior coletiva)", [cite: 16]
-            "Isolante para resina de 100ml (Coletivo ou Individual)", [cite: 17]
-            "Caixa de Cera Nº7 e Cera Nº9 (de preferência marca Wilson - Coletivo ou Individual)", [cite: 18]
-            "Cera utilidades (Coletivo ou Individual)", [cite: 19]
-            "Álcool 96% (ABSOLUTO)", [cite: 20]
-            "Algodão (pode ser qualquer um, não precisa ser de dental)", [cite: 21]
-            "Resina Acrílica Incolor Pó (Auto Polimerizável) 500g - EVODEN ou outra marca (Coletivo ou Individual)", [cite: 22]
-            "Resina Acrílica Líquida (Auto Polimerizável) 500ml - EVODEN ou outra marca (Coletivo ou Individual) [OBS: Pó e Líquido devem ser da mesma marca]", [cite: 23, 24]
-            "Gesso Pedra (1kg) - vende na escola", [cite: 26]
-            "Escova de dente infantil (pelo macio)", [cite: 29]
-            "Cola Super Bonder e isqueiro" [cite: 30]
+        "Químicos, Ceras e Insumos": [
+            "2x Pincel comum de pintura nº 10 e 12 (1 para Isolante e 1 para Vaselina) [cite: 10]",
+            "Vaselina Sólida (bisnaga de 30g individual ou quantidade maior coletiva) [cite: 16]",
+            "Isolante para resina de 100ml (Coletivo ou Individual) [cite: 17]",
+            "Caixa de Cera Nº7 e Cera Nº9 (de preferência marca Wilson - Coletivo ou Individual) [cite: 18]",
+            "Cera utilidades (Coletivo ou Individual) [cite: 19]",
+            "Álcool 96% (ABSOLUTO) [cite: 20]",
+            "Algodão (pode ser qualquer um, não precisa ser de dental) [cite: 21]",
+            "Resina Acrílica Incolor Pó (Auto Polimerizável) 500g - EVODEN ou outra marca (Coletivo ou Individual) [cite: 22]",
+            "Resina Acrílica Líquida (Auto Polimerizável) 500ml - EVODEN ou outra marca (Coletivo ou Individual) [OBS: Pó e Líquido devem ser da mesma marca] [cite: 23, 24]",
+            "Gesso Pedra (1kg) - vende na escola [cite: 26]",
+            "Escova de dente infantil (pelo macio) [cite: 29]",
+            "Cola Super Bonder e isqueiro [cite: 30]"
         ],
-        epis: [
-            "Jaleco de manga longa (qualquer cor)", [cite: 32]
-            "Óculos de proteção", [cite: 33]
-            "Máscara", [cite: 34]
-            "Touca", [cite: 35]
-            "Luva", [cite: 36]
-            "Protetor de bancada (folha de EVA) nas cores verde, azul ou cinza" [cite: 37]
+        "EPIs (Obrigatórios)": [
+            "Jaleco de manga longa (qualquer cor) [cite: 32]",
+            "Óculos de proteção [cite: 33]",
+            "Máscara [cite: 34]",
+            "Touca [cite: 35]",
+            "Luva [cite: 36]",
+            "Protetor de bancada (folha de EVA) nas cores verde, azul ou cinza [cite: 37]"
         ]
     };
 
-    // Função para renderizar as listas na tela
-    function renderizarListas() {
-        for (const categoria in materiais) {
-            const ul = document.getElementById(`lista-${categoria}`);
-            materiais[categoria].forEach((item, index) => {
-                const li = document.createElement('li');
-                li.className = 'item-row';
-                
-                // Cria ID único para salvar o estado no localStorage se quiser futuramente
-                const itemId = `${categoria}-${index}`;
+    const listaContainer = document.getElementById('lista-dinamica');
+    const filterBtn = document.getElementById('filterBtn');
 
-                li.innerHTML = `
-                    <div class="checkbox-container">
-                        <input type="checkbox" id="${itemId}" onchange="toggleItem('${itemId}', this)">
-                    </div>
-                    <label class="item-text" for="${itemId}">${item}</label>
-                `;
-                
-                // Permite clicar na linha inteira para marcar
-                li.addEventListener('click', function(e) {
-                    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'LABEL') {
-                        const cb = this.querySelector('input[type="checkbox"]');
-                        cb.checked = !cb.checked;
-                        toggleItem(itemId, cb);
-                    }
-                });
+    // Gerar a estrutura HTML via JS de forma ultra segura
+    Object.keys(dados).forEach(categoria => {
+        const divCat = document.createElement('div');
+        divCat.className = 'category';
+        divCat.innerText = categoria;
+        listaContainer.appendChild(divCat);
 
-                ul.appendChild(li);
+        dados[categoria].forEach(material => {
+            const label = document.createElement('label');
+            label.className = 'item';
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            
+            const span = document.createElement('span');
+            span.className = 'item-text';
+            span.innerText = material;
+
+            label.appendChild(checkbox);
+            label.appendChild(span);
+            listaContainer.appendChild(label);
+
+            // Evento para tachar ao mudar o checkbox
+            checkbox.addEventListener('change', function() {
+                if (this.checked) {
+                    label.classList.add('checked');
+                } else {
+                    label.classList.remove('checked');
+                }
             });
-        }
-    }
-
-    // Função para alternar a classe 'checked' que risca o item
-    function toggleItem(id, checkbox) {
-        const row = checkbox.closest('.item-row');
-        if (checkbox.checked) {
-            row.classList.add('checked');
-        } else {
-            row.classList.remove('checked');
-        }
-    }
-
-    // Filtro para ocultar/mostrar os itens tachados
-    const toggleFilterBtn = document.getElementById('toggleFilterBtn');
-    let apenasNaoMarcados = false;
-
-    toggleFilterBtn.addEventListener('click', () => {
-        apenasNaoMarcados = !apenasNaoMarcados;
-        const container = document.querySelector('.container');
-        
-        if (apenasNaoMarcados) {
-            container.classList.add('hide-checked');
-            toggleFilterBtn.innerText = "Mostrar Todos os Materiais";
-            toggleFilterBtn.style.backgroundColor = "#e67e22"; // Muda a cor para indicar ativo
-        } else {
-            container.classList.remove('hide-checked');
-            toggleFilterBtn.innerText = "Mostrar Apenas Não Marcados";
-            toggleFilterBtn.style.backgroundColor = "var(--primary-color)";
-        }
+        });
     });
 
-    // Inicializa a renderização quando a página carrega
-    window.onload = renderizarListas;
+    // Evento do botão de filtrar
+    let apenasAtivos = false;
+    filterBtn.addEventListener('click', function() {
+        apenasAtivos = !apenasAtivos;
+        if (apenasAtivos) {
+            listaContainer.classList.add('hide-completed');
+            this.innerText = "Mostrar Todos os Materiais";
+            this.classList.add('active');
+        } else {
+            listaContainer.classList.remove('hide-completed');
+            this.innerText = "Mostrar Apenas Não Marcados";
+            this.classList.remove('active');
+        }
+    });
 </script>
 
 </body>
