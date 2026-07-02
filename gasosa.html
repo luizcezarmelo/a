@@ -1,15 +1,16 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lista de Materiais - Prótese Total 2026</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
             --primary: #4a90e2;
             --primary-dark: #357abd;
             --accent: #e67e22;
+            --success: #2ecc71;
             --bg: #f5f7fa;
             --card: #ffffff;
             --text: #333333;
@@ -56,16 +57,17 @@
             margin-bottom: 20px;
             border-bottom: 1px solid var(--border);
             z-index: 100;
+            display: flex;
+            gap: 10px;
         }
 
         .btn {
-            display: block;
-            width: 100%;
+            flex: 1;
             background-color: var(--primary);
             color: white;
             border: none;
             padding: 14px;
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: bold;
             border-radius: 8px;
             cursor: pointer;
@@ -73,9 +75,10 @@
             text-align: center;
         }
 
-        .btn.active {
-            background-color: var(--accent);
-        }
+        .btn:hover { background-color: var(--primary-dark); }
+        .btn.active { background-color: var(--accent); }
+        .btn-pdf { background-color: var(--success); }
+        .btn-pdf:hover { background-color: #27ae60; }
 
         .category {
             font-weight: bold;
@@ -95,10 +98,7 @@
             user-select: none;
         }
 
-        .item:hover {
-            background-color: #f9fbfd;
-        }
-
+        .item:hover { background-color: #f9fbfd; }
         .item input {
             margin-right: 12px;
             margin-top: 3px;
@@ -113,14 +113,12 @@
             line-height: 1.4;
         }
 
-        /* Estilo quando está selecionado (Tachado) */
         .item.checked .item-text {
             text-decoration: line-through;
             color: var(--muted);
             opacity: 0.6;
         }
 
-        /* Classe disparada pelo botão para esconder os marcados */
         .hide-completed .item.checked {
             display: none !important;
         }
@@ -129,6 +127,7 @@
             body { padding: 10px; }
             .container { padding: 15px; }
             h1 { font-size: 1.3rem; }
+            .btn-container { flex-direction: column; gap: 8px; }
         }
     </style>
 </head>
@@ -136,79 +135,88 @@
 
 <div class="container">
     <h1>Lista de Materiais 2026</h1>
-
+    
     <div class="btn-container">
         <button id="filterBtn" class="btn">Mostrar Apenas Não Marcados</button>
+        <button id="pdfBtn" class="btn btn-pdf">Exportar PDF (Faltantes)</button>
     </div>
 
     <div id="lista-dinamica"></div>
 </div>
 
 <script>
-    // Todos os materiais estruturados diretamente por categorias
-    const dados = {
+    // Todos os seus itens originais de volta com a indexação segura por ID
+    const dadosIndexados = {
         "Equipamentos e Instrumentos": [
-            "Articulador Semi Ajustável - BioArt A7 FIX (sem arco facial) [OBS: Uso no 3º mês dependendo do ritmo da turma] [cite: 2]",
-            "Modelos de Estudo (Adquiridos na ETEFOR) [cite: 3]",
-            "2x Placas de Vidro (NÃO TÃO FINA) - vende só em dentais [cite: 4]",
-            "Lapiseira 0.7 [cite: 5]",
-            "Espátulas: Lecron, nº 07, nº 31 e nº 36 [cite: 6]",
-            "Lamparina a Álcool [cite: 7]",
-            "Concha para Cera com base segura ou flexível [cite: 8]",
-            "Flambador (Lamparina de Hanau) [cite: 9]",
-            "Mesa de Camper plástico [cite: 12]",
-            "1 Motor de Acabamento de 35.000 RPM (Maraton, Talmax, Kota ou motor de chicote) [cite: 14, 15]",
-            "Espátula de metal para gesso [cite: 27]",
-            "Régua Flexível pequena [cite: 28]",
-            "2 conta-gotas (bisnaga) [cite: 37]"
+            { id: 101, nome: "Articulador Semi Ajustável - BioArt A7 FIX (sem arco facial) [OBS: Uso no 3º mês dependendo do ritmo da turma]" },
+            { id: 102, nome: "Modelos de Estudo (Adquiridos na ETEFOR)" },
+            { id: 103, nome: "2x Placas de Vidro (NÃO TÃO FINA) - vende só em dentais" },
+            { id: 104, nome: "Lapiseira 0.7" },
+            { id: 105, nome: "Espátulas: Lecron, nº 07, nº 31 e nº 36" },
+            { id: 106, nome: "Lamparina a Álcool" },
+            { id: 107, nome: "Concha para Cera com base segura ou flexível" },
+            { id: 108, nome: "Flambador (Lamparina de Hanau)" },
+            { id: 109, nome: "Mesa de Camper plástico" },
+            { id: 110, nome: "1 Motor de Acabamento de 35.000 RPM (Maraton, Talmax, Kota ou motor de chicote)" },
+            { id: 111, nome: "Espátula de metal para gesso" },
+            { id: 112, nome: "Régua Flexível pequena" },
+            { id: 113, nome: "2 conta-gotas (bisnaga)" }
         ],
         "Brocas e Desgaste/Polimento": [
-            "Broca Maxicut nº 1251 (American ou outra marca) [cite: 13]",
-            "Broca Minicut nº 1520 (American ou outra marca) [cite: 13]",
-            "Broca Carbide 700 PM da JET [cite: 13]",
-            "Mandril para Lixa [cite: 13]",
-            "Brocas de acabamentos de resinas PM (Kit de polidores acrílicos 3 cores: cinza 2141, verde 2143 e amarela 2145 - American ou outra) [cite: 13]"
+            { id: 201, nome: "Broca Maxicut nº 1251 (American ou outra marca)" },
+            { id: 202, nome: "Broca Minicut nº 1520 (American ou outra marca)" },
+            { id: 203, nome: "Broca Carbide 700 PM da JET" },
+            { id: 204, nome: "Mandril para Lixa" },
+            { id: 205, nome: "Brocas de acabamentos de resinas PM (Kit de polidores acrílicos 3 cores: cinza 2141, verde 2143 e amarela 2145 - American ou outra)" }
         ],
         "Recipientes e Organização": [
-            "Pote Paladon silicone [cite: 11]",
-            "Pote Dappen (silicone) - de preferência o grande [cite: 12]",
-            "Cuba de borracha - de preferência grande [cite: 25]"
+            { id: 301, nome: "Pote Paladon silicone" },
+            { id: 302, nome: "Pote Dappen (silicone) - de preferência o grande" },
+            { id: 303, nome: "Cuba de borracha - de preferência grande" }
         ],
         "Químicos, Ceras e Insumos": [
-            "2x Pincel comum de pintura nº 10 e 12 (1 para Isolante e 1 para Vaselina) [cite: 10]",
-            "Vaselina Sólida (bisnaga de 30g individual ou quantidade maior coletiva) [cite: 16]",
-            "Isolante para resina de 100ml (Coletivo ou Individual) [cite: 17]",
-            "Caixa de Cera Nº7 e Cera Nº9 (de preferência marca Wilson - Coletivo ou Individual) [cite: 18]",
-            "Cera utilidades (Coletivo ou Individual) [cite: 19]",
-            "Álcool 96% (ABSOLUTO) [cite: 20]",
-            "Algodão (pode ser qualquer um, não precisa ser de dental) [cite: 21]",
-            "Resina Acrílica Incolor Pó (Auto Polimerizável) 500g - EVODEN ou outra marca (Coletivo ou Individual) [cite: 22]",
-            "Resina Acrílica Líquida (Auto Polimerizável) 500ml - EVODEN ou outra marca (Coletivo ou Individual) [OBS: Pó e Líquido devem ser da mesma marca] [cite: 23, 24]",
-            "Gesso Pedra (1kg) - vende na escola [cite: 26]",
-            "Escova de dente infantil (pelo macio) [cite: 29]",
-            "Cola Super Bonder e isqueiro [cite: 30]"
+            { id: 401, nome: "2x Pincel comum de pintura nº 10 e 12 (1 para Isolante e 1 para Vaselina)" },
+            { id: 402, nome: "Vaselina Sólida (bisnaga de 30g individual ou quantidade maior coletiva)" },
+            { id: 403, nome: "Isolante para resina de 100ml (Coletivo ou Individual)" },
+            { id: 404, nome: "Caixa de Cera Nº7 e Cera Nº9 (de preferência marca Wilson - Coletivo ou Individual)" },
+            { id: 405, nome: "Cera utilidades (Coletivo ou Individual)" },
+            { id: 406, nome: "Álcool 96% (ABSOLUTO)" },
+            { id: 407, nome: "Algodão (pode ser qualquer um, não precisa ser de dental)" },
+            { id: 408, nome: "Resina Acrílica Incolor Pó (Auto Polimerizável) 500g - EVODEN ou outra marca (Coletivo ou Individual)" },
+            { id: 409, nome: "Resina Acrílica Líquida (Auto Polimerizável) 500ml - EVODEN ou outra marca (Coletivo ou Individual) [OBS: Pó e Líquido devem ser da mesma marca]" },
+            { id: 410, nome: "Gesso Pedra (1kg) - vende na escola" },
+            { id: 411, nome: "Escova de dente infantil (pelo macio)" },
+            { id: 412, nome: "Cola Super Bonder e isqueiro" }
         ],
         "EPIs (Obrigatórios)": [
-            "Jaleco de manga longa (qualquer cor) [cite: 32]",
-            "Óculos de proteção [cite: 33]",
-            "Máscara [cite: 34]",
-            "Touca [cite: 35]",
-            "Luva [cite: 36]",
-            "Protetor de bancada (folha de EVA) nas cores verde, azul ou cinza [cite: 37]"
+            { id: 501, nome: "Jaleco de manga longa (qualquer cor)" },
+            { id: 502, nome: "Óculos de proteção" },
+            { id: 503, nome: "Máscara" },
+            { id: 504, nome: "Touca" },
+            { id: 505, nome: "Luva" },
+            { id: 506, nome: "Protetor de bancada (folha de EVA) nas cores verde, azul ou cinza" }
         ]
     };
 
     const listaContainer = document.getElementById('lista-dinamica');
     const filterBtn = document.getElementById('filterBtn');
+    const pdfBtn = document.getElementById('pdfBtn');
+    
+    const STORAGE_KEY = 'lista_protese_2026_indexada';
+    let estadoSalvo = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
 
-    // Gerar a estrutura HTML via JS de forma ultra segura
-    Object.keys(dados).forEach(categoria => {
+    function salvarEstado() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(estadoSalvo));
+    }
+
+    // Renderizar lista na tela
+    Object.keys(dadosIndexados).forEach(categoria => {
         const divCat = document.createElement('div');
         divCat.className = 'category';
         divCat.innerText = categoria;
         listaContainer.appendChild(divCat);
 
-        dados[categoria].forEach(material => {
+        dadosIndexados[categoria].forEach(item => {
             const label = document.createElement('label');
             label.className = 'item';
             
@@ -217,24 +225,31 @@
             
             const span = document.createElement('span');
             span.className = 'item-text';
-            span.innerText = material;
+            span.innerText = item.nome;
 
             label.appendChild(checkbox);
             label.appendChild(span);
             listaContainer.appendChild(label);
 
-            // Evento para tachar ao mudar o checkbox
+            if (estadoSalvo[item.id]) {
+                checkbox.checked = true;
+                label.classList.add('checked');
+            }
+
             checkbox.addEventListener('change', function() {
                 if (this.checked) {
                     label.classList.add('checked');
+                    estadoSalvo[item.id] = true;
                 } else {
                     label.classList.remove('checked');
+                    delete estadoSalvo[item.id];
                 }
+                salvarEstado();
             });
         });
     });
 
-    // Evento do botão de filtrar
+    // Filtro de Visualização
     let apenasAtivos = false;
     filterBtn.addEventListener('click', function() {
         apenasAtivos = !apenasAtivos;
@@ -247,6 +262,69 @@
             this.innerText = "Mostrar Apenas Não Marcados";
             this.classList.remove('active');
         }
+    });
+
+    // Gerador de PDF Dinâmico (Apenas Itens Não Marcados)
+    pdfBtn.addEventListener('click', function() {
+        const elementoPDF = document.createElement('div');
+        elementoPDF.style.padding = '30px';
+        elementoPDF.style.color = '#333';
+        elementoPDF.style.fontFamily = 'Arial, sans-serif';
+
+        elementoPDF.innerHTML = `
+            <h1 style="text-align: center; color: #2c3e50; margin-bottom: 5px;">Materiais Faltantes</h1>
+            <p style="text-align: center; color: #7f8c8d; font-size: 0.9rem; margin-bottom: 30px;">Gerado em: ${new Date().toLocaleDateString('pt-BR')}</p>
+        `;
+
+        let temItemFaltanteGeral = false;
+
+        Object.keys(dadosIndexados).forEach(categoria => {
+            const itensFaltantes = dadosIndexados[categoria].filter(item => !estadoSalvo[item.id]);
+
+            if (itensFaltantes.length > 0) {
+                temItemFaltanteGeral = true;
+                
+                const tituloCategoria = document.createElement('h3');
+                tituloCategoria.style.color = '#4a90e2';
+                tituloCategoria.style.borderBottom = '2px solid #e1e4e8';
+                tituloCategoria.style.paddingBottom = '5px';
+                tituloCategoria.style.marginTop = '20px';
+                tituloCategoria.style.marginBottom = '10px';
+                tituloCategoria.innerText = categoria;
+                elementoPDF.appendChild(tituloCategoria);
+
+                const ul = document.createElement('ul');
+                ul.style.listStyleType = 'none';
+                ul.style.paddingLeft = '5px';
+
+                itensFaltantes.forEach(item => {
+                    const li = document.createElement('li');
+                    li.style.padding = '6px 0';
+                    li.style.borderBottom = '1px dashed #eee';
+                    li.style.fontSize = '0.95rem';
+                    li.innerHTML = `▢  ${item.nome}`;
+                    ul.appendChild(li);
+                });
+
+                elementoPDF.appendChild(ul);
+            }
+        });
+
+        if (!temItemFaltanteGeral) {
+            alert("Parabéns! Todos os itens já foram comprados/marcados.");
+            return;
+        }
+
+        const opcoes = {
+            margin:       [15, 15, 15, 15],
+            filename:     'materiais_faltantes_protese.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        // Corrigido: Chamando as opções corretamente para gerar o download
+        html2pdf().set(opcoes).from(elementoPDF).save();
     });
 </script>
 
