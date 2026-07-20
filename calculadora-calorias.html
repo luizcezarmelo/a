@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Calculadora de Calorias</title>
+<style>
+  :root{
+    --verde: #2f6b4f;
+    --verde-escuro: #1f4a37;
+    --amarelo: #e8a93b;
+    --creme: #fbf6ec;
+    --texto: #2b2620;
+    --linha: #e4dcc9;
+    --branco: #ffffff;
+    --vermelho: #c1503c;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--creme);
+    color: var(--texto);
+    -webkit-text-size-adjust:100%;
+  }
+  .wrap{
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 16px 16px 100px;
+  }
+  header{
+    padding: 18px 4px 14px;
+  }
+  header h1{
+    font-size: clamp(1.3rem, 5vw, 1.7rem);
+    margin: 0 0 4px;
+    color: var(--verde-escuro);
+    letter-spacing: -0.02em;
+  }
+  header p{
+    margin:0;
+    font-size:0.85rem;
+    color:#6b6255;
+  }
+
+  .card{
+    background: var(--branco);
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    margin-bottom: 14px;
+    border:1px solid var(--linha);
+  }
+
+  .search-box{
+    position: relative;
+  }
+  label.field-label{
+    display:block;
+    font-size:0.78rem;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    color: var(--verde-escuro);
+    margin-bottom:6px;
+  }
+  input[type="text"], input[type="number"]{
+    width:100%;
+    font-size:1rem;
+    padding: 12px 14px;
+    border-radius:10px;
+    border: 1.5px solid var(--linha);
+    background: var(--creme);
+    color: var(--texto);
+    outline:none;
+  }
+  input:focus{
+    border-color: var(--verde);
+  }
+  .autocomplete-list{
+    position:absolute;
+    left:0; right:0;
+    top: calc(100% + 4px);
+    background: var(--branco);
+    border:1px solid var(--linha);
+    border-radius:10px;
+    max-height: 260px;
+    overflow-y:auto;
+    z-index: 20;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    display:none;
+  }
+  .autocomplete-list.show{ display:block; }
+  .autocomplete-item{
+    padding: 11px 14px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    cursor:pointer;
+    font-size:0.95rem;
+    border-bottom: 1px solid var(--linha);
+  }
+  .autocomplete-item:last-child{ border-bottom:none; }
+  .autocomplete-item:hover, .autocomplete-item.active{
+    background: #f1ead6;
+  }
+  .autocomplete-item .kcal{
+    color: var(--verde);
+    font-weight:600;
+    font-size:0.85rem;
+    white-space:nowrap;
+    margin-left:10px;
+  }
+  .autocomplete-empty{
+    padding: 12px 14px;
+    font-size:0.88rem;
+    color:#8a8175;
+  }
+
+  .btn{
+    border:none;
+    border-radius:10px;
+    padding: 12px 16px;
+    font-size:0.95rem;
+    font-weight:600;
+    cursor:pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-primary{ background: var(--verde); color:#fff; }
+  .btn-primary:active{ background: var(--verde-escuro); }
+  .btn-outline{
+    background: transparent;
+    color: var(--verde-escuro);
+    border: 1.5px solid var(--verde);
+  }
+  .btn-danger{
+    background: transparent;
+    color: var(--vermelho);
+    border: 1.5px solid var(--vermelho);
+  }
+  .btn-block{ width:100%; }
+  .actions-row{
+    display:flex;
+    gap:10px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  .actions-row .btn{ flex:1 1 auto; min-width: 140px; }
+
+  .diary-title{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom: 8px;
+  }
+  .diary-title h2{
+    font-size: 1rem;
+    margin:0;
+    color: var(--verde-escuro);
+  }
+  .diary-title span{
+    font-size:0.78rem;
+    color:#8a8175;
+  }
+
+  ul.diary{
+    list-style:none;
+    margin:0; padding:0;
+  }
+  ul.diary li{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding: 12px 4px;
+    border-bottom: 1px solid var(--linha);
+    gap: 10px;
+  }
+  ul.diary li:last-child{ border-bottom:none; }
+  .item-name{
+    font-size:0.96rem;
+    flex:1;
+    word-break: break-word;
+  }
+  .item-kcal{
+    font-weight:600;
+    color: var(--verde-escuro);
+    white-space:nowrap;
+    font-size:0.92rem;
+  }
+  .remove-btn{
+    border:none;
+    background:none;
+    color: var(--vermelho);
+    font-size:1.2rem;
+    line-height:1;
+    cursor:pointer;
+    padding: 4px 6px;
+  }
+  .empty-diary{
+    text-align:center;
+    color:#8a8175;
+    font-size:0.9rem;
+    padding: 18px 8px;
+  }
+
+  .total-bar{
+    position: sticky;
+    bottom: 0;
+    background: var(--verde-escuro);
+    color:#fff;
+    padding: 14px 16px;
+    border-radius: 14px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top: 4px;
+    box-shadow: 0 -4px 14px rgba(0,0,0,0.15);
+  }
+  .total-bar .label{
+    font-size:0.82rem;
+    opacity:0.85;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+  }
+  .total-bar .value{
+    font-size:1.5rem;
+    font-weight:700;
+    color: var(--amarelo);
+  }
+
+  .modal-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background: rgba(30,25,15,0.45);
+    z-index: 50;
+    align-items:flex-end;
+    justify-content:center;
+  }
+  .modal-overlay.show{ display:flex; }
+  .modal{
+    background:#fff;
+    width:100%;
+    max-width:640px;
+    border-radius: 16px 16px 0 0;
+    padding: 20px 18px 26px;
+    animation: slideup 0.18s ease-out;
+  }
+  @media (min-width: 700px){
+    .modal-overlay{ align-items:center; }
+    .modal{ border-radius:16px; max-width:420px; }
+  }
+  @keyframes slideup{
+    from{ transform: translateY(24px); opacity:0; }
+    to{ transform: translateY(0); opacity:1; }
+  }
+  .modal h3{
+    margin: 0 0 14px;
+    color: var(--verde-escuro);
+    font-size: 1.05rem;
+  }
+  .modal .field{ margin-bottom: 14px; }
+  .modal-actions{
+    display:flex;
+    gap:10px;
+    margin-top: 6px;
+  }
+  .modal-actions .btn{ flex:1; }
+  .modal-msg{
+    font-size:0.85rem;
+    margin-top:8px;
+    min-height: 18px;
+  }
+  .modal-msg.error{ color: var(--vermelho); }
+  .modal-msg.ok{ color: var(--verde); }
+
+  footer{
+    text-align:center;
+    font-size:0.72rem;
+    color:#a49a8a;
+    margin-top: 18px;
+  }
+
+  @media (max-width: 380px){
+    .wrap{ padding: 12px 10px 90px; }
+    .card{ padding:12px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>🥑 Calculadora de Calorias</h1>
+    <p>Busque um alimento (valores por 100g) e monte sua lista do dia.</p>
+  </header>
+
+  <div class="card">
+    <label class="field-label" for="searchInput">Buscar alimento</label>
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Ex: arroz, frango, banana..." autocomplete="off">
+      <div class="autocomplete-list" id="autocompleteList"></div>
+    </div>
+    <div class="actions-row">
+      <button class="btn btn-outline btn-block" id="openAddFoodBtn">+ Novo alimento</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="diary-title">
+      <h2>Alimentos de hoje</h2>
+      <span id="itemCount">0 itens</span>
+    </div>
+    <ul class="diary" id="diaryList"></ul>
+    <div class="empty-diary" id="emptyDiaryMsg">Nenhum alimento adicionado ainda.</div>
+    <div class="actions-row">
+      <button class="btn btn-danger btn-block" id="clearBtn">Limpar tela</button>
+    </div>
+  </div>
+
+  <div class="total-bar">
+    <span class="label">Total de calorias</span>
+    <span class="value" id="totalValue">0 kcal</span>
+  </div>
+
+  <footer>Os alimentos cadastrados por você ficam salvos no seu navegador.</footer>
+</div>
+
+<!-- Modal: novo alimento -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3>Adicionar novo alimento</h3>
+    <div class="field">
+      <label class="field-label" for="newFoodName">Nome do alimento</label>
+      <input type="text" id="newFoodName" placeholder="Ex: Tapioca">
+    </div>
+    <div class="field">
+      <label class="field-label" for="newFoodKcal">Calorias por 100g</label>
+      <input type="number" id="newFoodKcal" placeholder="Ex: 210" min="0" step="1">
+    </div>
+    <div class="modal-msg" id="modalMsg"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" id="cancelAddBtn">Cancelar</button>
+      <button class="btn btn-primary" id="saveAddBtn">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+
+  // Banco de dados de alimentos brasileiros - kcal por 100g
+  var baseFoods = [
+    {name:"Arroz branco cozido", kcal:128},
+    {name:"Arroz integral cozido", kcal:124},
+    {name:"Feijão carioca cozido", kcal:76},
+    {name:"Feijão preto cozido", kcal:77},
+    {name:"Feijão fradinho cozido", kcal:94},
+    {name:"Lentilha cozida", kcal:93},
+    {name:"Grão de bico cozido", kcal:164},
+    {name:"Ervilha cozida", kcal:81},
+    {name:"Farofa pronta", kcal:411},
+    {name:"Farinha de mandioca", kcal:365},
+    {name:"Farinha de milho", kcal:360},
+    {name:"Fubá", kcal:360},
+    {name:"Macarrão cozido", kcal:158},
+    {name:"Macarrão instantâneo (miojo)", kcal:436},
+    {name:"Polenta", kcal:80},
+    {name:"Cuscuz de milho", kcal:112},
+    {name:"Tapioca (goma hidratada)", kcal:190},
+    {name:"Pão francês", kcal:300},
+    {name:"Pão de forma branco", kcal:265},
+    {name:"Pão de forma integral", kcal:253},
+    {name:"Pão de queijo", kcal:330},
+    {name:"Pão de açúcar (doce)", kcal:290},
+    {name:"Biscoito de água e sal", kcal:432},
+    {name:"Biscoito recheado", kcal:480},
+    {name:"Torrada", kcal:395},
+    {name:"Bolo simples (fubá/caseiro)", kcal:290},
+    {name:"Batata inglesa cozida", kcal:52},
+    {name:"Batata frita", kcal:312},
+    {name:"Batata doce cozida", kcal:77},
+    {name:"Mandioca cozida (aipim)", kcal:125},
+    {name:"Mandioquinha (batata baroa) cozida", kcal:80},
+    {name:"Inhame cozido", kcal:97},
+    {name:"Cará cozido", kcal:97},
+    {name:"Abóbora cozida", kcal:32},
+    {name:"Abobrinha cozida", kcal:20},
+    {name:"Berinjela cozida", kcal:23},
+    {name:"Chuchu cozido", kcal:19},
+    {name:"Beterraba cozida", kcal:32},
+    {name:"Cenoura crua", kcal:34},
+    {name:"Cenoura cozida", kcal:32},
+    {name:"Tomate cru", kcal:15},
+    {name:"Alface", kcal:11},
+    {name:"Repolho cru", kcal:25},
+    {name:"Couve refogada", kcal:39},
+    {name:"Couve-flor cozida", kcal:19},
+    {name:"Brócolis cozido", kcal:25},
+    {name:"Vagem cozida", kcal:24},
+    {name:"Pepino cru", kcal:10},
+    {name:"Cebola crua", kcal:39},
+    {name:"Pimentão cru", kcal:25},
+    {name:"Quiabo cozido", kcal:32},
+    {name:"Milho verde cozido", kcal:98},
+    {name:"Palmito em conserva", kcal:26},
+    {name:"Mandioquinha frita", kcal:200},
+    {name:"Carne bovina moída (crua)", kcal:212},
+    {name:"Carne bovina moída (refogada/cozida)", kcal:230},
+    {name:"Alcatra grelhada", kcal:190},
+    {name:"Picanha grelhada", kcal:289},
+    {name:"Patinho cozido", kcal:170},
+    {name:"Costela bovina assada", kcal:350},
+    {name:"Carne seca (charque) cozida", kcal:250},
+    {name:"Frango peito grelhado (sem pele)", kcal:159},
+    {name:"Frango coxa/sobrecoxa assada", kcal:215},
+    {name:"Frango desfiado cozido", kcal:165},
+    {name:"Frango à passarinho frito", kcal:280},
+    {name:"Carne de porco lombo assado", kcal:210},
+    {name:"Bacon frito", kcal:541},
+    {name:"Linguiça toscana grelhada", kcal:320},
+    {name:"Linguiça calabresa grelhada", kcal:335},
+    {name:"Salsicha cozida", kcal:257},
+    {name:"Presunto", kcal:145},
+    {name:"Mortadela", kcal:270},
+    {name:"Peito de peru fatiado", kcal:110},
+    {name:"Ovo de galinha cozido", kcal:155},
+    {name:"Ovo frito", kcal:196},
+    {name:"Omelete simples", kcal:154},
+    {name:"Tilápia grelhada", kcal:128},
+    {name:"Salmão grelhado", kcal:208},
+    {name:"Bacalhau cozido", kcal:105},
+    {name:"Camarão cozido", kcal:99},
+    {name:"Sardinha em lata (óleo)", kcal:208},
+    {name:"Atum em lata (água)", kcal:116},
+    {name:"Leite integral", kcal:61},
+    {name:"Leite desnatado", kcal:35},
+    {name:"Iogurte natural integral", kcal:61},
+    {name:"Iogurte natural desnatado", kcal:41},
+    {name:"Queijo minas frescal", kcal:264},
+    {name:"Queijo muçarela", kcal:330},
+    {name:"Queijo prato", kcal:360},
+    {name:"Queijo parmesão", kcal:431},
+    {name:"Requeijão cremoso", kcal:257},
+    {name:"Manteiga", kcal:717},
+    {name:"Margarina", kcal:596},
+    {name:"Creme de leite", kcal:239},
+    {name:"Banana prata", kcal:98},
+    {name:"Banana nanica", kcal:92},
+    {name:"Maçã", kcal:56},
+    {name:"Laranja", kcal:37},
+    {name:"Mamão papaya", kcal:40},
+    {name:"Manga", kcal:64},
+    {name:"Abacaxi", kcal:48},
+    {name:"Melancia", kcal:33},
+    {name:"Melão", kcal:29},
+    {name:"Uva", kcal:53},
+    {name:"Morango", kcal:30},
+    {name:"Abacate", kcal:96},
+    {name:"Goiaba", kcal:52},
+    {name:"Maracujá (polpa)", kcal:68},
+    {name:"Caju", kcal:43},
+    {name:"Acerola", kcal:33},
+    {name:"Tangerina/mexerica", kcal:37},
+    {name:"Limão", kcal:29},
+    {name:"Coco fresco", kcal:354},
+    {name:"Pêra", kcal:53},
+    {name:"Pêssego", kcal:39},
+    {name:"Jaca", kcal:88},
+    {name:"Amendoim torrado", kcal:544},
+    {name:"Castanha de caju", kcal:570},
+    {name:"Castanha do Pará", kcal:643},
+    {name:"Amêndoas", kcal:579},
+    {name:"Nozes", kcal:654},
+    {name:"Açaí polpa (puro)", kcal:58},
+    {name:"Açaí na tigela (com xarope/granola)", kcal:150},
+    {name:"Açúcar refinado", kcal:387},
+    {name:"Mel", kcal:309},
+    {name:"Doce de leite", kcal:315},
+    {name:"Goiabada", kcal:264},
+    {name:"Chocolate ao leite", kcal:540},
+    {name:"Brigadeiro", kcal:411},
+    {name:"Pudim de leite", kcal:180},
+    {name:"Sorvete de massa", kcal:207},
+    {name:"Picolé de fruta", kcal:90},
+    {name:"Pipoca (sem óleo)", kcal:375},
+    {name:"Pipoca (com óleo)", kcal:480},
+    {name:"Refrigerante cola", kcal:42},
+    {name:"Suco de laranja natural", kcal:37},
+    {name:"Água de coco", kcal:22},
+    {name:"Café sem açúcar", kcal:2},
+    {name:"Azeite de oliva", kcal:884},
+    {name:"Óleo de soja", kcal:884},
+    {name:"Maionese", kcal:302},
+    {name:"Molho de tomate", kcal:29},
+    {name:"Vinagrete", kcal:35},
+    {name:"Pão de forma light", kcal:230},
+    {name:"Granola", kcal:471},
+    {name:"Aveia em flocos", kcal:394},
+    {name:"Quinoa cozida", kcal:120},
+    {name:"Coxinha de frango (frita)", kcal:290},
+    {name:"Pastel de carne (frito)", kcal:320},
+    {name:"Empada de frango", kcal:300},
+    {name:"Esfiha de carne", kcal:270},
+    {name:"Pizza de muçarela", kcal:266},
+    {name:"Lasanha à bolonhesa", kcal:145},
+    {name:"Feijoada completa", kcal:180},
+    {name:"Estrogonofe de frango", kcal:190},
+    {name:"Vatapá", kcal:195},
+    {name:"Acarajé", kcal:290},
+    {name:"Moqueca de peixe", kcal:120},
+    {name:"Baião de dois", kcal:150},
+    {name:"Farofa com bacon", kcal:430},
+    {name:"Pão de milho", kcal:280},
+    {name:"Bolo de chocolate", kcal:370},
+    {name:"Bolo de cenoura", kcal:340},
+    {name:"Torta salgada (massa podre)", kcal:250}
+  ];
+
+  var STORAGE_KEY_CUSTOM = "calorias_alimentos_customizados_v1";
+  var STORAGE_KEY_DIARY = "calorias_lista_dia_v1";
+
+  var customFoods = [];
+  var diary = [];
+
+  function loadFromStorage(){
+    try{
+      var c = localStorage.getItem(STORAGE_KEY_CUSTOM);
+      if(c) customFoods = JSON.parse(c) || [];
+    }catch(e){ customFoods = []; }
+    try{
+      var d = localStorage.getItem(STORAGE_KEY_DIARY);
+      if(d) diary = JSON.parse(d) || [];
+    }catch(e){ diary = []; }
+  }
+
+  function saveCustomFoods(){
+    try{ localStorage.setItem(STORAGE_KEY_CUSTOM, JSON.stringify(customFoods)); }
+    catch(e){ /* localStorage indisponível neste ambiente */ }
+  }
+
+  function saveDiary(){
+    try{ localStorage.setItem(STORAGE_KEY_DIARY, JSON.stringify(diary)); }
+    catch(e){ /* localStorage indisponível neste ambiente */ }
+  }
+
+  function allFoods(){
+    return baseFoods.concat(customFoods);
+  }
+
+  function normalize(str){
+    return str.toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  }
+
+  // ---------- Autocomplete ----------
+  var searchInput = document.getElementById("searchInput");
+  var autocompleteList = document.getElementById("autocompleteList");
+  var activeIndex = -1;
+  var currentMatches = [];
+
+  function renderAutocomplete(query){
+    var q = normalize(query.trim());
+    autocompleteList.innerHTML = "";
+    activeIndex = -1;
+
+    if(!q){
+      autocompleteList.classList.remove("show");
+      currentMatches = [];
+      return;
+    }
+
+    currentMatches = allFoods().filter(function(f){
+      return normalize(f.name).indexOf(q) !== -1;
+    }).slice(0, 30);
+
+    if(currentMatches.length === 0){
+      var empty = document.createElement("div");
+      empty.className = "autocomplete-empty";
+      empty.textContent = "Nenhum alimento encontrado. Use \"+ Novo alimento\" para cadastrar.";
+      autocompleteList.appendChild(empty);
+      autocompleteList.classList.add("show");
+      return;
+    }
+
+    currentMatches.forEach(function(food, idx){
+      var item = document.createElement("div");
+      item.className = "autocomplete-item";
+      item.setAttribute("data-idx", idx);
+      var nameSpan = document.createElement("span");
+      nameSpan.textContent = food.name;
+      var kcalSpan = document.createElement("span");
+      kcalSpan.className = "kcal";
+      kcalSpan.textContent = food.kcal + " kcal";
+      item.appendChild(nameSpan);
+      item.appendChild(kcalSpan);
+      item.addEventListener("click", function(){
+        addToDiary(food);
+        searchInput.value = "";
+        autocompleteList.classList.remove("show");
+        searchInput.focus();
+      });
+      autocompleteList.appendChild(item);
+    });
+
+    autocompleteList.classList.add("show");
+  }
+
+  searchInput.addEventListener("input", function(){
+    renderAutocomplete(searchInput.value);
+  });
+
+  searchInput.addEventListener("focus", function(){
+    if(searchInput.value.trim()) renderAutocomplete(searchInput.value);
+  });
+
+  searchInput.addEventListener("keydown", function(e){
+    var items = autocompleteList.querySelectorAll(".autocomplete-item");
+    if(items.length === 0) return;
+
+    if(e.key === "ArrowDown"){
+      e.preventDefault();
+      activeIndex = Math.min(activeIndex + 1, items.length - 1);
+      updateActiveItem(items);
+    } else if(e.key === "ArrowUp"){
+      e.preventDefault();
+      activeIndex = Math.max(activeIndex - 1, 0);
+      updateActiveItem(items);
+    } else if(e.key === "Enter"){
+      e.preventDefault();
+      if(activeIndex >= 0 && currentMatches[activeIndex]){
+        addToDiary(currentMatches[activeIndex]);
+        searchInput.value = "";
+        autocompleteList.classList.remove("show");
+      }
+    } else if(e.key === "Escape"){
+      autocompleteList.classList.remove("show");
+    }
+  });
+
+  function updateActiveItem(items){
+    items.forEach(function(it, i){
+      it.classList.toggle("active", i === activeIndex);
+    });
+    if(items[activeIndex]) items[activeIndex].scrollIntoView({block:"nearest"});
+  }
+
+  document.addEventListener("click", function(e){
+    if(!e.target.closest(".search-box")){
+      autocompleteList.classList.remove("show");
+    }
+  });
+
+  // ---------- Diário (lista do dia) ----------
+  var diaryList = document.getElementById("diaryList");
+  var emptyDiaryMsg = document.getElementById("emptyDiaryMsg");
+  var itemCount = document.getElementById("itemCount");
+  var totalValue = document.getElementById("totalValue");
+
+  function addToDiary(food){
+    diary.push({name: food.name, kcal: food.kcal});
+    saveDiary();
+    renderDiary();
+  }
+
+  function removeFromDiary(index){
+    diary.splice(index, 1);
+    saveDiary();
+    renderDiary();
+  }
+
+  function renderDiary(){
+    diaryList.innerHTML = "";
+
+    if(diary.length === 0){
+      emptyDiaryMsg.style.display = "block";
+    } else {
+      emptyDiaryMsg.style.display = "none";
+      diary.forEach(function(item, idx){
+        var li = document.createElement("li");
+
+        var nameSpan = document.createElement("span");
+        nameSpan.className = "item-name";
+        nameSpan.textContent = item.name;
+
+        var kcalSpan = document.createElement("span");
+        kcalSpan.className = "item-kcal";
+        kcalSpan.textContent = item.kcal + " kcal";
+
+        var removeBtn = document.createElement("button");
+        removeBtn.className = "remove-btn";
+        removeBtn.setAttribute("aria-label", "Remover " + item.name);
+        removeBtn.textContent = "✕";
+        removeBtn.addEventListener("click", function(){ removeFromDiary(idx); });
+
+        li.appendChild(nameSpan);
+        li.appendChild(kcalSpan);
+        li.appendChild(removeBtn);
+        diaryList.appendChild(li);
+      });
+    }
+
+    itemCount.textContent = diary.length + (diary.length === 1 ? " item" : " itens");
+
+    var total = diary.reduce(function(sum, item){ return sum + Number(item.kcal); }, 0);
+    totalValue.textContent = total + " kcal";
+  }
+
+  // ---------- Limpar tela ----------
+  document.getElementById("clearBtn").addEventListener("click", function(){
+    if(diary.length === 0) return;
+    var confirmClear = confirm("Limpar toda a lista de alimentos de hoje? O banco de alimentos não será afetado.");
+    if(confirmClear){
+      diary = [];
+      saveDiary();
+      renderDiary();
+    }
+  });
+
+  // ---------- Modal: novo alimento ----------
+  var modalOverlay = document.getElementById("modalOverlay");
+  var newFoodName = document.getElementById("newFoodName");
+  var newFoodKcal = document.getElementById("newFoodKcal");
+  var modalMsg = document.getElementById("modalMsg");
+
+  function openModal(){
+    modalOverlay.classList.add("show");
+    newFoodName.value = "";
+    newFoodKcal.value = "";
+    modalMsg.textContent = "";
+    modalMsg.className = "modal-msg";
+    setTimeout(function(){ newFoodName.focus(); }, 50);
+  }
+  function closeModal(){
+    modalOverlay.classList.remove("show");
+  }
+
+  document.getElementById("openAddFoodBtn").addEventListener("click", openModal);
+  document.getElementById("cancelAddBtn").addEventListener("click", closeModal);
+  modalOverlay.addEventListener("click", function(e){
+    if(e.target === modalOverlay) closeModal();
+  });
+
+  document.getElementById("saveAddBtn").addEventListener("click", function(){
+    var name = newFoodName.value.trim();
+    var kcal = parseFloat(newFoodKcal.value);
+
+    if(!name){
+      modalMsg.textContent = "Digite o nome do alimento.";
+      modalMsg.className = "modal-msg error";
+      return;
+    }
+    if(isNaN(kcal) || kcal < 0){
+      modalMsg.textContent = "Digite um valor de calorias válido.";
+      modalMsg.className = "modal-msg error";
+      return;
+    }
+
+    var exists = allFoods().some(function(f){
+      return normalize(f.name) === normalize(name);
+    });
+    if(exists){
+      modalMsg.textContent = "Esse alimento já existe no banco de dados.";
+      modalMsg.className = "modal-msg error";
+      return;
+    }
+
+    customFoods.push({name: name, kcal: Math.round(kcal)});
+    saveCustomFoods();
+
+    modalMsg.textContent = "Alimento adicionado!";
+    modalMsg.className = "modal-msg ok";
+    setTimeout(closeModal, 700);
+  });
+
+  // ---------- Início ----------
+  loadFromStorage();
+  renderDiary();
+
+})();
+</script>
+</body>
+</html>
