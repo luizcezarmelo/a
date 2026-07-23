@@ -350,7 +350,7 @@ function buildDefaultState(){
       checked:false
     }));
   }
-  return {days, history:[], currentIndex:0};
+  return {days, history:[], currentIndex:0, activeDay: DAY_KEYS[0]};
 }
 
 let state = null;
@@ -383,6 +383,7 @@ async function loadState(){
       }
       if(!Array.isArray(state.history)) state.history = [];
       if(typeof state.currentIndex !== 'number') state.currentIndex = 0;
+      if(!DAY_KEYS.includes(state.activeDay)) state.activeDay = null;
     } else {
       state = buildDefaultState();
       await saveState();
@@ -416,8 +417,10 @@ function renderTabs(){
       dot.className = 'dot';
       tab.appendChild(dot);
     }
-    tab.addEventListener('click', ()=>{
+    tab.addEventListener('click', async ()=>{
       activeDay = key;
+      state.activeDay = key;
+      await saveState();
       renderAll();
     });
     tabsEl.appendChild(tab);
@@ -558,6 +561,7 @@ document.getElementById('complete-btn').addEventListener('click', async ()=>{
     state.currentIndex = (thisBlockIndex + 1) % DAY_KEYS.length;
     activeDay = currentSequenceKey();
   }
+  state.activeDay = activeDay;
   await saveState();
   renderAll();
 });
@@ -573,7 +577,7 @@ document.getElementById('reset-btn').addEventListener('click', async ()=>{
 
 (async function init(){
   await loadState();
-  activeDay = currentSequenceKey();
+  activeDay = (state.activeDay && DAY_KEYS.includes(state.activeDay)) ? state.activeDay : currentSequenceKey();
   document.getElementById('loading').classList.add('hidden');
   document.getElementById('content').classList.remove('hidden');
   renderAll();
