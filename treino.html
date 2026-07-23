@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Treino</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #14171c;
+    --card: #1d2128;
+    --card-border: #2a2f38;
+    --accent: #ff5a36;
+    --accent-dim: #ff5a3633;
+    --text: #eef0f2;
+    --text-muted: #5c6470;
+    --text-soft: #9aa1ab;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',system-ui,sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:20px 14px 60px;
+  }
+  .app{width:100%; max-width:480px;}
+
+  header{margin-bottom:18px;}
+  .eyebrow{
+    font-family:'Oswald',sans-serif;
+    font-size:12px;
+    letter-spacing:2.5px;
+    text-transform:uppercase;
+    color:var(--accent);
+    font-weight:600;
+  }
+  h1{
+    font-family:'Oswald',sans-serif;
+    font-size:32px;
+    font-weight:700;
+    margin:2px 0 4px;
+    letter-spacing:0.5px;
+  }
+  .date-line{
+    color:var(--text-soft);
+    font-size:13px;
+    text-transform:capitalize;
+  }
+
+  .tabs{
+    display:flex;
+    gap:6px;
+    margin:18px 0 16px;
+    background:var(--card);
+    padding:5px;
+    border-radius:14px;
+    border:1px solid var(--card-border);
+  }
+  .tab{
+    flex:1;
+    text-align:center;
+    padding:9px 4px;
+    border-radius:10px;
+    font-family:'Oswald',sans-serif;
+    font-size:13px;
+    letter-spacing:0.5px;
+    color:var(--text-soft);
+    cursor:pointer;
+    user-select:none;
+    transition:background .15s, color .15s;
+    position:relative;
+  }
+  .tab.active{
+    background:var(--accent);
+    color:#1a0d08;
+  }
+  .tab .dot{
+    position:absolute;
+    top:4px;
+    right:8px;
+    width:5px;
+    height:5px;
+    border-radius:50%;
+    background:var(--accent);
+  }
+  .tab.active .dot{background:#1a0d08;}
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:16px;
+    padding:6px;
+    margin-bottom:14px;
+  }
+
+  .exercise{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:13px 10px;
+    border-bottom:1px solid var(--card-border);
+  }
+  .exercise:last-child{border-bottom:none;}
+
+  .checkbox{
+    flex:none;
+    width:23px;
+    height:23px;
+    border-radius:7px;
+    border:2px solid var(--text-muted);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition:background .15s, border-color .15s;
+  }
+  .checkbox.checked{
+    background:var(--accent);
+    border-color:var(--accent);
+  }
+  .checkbox svg{width:14px;height:14px;opacity:0;transition:opacity .1s;}
+  .checkbox.checked svg{opacity:1;}
+
+  .ex-name{
+    flex:1;
+    font-size:15.5px;
+    font-weight:500;
+    color:var(--text);
+    background:transparent;
+    border:none;
+    outline:none;
+    font-family:inherit;
+    padding:4px 2px;
+    border-radius:6px;
+    transition:color .15s;
+  }
+  .ex-name:focus{background:#00000033;}
+  .exercise.checked .ex-name{color:var(--text-muted); font-weight:400;}
+
+  .remove-btn{
+    flex:none;
+    width:26px;
+    height:26px;
+    border-radius:50%;
+    border:none;
+    background:transparent;
+    color:var(--text-muted);
+    font-size:18px;
+    line-height:1;
+    cursor:pointer;
+  }
+  .remove-btn:active{background:#ffffff11;}
+
+  .add-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:12px 10px;
+    color:var(--accent);
+    font-weight:600;
+    font-size:14.5px;
+    cursor:pointer;
+    user-select:none;
+  }
+  .add-row .plus{
+    width:23px;height:23px;border-radius:7px;
+    border:2px dashed var(--accent);
+    display:flex;align-items:center;justify-content:center;
+    font-size:15px;
+  }
+
+  .actions{
+    display:flex;
+    gap:10px;
+    margin-bottom:22px;
+  }
+  button.main-btn{
+    flex:1;
+    border:none;
+    border-radius:14px;
+    padding:14px 10px;
+    font-family:'Oswald',sans-serif;
+    font-size:13.5px;
+    letter-spacing:0.5px;
+    font-weight:600;
+    cursor:pointer;
+    text-transform:uppercase;
+  }
+  .btn-complete{
+    background:var(--accent);
+    color:#1a0d08;
+  }
+  .btn-complete.done{
+    background:var(--accent-dim);
+    color:var(--accent);
+    border:1px solid var(--accent);
+  }
+  .btn-reset{
+    background:transparent;
+    color:var(--text-soft);
+    border:1px solid var(--card-border);
+  }
+
+  footer{
+    border-top:1px solid var(--card-border);
+    padding-top:16px;
+    display:flex;
+    gap:10px;
+  }
+  .stat{
+    flex:1;
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:14px;
+    padding:14px 10px;
+    text-align:center;
+  }
+  .stat .num{
+    font-family:'Oswald',sans-serif;
+    font-size:28px;
+    font-weight:700;
+    color:var(--accent);
+    line-height:1;
+  }
+  .stat .label{
+    font-size:11px;
+    color:var(--text-soft);
+    text-transform:uppercase;
+    letter-spacing:1px;
+    margin-top:6px;
+  }
+
+  .loading{
+    text-align:center;
+    color:var(--text-soft);
+    padding:40px 0;
+    font-size:14px;
+  }
+  .hidden{display:none;}
+</style>
+</head>
+<body>
+<div class="app">
+  <div id="loading" class="loading">Carregando treino…</div>
+
+  <div id="content" class="hidden">
+    <header>
+      <div class="eyebrow" id="weekday-label">Segunda</div>
+      <h1>Treino</h1>
+      <div class="date-line" id="date-line"></div>
+    </header>
+
+    <div class="tabs" id="tabs"></div>
+
+    <div class="card" id="exercise-list"></div>
+
+    <div class="actions">
+      <button class="main-btn btn-complete" id="complete-btn">Concluir treino</button>
+      <button class="main-btn btn-reset" id="reset-btn">Resetar semana</button>
+    </div>
+
+    <footer>
+      <div class="stat">
+        <div class="num" id="week-count">0</div>
+        <div class="label">Treinos na semana</div>
+      </div>
+      <div class="stat">
+        <div class="num" id="month-count">0</div>
+        <div class="label">Treinos no mês</div>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<script>
+const DAY_KEYS = ['segunda','terca','quinta','sexta'];
+const DAY_LABELS = {segunda:'Segunda', terca:'Terça', quinta:'Quinta', sexta:'Sexta'};
+const STORAGE_KEY = 'workout-data-v1';
+
+const DEFAULT_DATA = {
+  days: {
+    segunda: [
+      'Supino reto','Supino inclinado com halteres','Puxada alta','Remada curvada',
+      'Desenvolvimento com halteres','Elevação lateral','Rosca direta','Tríceps na polia'
+    ],
+    terca: [
+      'Agachamento','Leg press','Mesa flexora','Cadeira flexora',
+      'Máquina abdutora','Panturrilha em pé','Elevação de pernas'
+    ],
+    quinta: [
+      'Supino inclinado','Crucifixo na máquina','Remada baixa','Pulldown',
+      'Desenvolvimento na máquina','Face pull','Rosca concentrada','Rosca martelo',
+      'Tríceps francês','Tríceps pra frente'
+    ],
+    sexta: [
+      'Cadeira extensora','Mesa flexora','Cadeira flexora','Máquina abdutora',
+      'Máquina adutora','Panturrilha sentada','Crunch na polia','Abdominal oblíquo'
+    ]
+  },
+  history: []
+};
+
+function buildDefaultState(){
+  const days = {};
+  for(const key of DAY_KEYS){
+    days[key] = DEFAULT_DATA.days[key].map((name,i)=>({
+      id: key+'-'+i,
+      name,
+      checked:false
+    }));
+  }
+  return {days, history:[]};
+}
+
+let state = null;
+let activeDay = null;
+
+function pad(n){return n<10?'0'+n:''+n;}
+function toISODate(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+
+function computeTodayDayKey(){
+  const wd = new Date().getDay(); // 0 Sun .. 6 Sat
+  const trainingWeekdays = [1,2,4,5]; // seg,ter,qui,sex
+  const map = {1:'segunda',2:'terca',4:'quinta',5:'sexta'};
+  let chosen = trainingWeekdays.find(x=>x>=wd);
+  if(chosen===undefined) chosen = trainingWeekdays[0];
+  return map[chosen];
+}
+
+function getMonday(date){
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day===0?-6:1);
+  d.setDate(diff);
+  d.setHours(0,0,0,0);
+  return d;
+}
+
+async function loadState(){
+  try{
+    const result = await window.storage.get(STORAGE_KEY, false);
+    if(result && result.value){
+      state = JSON.parse(result.value);
+      // safety: ensure all day keys and history array exist
+      for(const key of DAY_KEYS){
+        if(!Array.isArray(state.days[key])) state.days[key] = [];
+      }
+      if(!Array.isArray(state.history)) state.history = [];
+    } else {
+      state = buildDefaultState();
+      await saveState();
+    }
+  }catch(e){
+    console.error('Erro ao carregar', e);
+    state = buildDefaultState();
+  }
+}
+
+async function saveState(){
+  try{
+    await window.storage.set(STORAGE_KEY, JSON.stringify(state), false);
+  }catch(e){
+    console.error('Erro ao salvar', e);
+  }
+}
+
+function renderTabs(){
+  const tabsEl = document.getElementById('tabs');
+  tabsEl.innerHTML = '';
+  const todayKey = computeTodayDayKey();
+  DAY_KEYS.forEach(key=>{
+    const tab = document.createElement('div');
+    tab.className = 'tab'+(key===activeDay?' active':'');
+    tab.textContent = DAY_LABELS[key];
+    if(key===todayKey){
+      const dot = document.createElement('div');
+      dot.className = 'dot';
+      tab.appendChild(dot);
+    }
+    tab.addEventListener('click', ()=>{
+      activeDay = key;
+      renderAll();
+    });
+    tabsEl.appendChild(tab);
+  });
+}
+
+function renderHeader(){
+  document.getElementById('weekday-label').textContent = DAY_LABELS[activeDay];
+  const now = new Date();
+  const opts = {weekday:'long', day:'numeric', month:'long'};
+  document.getElementById('date-line').textContent = now.toLocaleDateString('pt-BR', opts);
+}
+
+function renderExercises(){
+  const list = document.getElementById('exercise-list');
+  list.innerHTML = '';
+  const exercises = state.days[activeDay];
+
+  exercises.forEach(ex=>{
+    const row = document.createElement('div');
+    row.className = 'exercise'+(ex.checked?' checked':'');
+
+    const box = document.createElement('div');
+    box.className = 'checkbox'+(ex.checked?' checked':'');
+    box.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#1a0d08" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+    box.addEventListener('click', async ()=>{
+      ex.checked = !ex.checked;
+      await saveState();
+      renderExercises();
+    });
+
+    const input = document.createElement('input');
+    input.className = 'ex-name';
+    input.type = 'text';
+    input.value = ex.name;
+    input.addEventListener('blur', async ()=>{
+      const val = input.value.trim();
+      ex.name = val.length ? val : ex.name;
+      input.value = ex.name;
+      await saveState();
+    });
+    input.addEventListener('keydown', (e)=>{
+      if(e.key==='Enter'){ input.blur(); }
+    });
+
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'remove-btn';
+    removeBtn.textContent = '×';
+    removeBtn.addEventListener('click', async ()=>{
+      state.days[activeDay] = state.days[activeDay].filter(e=>e.id!==ex.id);
+      await saveState();
+      renderExercises();
+    });
+
+    row.appendChild(box);
+    row.appendChild(input);
+    row.appendChild(removeBtn);
+    list.appendChild(row);
+  });
+
+  const addRow = document.createElement('div');
+  addRow.className = 'add-row';
+  addRow.innerHTML = '<div class="plus">+</div><span>Adicionar exercício</span>';
+  addRow.addEventListener('click', async ()=>{
+    const newEx = {
+      id: activeDay+'-'+Date.now(),
+      name:'Novo exercício',
+      checked:false
+    };
+    state.days[activeDay].push(newEx);
+    await saveState();
+    renderExercises();
+    const inputs = list.querySelectorAll('.ex-name');
+    const lastInput = inputs[inputs.length-1];
+    if(lastInput){ lastInput.focus(); lastInput.select(); }
+  });
+  list.appendChild(addRow);
+}
+
+function renderCompleteButton(){
+  const btn = document.getElementById('complete-btn');
+  const todayISO = toISODate(new Date());
+  const done = state.history.includes(todayISO);
+  btn.textContent = done ? 'Treino concluído ✓' : 'Concluir treino';
+  btn.className = 'main-btn btn-complete'+(done?' done':'');
+}
+
+function renderStats(){
+  const now = new Date();
+  const monday = getMonday(now);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate()+6);
+  sunday.setHours(23,59,59,999);
+
+  const currentMonth = now.getFullYear()+'-'+pad(now.getMonth()+1);
+
+  let weekCount = 0, monthCount = 0;
+  state.history.forEach(dateStr=>{
+    const d = new Date(dateStr+'T12:00:00');
+    if(d>=monday && d<=sunday) weekCount++;
+    if(dateStr.slice(0,7)===currentMonth) monthCount++;
+  });
+
+  document.getElementById('week-count').textContent = weekCount;
+  document.getElementById('month-count').textContent = monthCount;
+}
+
+function renderAll(){
+  renderTabs();
+  renderHeader();
+  renderExercises();
+  renderCompleteButton();
+  renderStats();
+}
+
+document.getElementById('complete-btn').addEventListener('click', async ()=>{
+  const todayISO = toISODate(new Date());
+  const idx = state.history.indexOf(todayISO);
+  if(idx>=0){
+    state.history.splice(idx,1);
+  } else {
+    state.history.push(todayISO);
+  }
+  await saveState();
+  renderCompleteButton();
+  renderStats();
+});
+
+document.getElementById('reset-btn').addEventListener('click', async ()=>{
+  if(!confirm('Isso vai desmarcar todos os exercícios da semana em todos os dias (os nomes não serão apagados). Continuar?')) return;
+  for(const key of DAY_KEYS){
+    state.days[key].forEach(ex=>ex.checked=false);
+  }
+  await saveState();
+  renderExercises();
+});
+
+(async function init(){
+  await loadState();
+  activeDay = computeTodayDayKey();
+  document.getElementById('loading').classList.add('hidden');
+  document.getElementById('content').classList.remove('hidden');
+  renderAll();
+})();
+</script>
+</body>
+</html>
