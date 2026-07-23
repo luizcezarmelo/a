@@ -30,7 +30,16 @@
   }
   .app{width:100%; max-width:480px;}
 
-  header{margin-bottom:18px;}
+  @media (min-width:640px){
+    body{padding:40px 20px 80px;}
+    .app{max-width:560px;}
+    h1{font-size:38px;}
+  }
+  @media (min-width:900px){
+    .app{max-width:640px;}
+  }
+
+  header{margin-bottom:14px;}
   .eyebrow{
     font-family:'Oswald',sans-serif;
     font-size:12px;
@@ -51,6 +60,17 @@
     font-size:13px;
     text-transform:capitalize;
   }
+  .last-workout{
+    margin-top:10px;
+    font-size:12.5px;
+    color:var(--text-soft);
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:10px;
+    padding:8px 12px;
+    display:inline-block;
+  }
+  .last-workout strong{color:var(--text);}
 
   .tabs{
     display:flex;
@@ -138,6 +158,7 @@
     padding:4px 2px;
     border-radius:6px;
     transition:color .15s;
+    min-width:0;
   }
   .ex-name:focus{background:#00000033;}
   .exercise.checked .ex-name{color:var(--text-muted); font-weight:400;}
@@ -238,21 +259,23 @@
   .loading{
     text-align:center;
     color:var(--text-soft);
-    padding:40px 0;
+    padding:40px 20px;
     font-size:14px;
+    line-height:1.5;
   }
   .hidden{display:none;}
 </style>
 </head>
 <body>
 <div class="app">
-  <div id="loading" class="loading">Carregando treino…</div>
+  <div id="loading" class="loading">Conectando ao Firebase…</div>
 
   <div id="content" class="hidden">
     <header>
-      <div class="eyebrow" id="weekday-label">Segunda</div>
+      <div class="eyebrow" id="weekday-label">Treino 1</div>
       <h1>Treino</h1>
       <div class="date-line" id="date-line"></div>
+      <div class="last-workout" id="last-workout"></div>
     </header>
 
     <div class="tabs" id="tabs"></div>
@@ -277,38 +300,51 @@
   </div>
 </div>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDQOGFiqafMZh0ha6XW62P1DpIKJE8TBYc",
+  authDomain: "agenda-online-7b71c.firebaseapp.com",
+  databaseURL: "https://agenda-online-7b71c-default-rtdb.firebaseio.com",
+  projectId: "agenda-online-7b71c",
+  storageBucket: "agenda-online-7b71c.firebasestorage.app",
+  messagingSenderId: "28125733214",
+  appId: "1:28125733214:web:162d1cce5d14f55c24afcf"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db = getDatabase(fbApp);
+const DB_PATH = 'treinoApp';
+
 const DAY_KEYS = ['segunda','terca','quinta','sexta'];
 const DAY_LABELS = {segunda:'Treino 1', terca:'Treino 2', quinta:'Treino 3', sexta:'Treino 4'};
-const STORAGE_KEY = 'workout-data-v1';
 
 const DEFAULT_DATA = {
-  days: {
-    segunda: [
-      'Supino reto','Supino inclinado com halteres','Puxada alta','Remada curvada',
-      'Desenvolvimento com halteres','Elevação lateral','Rosca direta','Tríceps na polia'
-    ],
-    terca: [
-      'Agachamento','Leg press','Mesa flexora','Cadeira flexora',
-      'Máquina abdutora','Panturrilha em pé','Elevação de pernas'
-    ],
-    quinta: [
-      'Supino inclinado','Crucifixo na máquina','Remada baixa','Pulldown',
-      'Desenvolvimento na máquina','Face pull','Rosca concentrada','Rosca martelo',
-      'Tríceps francês','Tríceps pra frente'
-    ],
-    sexta: [
-      'Cadeira extensora','Mesa flexora','Cadeira flexora','Máquina abdutora',
-      'Máquina adutora','Panturrilha sentada','Crunch na polia','Abdominal oblíquo'
-    ]
-  },
-  history: []
+  segunda: [
+    'Supino reto','Supino inclinado com halteres','Puxada alta','Remada curvada',
+    'Desenvolvimento com halteres','Elevação lateral','Rosca direta','Tríceps na polia'
+  ],
+  terca: [
+    'Agachamento','Leg press','Mesa flexora','Cadeira flexora',
+    'Máquina abdutora','Panturrilha em pé','Elevação de pernas'
+  ],
+  quinta: [
+    'Supino inclinado','Crucifixo na máquina','Remada baixa','Pulldown',
+    'Desenvolvimento na máquina','Face pull','Rosca concentrada','Rosca martelo',
+    'Tríceps francês','Tríceps pra frente'
+  ],
+  sexta: [
+    'Cadeira extensora','Mesa flexora','Cadeira flexora','Máquina abdutora',
+    'Máquina adutora','Panturrilha sentada','Crunch na polia','Abdominal oblíquo'
+  ]
 };
 
 function buildDefaultState(){
   const days = {};
   for(const key of DAY_KEYS){
-    days[key] = DEFAULT_DATA.days[key].map((name,i)=>({
+    days[key] = DEFAULT_DATA[key].map((name,i)=>({
       id: key+'-'+i,
       name,
       checked:false
@@ -338,12 +374,12 @@ function getMonday(date){
 
 async function loadState(){
   try{
-    const result = await window.storage.get(STORAGE_KEY, false);
-    if(result && result.value){
-      state = JSON.parse(result.value);
-      // safety: ensure all day keys and history array exist
+    const snap = await get(ref(db, DB_PATH));
+    if(snap.exists()){
+      state = snap.val();
+      if(!state.days) state.days = {};
       for(const key of DAY_KEYS){
-        if(!Array.isArray(state.days[key])) state.days[key] = [];
+        if(!Array.isArray(state.days[key])) state.days[key] = buildDefaultState().days[key];
       }
       if(!Array.isArray(state.history)) state.history = [];
       if(typeof state.currentIndex !== 'number') state.currentIndex = 0;
@@ -352,16 +388,18 @@ async function loadState(){
       await saveState();
     }
   }catch(e){
-    console.error('Erro ao carregar', e);
+    console.error('Erro ao conectar no Firebase', e);
+    document.getElementById('loading').textContent =
+      'Não foi possível conectar ao Firebase agora. Se estiver testando dentro do chat, abra o arquivo .html baixado diretamente no navegador do celular/computador — o preview do chat pode bloquear a conexão.';
     state = buildDefaultState();
   }
 }
 
 async function saveState(){
   try{
-    await window.storage.set(STORAGE_KEY, JSON.stringify(state), false);
+    await set(ref(db, DB_PATH), state);
   }catch(e){
-    console.error('Erro ao salvar', e);
+    console.error('Erro ao salvar no Firebase', e);
   }
 }
 
@@ -391,6 +429,18 @@ function renderHeader(){
   const now = new Date();
   const opts = {weekday:'long', day:'numeric', month:'long'};
   document.getElementById('date-line').textContent = now.toLocaleDateString('pt-BR', opts);
+}
+
+function renderLastWorkout(){
+  const el = document.getElementById('last-workout');
+  if(!state.history.length){
+    el.textContent = 'Nenhum treino concluído ainda';
+    return;
+  }
+  const last = state.history[state.history.length-1];
+  const d = new Date(last.date+'T12:00:00');
+  const dateStr = pad(d.getDate())+'/'+pad(d.getMonth()+1);
+  el.innerHTML = 'Último treino: <strong>'+DAY_LABELS[last.block]+'</strong> • '+dateStr;
 }
 
 function renderExercises(){
@@ -462,7 +512,7 @@ function renderExercises(){
 function renderCompleteButton(){
   const btn = document.getElementById('complete-btn');
   const todayISO = toISODate(new Date());
-  const done = state.history.includes(todayISO);
+  const done = state.history.some(h=>h.date===todayISO);
   btn.textContent = done ? 'Treino concluído ✓' : 'Concluir treino';
   btn.className = 'main-btn btn-complete'+(done?' done':'');
 }
@@ -477,10 +527,10 @@ function renderStats(){
   const currentMonth = now.getFullYear()+'-'+pad(now.getMonth()+1);
 
   let weekCount = 0, monthCount = 0;
-  state.history.forEach(dateStr=>{
-    const d = new Date(dateStr+'T12:00:00');
+  state.history.forEach(h=>{
+    const d = new Date(h.date+'T12:00:00');
     if(d>=monday && d<=sunday) weekCount++;
-    if(dateStr.slice(0,7)===currentMonth) monthCount++;
+    if(h.date.slice(0,7)===currentMonth) monthCount++;
   });
 
   document.getElementById('week-count').textContent = weekCount;
@@ -490,6 +540,7 @@ function renderStats(){
 function renderAll(){
   renderTabs();
   renderHeader();
+  renderLastWorkout();
   renderExercises();
   renderCompleteButton();
   renderStats();
@@ -497,15 +548,13 @@ function renderAll(){
 
 document.getElementById('complete-btn').addEventListener('click', async ()=>{
   const todayISO = toISODate(new Date());
-  const idx = state.history.indexOf(todayISO);
+  const idx = state.history.findIndex(h=>h.date===todayISO);
   const thisBlockIndex = DAY_KEYS.indexOf(activeDay);
   if(idx>=0){
-    // desfazer: o bloco concluído volta a ser o "próximo"
     state.history.splice(idx,1);
     state.currentIndex = thisBlockIndex;
   } else {
-    // concluir: avança para o próximo bloco da sequência
-    state.history.push(todayISO);
+    state.history.push({date:todayISO, block:activeDay});
     state.currentIndex = (thisBlockIndex + 1) % DAY_KEYS.length;
     activeDay = currentSequenceKey();
   }
