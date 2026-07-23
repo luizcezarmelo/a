@@ -279,7 +279,7 @@
 
 <script>
 const DAY_KEYS = ['segunda','terca','quinta','sexta'];
-const DAY_LABELS = {segunda:'Segunda', terca:'Terça', quinta:'Quinta', sexta:'Sexta'};
+const DAY_LABELS = {segunda:'Treino 1', terca:'Treino 2', quinta:'Treino 3', sexta:'Treino 4'};
 const STORAGE_KEY = 'workout-data-v1';
 
 const DEFAULT_DATA = {
@@ -314,7 +314,7 @@ function buildDefaultState(){
       checked:false
     }));
   }
-  return {days, history:[]};
+  return {days, history:[], currentIndex:0};
 }
 
 let state = null;
@@ -323,13 +323,8 @@ let activeDay = null;
 function pad(n){return n<10?'0'+n:''+n;}
 function toISODate(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
 
-function computeTodayDayKey(){
-  const wd = new Date().getDay(); // 0 Sun .. 6 Sat
-  const trainingWeekdays = [1,2,4,5]; // seg,ter,qui,sex
-  const map = {1:'segunda',2:'terca',4:'quinta',5:'sexta'};
-  let chosen = trainingWeekdays.find(x=>x>=wd);
-  if(chosen===undefined) chosen = trainingWeekdays[0];
-  return map[chosen];
+function currentSequenceKey(){
+  return DAY_KEYS[state.currentIndex % DAY_KEYS.length];
 }
 
 function getMonday(date){
@@ -351,6 +346,7 @@ async function loadState(){
         if(!Array.isArray(state.days[key])) state.days[key] = [];
       }
       if(!Array.isArray(state.history)) state.history = [];
+      if(typeof state.currentIndex !== 'number') state.currentIndex = 0;
     } else {
       state = buildDefaultState();
       await saveState();
@@ -372,12 +368,12 @@ async function saveState(){
 function renderTabs(){
   const tabsEl = document.getElementById('tabs');
   tabsEl.innerHTML = '';
-  const todayKey = computeTodayDayKey();
+  const nextKey = currentSequenceKey();
   DAY_KEYS.forEach(key=>{
     const tab = document.createElement('div');
     tab.className = 'tab'+(key===activeDay?' active':'');
     tab.textContent = DAY_LABELS[key];
-    if(key===todayKey){
+    if(key===nextKey){
       const dot = document.createElement('div');
       dot.className = 'dot';
       tab.appendChild(dot);
@@ -502,14 +498,19 @@ function renderAll(){
 document.getElementById('complete-btn').addEventListener('click', async ()=>{
   const todayISO = toISODate(new Date());
   const idx = state.history.indexOf(todayISO);
+  const thisBlockIndex = DAY_KEYS.indexOf(activeDay);
   if(idx>=0){
+    // desfazer: o bloco concluído volta a ser o "próximo"
     state.history.splice(idx,1);
+    state.currentIndex = thisBlockIndex;
   } else {
+    // concluir: avança para o próximo bloco da sequência
     state.history.push(todayISO);
+    state.currentIndex = (thisBlockIndex + 1) % DAY_KEYS.length;
+    activeDay = currentSequenceKey();
   }
   await saveState();
-  renderCompleteButton();
-  renderStats();
+  renderAll();
 });
 
 document.getElementById('reset-btn').addEventListener('click', async ()=>{
@@ -523,7 +524,7 @@ document.getElementById('reset-btn').addEventListener('click', async ()=>{
 
 (async function init(){
   await loadState();
-  activeDay = computeTodayDayKey();
+  activeDay = currentSequenceKey();
   document.getElementById('loading').classList.add('hidden');
   document.getElementById('content').classList.remove('hidden');
   renderAll();
