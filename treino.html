@@ -121,7 +121,7 @@
   .exercise{
     display:flex;
     align-items:center;
-    gap:12px;
+    gap:8px;
     padding:13px 10px;
     border-bottom:1px solid var(--card-border);
   }
@@ -162,6 +162,43 @@
   }
   .ex-name:focus{background:#00000033;}
   .exercise.checked .ex-name{color:var(--text-muted); font-weight:400;}
+
+  .reorder-btns{
+    flex:none;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+  .reorder-btns button{
+    width:20px;
+    height:14px;
+    border:none;
+    background:#00000033;
+    color:var(--text-soft);
+    border-radius:4px;
+    font-size:9px;
+    line-height:1;
+    cursor:pointer;
+    padding:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .reorder-btns button:active{background:#ffffff22;}
+  .reorder-btns button:disabled{opacity:.25; cursor:default;}
+
+  .day-select{
+    flex:none;
+    background:#00000033;
+    color:var(--text-soft);
+    border:1px solid var(--card-border);
+    border-radius:8px;
+    font-size:11px;
+    font-family:'Inter',sans-serif;
+    padding:4px 2px;
+    outline:none;
+    max-width:66px;
+  }
 
   .remove-btn{
     flex:none;
@@ -451,7 +488,7 @@ function renderExercises(){
   list.innerHTML = '';
   const exercises = state.days[activeDay];
 
-  exercises.forEach(ex=>{
+  exercises.forEach((ex, idx)=>{
     const row = document.createElement('div');
     row.className = 'exercise'+(ex.checked?' checked':'');
 
@@ -478,6 +515,54 @@ function renderExercises(){
       if(e.key==='Enter'){ input.blur(); }
     });
 
+    const reorderDiv = document.createElement('div');
+    reorderDiv.className = 'reorder-btns';
+
+    const upBtn = document.createElement('button');
+    upBtn.type = 'button';
+    upBtn.textContent = '▲';
+    upBtn.disabled = idx===0;
+    upBtn.addEventListener('click', async ()=>{
+      const arr = state.days[activeDay];
+      if(idx===0) return;
+      [arr[idx-1], arr[idx]] = [arr[idx], arr[idx-1]];
+      await saveState();
+      renderExercises();
+    });
+
+    const downBtn = document.createElement('button');
+    downBtn.type = 'button';
+    downBtn.textContent = '▼';
+    downBtn.disabled = idx===exercises.length-1;
+    downBtn.addEventListener('click', async ()=>{
+      const arr = state.days[activeDay];
+      if(idx===arr.length-1) return;
+      [arr[idx+1], arr[idx]] = [arr[idx], arr[idx+1]];
+      await saveState();
+      renderExercises();
+    });
+
+    reorderDiv.appendChild(upBtn);
+    reorderDiv.appendChild(downBtn);
+
+    const daySelect = document.createElement('select');
+    daySelect.className = 'day-select';
+    DAY_KEYS.forEach(key=>{
+      const opt = document.createElement('option');
+      opt.value = key;
+      opt.textContent = DAY_LABELS[key];
+      if(key===activeDay) opt.selected = true;
+      daySelect.appendChild(opt);
+    });
+    daySelect.addEventListener('change', async ()=>{
+      const targetDay = daySelect.value;
+      if(targetDay===activeDay) return;
+      state.days[activeDay] = state.days[activeDay].filter(e=>e.id!==ex.id);
+      state.days[targetDay].push(ex);
+      await saveState();
+      renderExercises();
+    });
+
     const removeBtn = document.createElement('button');
     removeBtn.className = 'remove-btn';
     removeBtn.textContent = '×';
@@ -489,6 +574,8 @@ function renderExercises(){
 
     row.appendChild(box);
     row.appendChild(input);
+    row.appendChild(reorderDiv);
+    row.appendChild(daySelect);
     row.appendChild(removeBtn);
     list.appendChild(row);
   });
