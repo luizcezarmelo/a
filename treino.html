@@ -8,14 +8,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg: #14171c;
-    --card: #1d2128;
-    --card-border: #2a2f38;
-    --accent: #ff5a36;
-    --accent-dim: #ff5a3633;
-    --text: #eef0f2;
-    --text-muted: #5c6470;
-    --text-soft: #9aa1ab;
+    --bg: #ffffff;
+    --card: #f7f7f9;
+    --card-border: #e8e9ec;
+    --accent: #ff8a65;
+    --accent-dim: #ff8a6522;
+    --text: #4a5058;
+    --text-muted: #c3c7cd;
+    --text-soft: #a3a8b0;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0;padding:0;}
@@ -33,26 +33,18 @@
   @media (min-width:640px){
     body{padding:40px 20px 80px;}
     .app{max-width:560px;}
-    h1{font-size:38px;}
+    h1{font-size:52px;}
   }
   @media (min-width:900px){
     .app{max-width:640px;}
   }
 
   header{margin-bottom:14px;}
-  .eyebrow{
-    font-family:'Oswald',sans-serif;
-    font-size:12px;
-    letter-spacing:2.5px;
-    text-transform:uppercase;
-    color:var(--accent);
-    font-weight:600;
-  }
   h1{
     font-family:'Oswald',sans-serif;
-    font-size:32px;
+    font-size:44px;
     font-weight:700;
-    margin:2px 0 4px;
+    margin:0 0 4px;
     letter-spacing:0.5px;
   }
   .date-line{
@@ -309,7 +301,6 @@
 
   <div id="content" class="hidden">
     <header>
-      <div class="eyebrow" id="weekday-label">Treino 1</div>
       <h1>Treino</h1>
       <div class="date-line" id="date-line"></div>
       <div class="last-workout" id="last-workout"></div>
@@ -465,7 +456,6 @@ function renderTabs(){
 }
 
 function renderHeader(){
-  document.getElementById('weekday-label').textContent = DAY_LABELS[activeDay];
   const now = new Date();
   const opts = {weekday:'long', day:'numeric', month:'long'};
   document.getElementById('date-line').textContent = now.toLocaleDateString('pt-BR', opts);
