@@ -43,15 +43,13 @@
 
   /* ---------- Login ---------- */
   .login-screen{
-    position:fixed; inset:0; align-items:center; justify-content:center;
+    position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
     background:
       radial-gradient(80% 60% at 50% 0%, rgba(176,141,79,.10), transparent 60%),
       var(--paper);
     padding:24px;
     z-index:50;
   }
-  .login-screen:not([hidden]){display:flex;}
-  .login-screen[hidden]{display:none;}
   .login-card{
     width:100%; max-width:380px;
     background:var(--surface);
@@ -62,13 +60,8 @@
     text-align:center;
   }
   .login-mark{
-    width:34px;height:34px;margin:0 auto 18px;
-    border-radius:50%;
-    background:radial-gradient(circle at 35% 30%, #E9CE96, var(--gold) 70%);
-    box-shadow:0 0 0 6px rgba(176,141,79,.12);
+    display:block; width:auto; max-width:260px; height:auto; margin:0 auto 18px;
   }
-  .login-card h1{font-size:1.4rem; line-height:1.25; color:var(--indigo); font-weight:600;}
-  .login-card h1 span{color:var(--gold); font-style:italic; font-weight:500;}
   .login-card p{color:var(--ink-soft); font-size:.9rem; margin:10px 0 22px;}
   #loginForm{display:flex; flex-direction:column; gap:10px;}
   .login-card input{
@@ -97,12 +90,8 @@
   .app{max-width:1180px; margin:0 auto; padding:28px 24px 64px;}
   .app-header{display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:22px;}
   .brand{display:flex; align-items:center; gap:14px;}
-  .brand-mark{
-    width:30px;height:30px;flex:none;border-radius:50%;
-    background:radial-gradient(circle at 35% 30%, #E9CE96, var(--gold) 70%);
-  }
-  .brand h1{font-size:1.28rem; color:var(--indigo);}
-  .brand p{margin:2px 0 0; color:var(--ink-soft); font-size:.82rem; letter-spacing:.03em; text-transform:uppercase;}
+  .brand-mark{height:46px; width:auto; flex:none; display:block;}
+  .brand p{margin:0; color:var(--ink-soft); font-size:.82rem; letter-spacing:.03em; text-transform:uppercase;}
   .btn-ghost{background:none; border:none; color:var(--ink-soft); font-size:.85rem; padding:8px 10px; border-radius:8px;}
   .btn-ghost:hover{background:rgba(35,38,43,.06); color:var(--ink);}
 
@@ -159,7 +148,7 @@
     width:100%; border:none; background:transparent; padding:8px; border-radius:6px;
     font-size:.92rem; color:var(--ink);
   }
-  .data-table input:focus{background:#fff; box-shadow:0 0 0 1px var(--indigo-2) inset;}
+  .data-table input:focus{background:#fff; box-shadow:inset 0 0 0 1px var(--indigo-2);}
   .data-table .cell-valor{text-align:right; font-variant-numeric:tabular-nums;}
   .row-del{
     width:26px;height:26px;border:none;background:none;color:var(--ink-soft);
@@ -227,10 +216,9 @@
   /* ---------- Report modal ---------- */
   .report-modal{
     position:fixed; inset:0; background:rgba(35,38,43,.55); z-index:60;
-    align-items:flex-start; justify-content:center; padding:32px 16px; overflow:auto;
+    display:flex; align-items:flex-start; justify-content:center; padding:32px 16px; overflow:auto;
   }
-  .report-modal:not([hidden]){display:flex;}
-  .report-modal[hidden]{display:none;}
+  .report-modal[hidden]{ display:none !important; }
   .report-modal-inner{
     background:#fff; width:100%; max-width:720px; border-radius:12px; overflow:hidden;
     box-shadow:0 20px 60px rgba(0,0,0,.35);
@@ -269,942 +257,379 @@
 
   <div id="loginScreen" class="login-screen">
     <div class="login-card" id="loginCard">
-      <div class="login-mark" aria-hidden="true"></div>
-      <h1>Sociedade Espírita<br><span>Joana D'Arc</span></h1>
-      <p id="loginSubtitle">Controle de Caixa — acesso restrito</p>
-      <form id="loginForm" autocomplete="off">
-        <input type="password" id="passwordInput" placeholder="Senha" autocomplete="current-password" autofocus>
-        <input type="password" id="passwordConfirmInput" placeholder="Confirme a senha" autocomplete="new-password" style="display:none">
-        <button type="submit" id="loginSubmitBtn">Entrar</button>
+      <img class="login-mark" src="data:image/jpeg;base64,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EzxAYLwVOCdqlXj4gdB39BbMRA19u42I/FY9ivpQsSSMu6RwLhuBRpa1hHfFe8j7TyqOviOLw4ucSdrk9yQjUtsNNh+HZW5zh+RYWs8emctXmDHfi0scRbTDaAB/wr5cTjSzjis3xnFa08zt/DFaNDLbJdO6v/A6uMp88vg3xTONnOOmxRFZjGJHA3s63/xWd0TpNM4aTobFm4c9CBuXOABPl3KpoBd+b28U+SgRJ+eEvLy75qZfZrILGkm/iknpsUVZbDLOTo6DYZ6XHEslBre5f/4i9/p/m10sE80d41x/8S20uG/m653pYFThp1i/G/13/AN+C3O22vcvf31/2S43/AOSb+3X64G3+8O//AMV/7eS014/Pz42v339a2oen3+v3LOfs9i/419X8/n6S/Xp8S/3/AOf3/wD2Wf4o4e326G9v3v/P/wCKqU9v9N39p93vU4729/4f/FW/t9n536P/AGXj33j44f3v8fv8/Hl/4aP/AIqT39/e3+/19iP6bvf3vf7/AE8FUp/p+/vf/P09v3L0Q9x629z4/s/f/wDf6/0R/atp19e3+8d335f63+Phyn39vvf7vXp33+Xf+Pq/xUXv7m/v93+/08O5e36v+/f/AH+iG391/v8ATw/H2I/t+3+qL43p9m/k6N6363h/7/H2e/f/AGf+/wBHvU7fp/te36vL/wAeX+3129v33+/2+f4+Cnb46uf9rv7P8ev+Hgl/tb9SfxP3+/P/AGp+/f8Af3f4ev9/s/f3f/H4+Smt+/Xv/Iez+93sToft9/e/633X/d7AnbX38N//AHf3f38Nwn/t+P3/AMev64+/r0+5O36/e9/X/v3/ANv9qfvff/L7v/P4eCd572v3fd6vv9vn4eCTf6v/AE/0f33P+Pshf2vv47/d9/t+/wBk/f4+f/v93+19+mff/Pvv9+/3v2vE9a/v4b+32ev489+/X39p23iO/vv+35f1ff/4A/S22O3L3ef3er/8AHu1+f3+36vd4/u8vAt39vd339X+/1f8Ax7943v8Ae++2++99f97y/tX6sL3/AN3+/v8Af7fY/mSffv63s9nL1fD2o38vv4e/f2e/3p7f3X/v+/3+nn6P0ffp/v7/AGL83ff+7v39X38vf4k8/d43/vePt7/ak/S48Pv+/s9vgf4I9vAef3erf1fh5eN1I30x/L4f3292/sX1uTfb61ufr7er39/P4p3l7N+f9p+/P7u8I3E/bvv/AGvv63h4+C9e/wC2f5f1vf2e26G7E/m6e/y39vf4ee+/d9Lp9/vf2+vf7/bxO2m++r4W17+X3fTf6m+2s33vf3erf2+v3Xvv94fX4d/f372/l/e4+37/AK/p/d/s/f233/y/vdv1fe4G+pff2+3v/X43fXv77+/x8G9vj9+/q+32/vfveHjX/s/s/L9v+0+/3eA7P38O+/1f7363v0H5v2/p+/wAf1vbxvv8Ap/rce/v/AFvX7vbxm/b++299/X+nz9+/ve7L0+/e2/2u/vf/AOP4+/b6v3e7l3/93+96vh+/eO/H/l/ff6vh4+C/9n/Z9f2+3x9nv1aU99fH389Xn3+H2X93uH8v5+/3Xp31/y+/f+07P0u/w39vv5eHv1j/ANv8f2f/AJefteG3p/4ev9/f2u76S599/wBv9/e/X7/A38UIn21/t+f+19X+3v29vft/l33+/d4A/p9/+/q223393veL/wA9r7+947+P2j/2/v8Abv7d3O+/8/V2/vfn3p/46/X/AFvp+Ptv7e/+1v4+/f28t4b+/wDX9v8Anv8Abv2X6v38N/V89vbz9vv3er4X19/D2e1v9rx8PEd63/v/AMev1v7Xl/5eC9/8vPz/AFfHv30/R23i/m/8/v5eH3/2p19/vf3vX/f/AFfXv9P/AG1/46/X71+/f2+3f+3x31/vfve9E+/+937+ev5e3xS/2/e3f/d3a9/1/wCTv48v/b+/vv8Ae9vv3S/3/v3v/P8A9vv3fX3/AN/9b27vX9vf30++v4b+3l4e/v239+/n/wAt31+/3/V8/s6v/c9Xw/4a+/Xvv5/e/X31vf8A1vd4j077/X/V89vX8fX8f/0I1m/m99e33/3vH+/d68/l5ef3er39/j3O38ev/b699/veH/w9vjv++m/v3+/e33/2t3P/AG/v7v1/3b3+9aXj4f3v2/re/wBngu9e/f73f4+/28P3d2/sX403v57e33a/3dfb7A6u9vf73/x5e23N3+/v3333+/p93vfVv/s//wAvd633fRvf+53/AG/P+04f4aEa/b47b+9v33+/2+A6p++/X4e/1vf/ACd+/r27f3+/ev29m/d9Lx8fb4X1e33/AL/1vf8A7O68e+/3v731+/P+/m7297eP3+19/X+/38/3v4eIe1p2/wD34eX/AJd+2838/pce/v3vfX+/u8fveA7u29/b6vhz379v6X3X9rU2m+/vf3/W/tffxS/8Aj9+7/a6v4beO++vv/a/1vf8A+75e9E7a3/X+/wBd93r+Pg33e4fS7vh5+X1f8e7bS4+/+939v/a8dv6vd/X9ngv73h+/2ev1vhf2e96Xl4+/e33/AN7y+/vv7D2f5fD+fh/bveN7v2e3+1f8P5N/5fX2u6/e4ffw173+/u5b/wDX/X2O+v4I3/a+/vf9b3e/Xf8AyX0f2f3/ANr7/wB3vSfp/t+f+/t7e/wLvf3/ANX2ev5ffq3X4d/A6vf/AH9vf/4eHv8A5v8Ab4b+/f3eA7P3v1+fv7m73+f8/Hv23/d4er37/vfW279vfz+/eI9v/e728v3erfb2eB/vev5f3vf9b1fHvG3971fD+/e23eXh3aXfv7XreHv1fX93vfT3f8APf6/9X3uG33vf/bfX7vf6/vdvx89vf731/P9eXfv4eP+/wAObvr7ePn+936e7xIe1/3e33+r6/ffx3S9p+93/d9fb4a3f/a/a+/6v3f2tvdv97vv37+3x9nv1aUv93f1X9/vdv329Xve/mSdp33+vf4ev5+39vfvd4X6/vf3vr+/2+G3r5efteG2y33v5/R79vU7vZ7vAnj4e/f8Atff19X+/90/bfe/Xv38/+/8A3vH+/dvef/x3vf8A38/a/v3f9/L2e/2f3vv2/tePhveX/l3+93aXj3j/AG+7l/ffx39v2Ntf49+8E3v3fveXp329fxvfX99v2+O31/8AtvX735v3+/13+/Xvv+/vX8/a4b/+Lxf3vXv3+3f2+u53fS8ff/e/6/8At7vX5e0/vff1v3/reG8/3vv+f69/b4A/veG+/f8AT7vv9/1273O+/e7/ALvh9L3/AN3+/b7/AFu3/X79/tfX+/3+99ft/d3b632uXf8AV+/f3u1/f4bv3fDvv/X23vv+319vdv09/fe1/f8At/3vvS397/l/tf30vL3u71+G8vve/vbfV2erx8Pf4D3/AOf3eP6vf2e071vS9X/ve+/9X1d9f0f639r4b+/X3e/b3v7/AHfS/f6vhvd9vfX/AGu3x71/3b1/q+/36vf+/v1/f4EInft7v/b2e/v/AD6/q2/e3+l2/wDe/f3eA6vx3f630/Hv/s7vf+/vf/e0u8N7v2vfX/vevfvfv/Z9XveG3t5/R8dr16vfXv7fT493ve0328dr/e/a+/Xv+7w61/f1fa6v3eO++v38/vdv1u7979/P+/v5/R/v9f23v3/t/vf3f9/L2+83e/v/AOf3vr3+vfT9/p4bf7Xp4bX/AFuX4et6vfXv7eX1vteO++/t/wC56/iX6vf/AL3fX8/P+v3ffu47eH/x9+/t+vX4bfS7/fve4Lvf2+/v9/8Ae8PfwP8Ae72213799va/a28UIn21/t+/1+ve3L3/APN79vAn9fv7vh3f38Nwn29vf6vD3vV8PFv+pX3+/l+/2e1/vf4f3pG1132+/wBX1fDfbve/vve/v1f2v7/9r/b3f2vfvf3+/vfvev3ffvSfrd/2/Xvv/e/te1u//m/t37/r73veG8P+f6/X2uXvd/v728N/r25f+/2/2vvf/veO3r3v6vhve9H/AH+/3erff/S3/vfe9vf37/3+/u9bUvf9L63q7/T2+/x33vffu4bf7fX4evm4e/v/ANX9v++vfvfveI61/S8dvf3+vwP1eXf44E8/f9+/u9/9fX2++2q10/Dvb2ePn9X2e/f/AC39/f8AvX3/AOXh633a/teHq8/W58x/46/X4c3vvd/6X3u33+/e2/2uXfeN9vW9vv29ve94bXf/ALe/vv36/tfW3N34f3veN++/ff1fX8P8e9/0vvd9Xl2vH9bX4+D/AMf7+/2/vevfvv63s8fDfbx3u9vf4An/AHv/AMvf/Xv6/q3/AHf3er3e19/+/wC3x5/V9/3vv3e0O1fS8+/f29/vd3e8S3bbfX5353s99vv8N97vff73a8O9tvd44G/v+A+3z8dr17fXv9Ifrf4b+rffv18vLveve7S/36/q+/te+5X/AEiO3aX3v53f4er3u8B36vrfH+X+/v6/X4P/AN/9bfb4b+39r423S+172n5+e3/2fHv38f5f4D3e14et5+/4bvf5f3/732vf1v/a3/e2/a8er47eO73+P/bve9/t6v6Xj4Hxv373u9/5f/j3+D3+v+v8ADf6tvd9vdvA+16v/AJXp93teNv6v93699bvf+/e8X9vteG31e/b3vAnft/6Xvf3/ANXv9/vv9r+/6vdvv4ev2e94Bvh7339/teH+e933v3/t/W+A+s2G+7S9vfvvS522/wBvl/X+9f33iT63973+/wBvw14eO/23vfT3f3731u98/e6S39b9vd/vff093h/5er3236e7u8Nvf38v/P38f4d436/d4fe6vX8v3fS/q6vb8vX/AGvE3/e/bvfX7/Hv09X9v+/y+/z6vD3vV8C3d7f/AK5/3+/te3vff8/Lvv9/X6vh4f3f3e+/3+/46vf47/3/APX8PDffxX3+9+X3/u23XvAn9vX3f6Xv28/rfvf6/vdvx89vf731/P9eXfv4eP+/AOcP3fS+v49/8vf2a2/b9v3+P1d9f/N1+/e/+/f63vfe9b9/s9/re/m/w5eO+/e7/wBs9v7Xre19+O++vvvf9b19vX4b/S35+A8eX1vf/vv2er4/3f3fe27vf8/r/wCA3++/f4a9+/vv38v/AD9Xve9/L3d3f9/L2e/2f3vv2/tePh4A/m7vf8/f3vX/f3+P/N9//vvf6vh/5/b293O58vAeb938vAn93v6vf3a3X8O+Xvfe+Xv7e34ef3eHvffvf3u9vv/AH9+/v8At/f3ff8Az8dr/s9vd47tXj4+/f3+/v8ArvfT7f29+/47ev3u/An3f4+vfe++/fe8fX/b+/d6eO328vh/4333vHvv/Zf9vw2v89++/fe1+24bfp+Xf4/vf+33u8Pft/z8f3+vvvvd09/ve3w/m5be1++/f7vvff7271e+53v/AKt4D9Lx39f0ev1v47/3vEbf/iO9+O3+/vA2/t3erf2+7bve9/e8dr++/p39m30+28/Xf2++/fTf+fveG9r33+v/AFd7veO3d++v3e+s/vf1vh37+P2v2e//AJerf+v4L29/ve593s/X6+0X8f8An3t2/P3a+/d430t2+/vv6t9v4fv/AF/2vHv/AOV4f5+u/a2f/m33/wCPvf4evbXvv+/+9ffv3O9Xfv8Ad/8AtvX73e33/re/l3a9X/m7X8P73fv0X+93/d3b69eXp79vw/An6fX9/rePg/vfd+/v4/re1X2/vv/vfveO9e/v3/v92135f2vh/5fX3vv8Aj4b3fvv72/e93veO19eX/N9/389v1/teG3f3/v79/a9/Xvv2/vfX623ff2vvvfv/AH+/fX29X3+/3+/72+vv/Nf1+f8An7vf38vf3u9b1/X+vh4b3er+3/e7X33s33t+/S58vv5eAnLw3f16X9f2v2/f4ev9/d/mS3vfX+/3u+/1323uA3279vr8vL3ef3eI+n++v393i4fS6d9e+/rfvv6Xf2Xf+/t477a3s/f+/v35f2unp+/f4efbveG8N+/v++98N/L+fhve53veH321vb/vfb9X/veNve8vVp+/1vf+/4733353v+/v79/qX/m3/v+f1ve7ve/4bfS7+/X/2uH2/3v3aXfv/e79b7vh+5bf2++8P0ffu19+3L/3ve+32/l3+/f0eXvtfe99O115e5O+/vv/vfS9fve3++O++vv/a/1vf/AOC3e++/S++/8+9a38vv93L62/m4+G3fX/X1fDvbX/v+/3vG5/2++v6213799va/a/29e//AL3ve71329X430++m/l8dr3+/t33++/e+8/A22/33er29/3v/e8drX/m6/4+Pvf+fveO39ve/e8d2/D1/b/w/S3+/Xf176+Pn+0/q834erf1vf/AGf+023e3w/m5be1+Xfvv42Xm/vf9vv3+G99S35+/vf7v1X9/vdv329Xv/vf/e8B32130/ff39+8/H/d/e9vd/vv/e+s30vX3vf/AG/vv9f+X1Xf++8er2u2/m/mX2379vW12++/eA//xAAyEAABAwIFAwIGAgMBAQEBAAABAAIRMQMQIDJBURASMGEycEJSYIGRIjNxoUOCscHh/9oACAE32A/8AxU2P/mGz2T/4/oQ5sU29R39+R0C9kR3U/o4pIqAja4/u8E6E911J4T3S1L0l7qO68Xm/fU/c312GSoXzThcMv2T+g3fA/XlZ/y/kS3smeU+6/m+A+k2kwnNsn3qU8w/d3sIe9A71H3/Dk+E3xXU9L66j/AH/f+B6T2m6BmeU/1p9v8/fT43m6q6aIn1/0v5B1Mfq8P2L/8QAKREAAgEEAQQCAQUBAQAAAAAAAAECEQASITETIBAwQEFQUGFxgFFw/9oACaAAgBAgEBPwDp4pSjFqBqCakm/Ld6F0i1SAnf4/m0C+aH4/l2C5qB3aT26S9AewpI9rV6K7iC0A0Uj9/f6iO10Nf/Qj041Sj/3f5/e3yYI5r420/v6/9A2Ue0a324+uXFAd/A80jM/93+A2mpo1I7W33qJqR1B3/e0Goo/G9GooZ9sYqI/s32e3SXtG3d1aC9AnI+Dq9T5jXbXbSXtH3m4A0F9Jd/3f283QG1/476S+x26A/I5x2E5A8S/26B66S92g/sI/s2I7dJf4o+Jm1S3d4iagmr2mKhGz2aT3aS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">
+      <p>Controle de Caixa</p>
+      <form id="loginForm" onsubmit="realizarLogin(event)">
+        <input type="password" id="senhaInput" placeholder="Senha de acesso" required autofocus />
+        <button type="submit">Entrar no sistema</button>
       </form>
-      <p class="login-error" id="loginError" aria-live="polite"></p>
-      <p class="login-status" id="loginStatus">Conectando…</p>
+      <p id="loginError" class="login-error"></p>
+      <p id="loginStatus" class="login-status">Sessão protegida</p>
     </div>
   </div>
 
-  <div class="app" id="app" hidden>
+  <div id="appContainer" class="app" style="display:none;">
     <header class="app-header">
       <div class="brand">
-        <span class="brand-mark" aria-hidden="true"></span>
-        <div>
-          <h1>Sociedade Espírita Joana D'Arc</h1>
-          <p>Controle de Caixa</p>
-        </div>
+        <img class="brand-mark" src="data:image/jpeg;base64,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/AFfXv9P/AG1/46/X71+/f2+3f+3x31/vfve9E+/+937+ev5e3xS/2/e3f/d3a9/1/CTv48v/b+/vv8Ae9vv3S/3/v3v/P8A9vv3fX3/AN/9b27vX9vf30++v4b+3l4e/v239+/n/At31+/3/V8/s6v/c9Xw/4a+/Xvv5/e/X31vf8A1vd4j077/X/V89vX8fX8f/0I1m/m99e33/3vH+/d68/l5ef3er39/j3O38ev/b699/veH/w9vjv++m/v3+/e33/2t3P/AG/v7v1/3b3+9aXj4f3v2/re/wBngu9e/f73f4+/28P3d2/sX403v57e33a/3dfb7A6u9vf73/x5e23N3+/v3333+/p93vfVv/s//wAvd633fRvf+53/AG/P+04f4aEa/b47b+9v33+/2+A6p++/X4e/1vf/ACd+/r27f3+/ev29m/d9Lx8fb4X1e33/AL/1vf8A7O68e+/3v731+/P+/m7297eP3+19/X+/38/3v4eIe1p2/wD34eX/AJd+2838/pce/v3vfX+/u8fveA7u29/b6vhz379v6X3X9rU2m+/vf3/W/tffxS/8Aj9+7/a6v4beO++vv/a/1vf8A4Ld7779L77/z71rfy++/3cvrb+bj4bd9f9fV8O9tf+/7/e8bn/b76/rbXfv321r9r/b17/8A3ve97vXfb1fjfT76b+Xx2vf7+3ff77977z8Dbbf/AH3er29/3v/e8drX/m6/4+Pvf+fveO39ve/e8d2/D1/b/wwSQn2/v/eXf176+Pn+0/q834erf1vf/AGf+023e3w/m5be1+Xfvv42Xm/vf9vv3+G99S35+/vf7v1X9/vdv329Xv/vf/e8B32130/ff39+8/H/d/e9vd/vv/e+s30vX3vf/AG/vv9f+X1Xf++8er2u2/m/mX2379vW12++/eA//xAAyEAABAwIFAwIGAgMBAQEBAAABAAIRMQMQIDJBURASMGEycEJSYIGRIjNxoUOCscHh/9oACAE32A/8AxU2P/mGz2T/4/oQ5sU29R39+R0C9kR3U/o4pIqAja4/u8E6E911J4T3S1L0l7qO68Xm/fU/c312GSoXzThcMv2T+g3fA/XlZ/y/kS3smeU+6/m+A+k2kwnNsn3qU8w/d3sIe9A71H3/Dk+E3xXU9L66j/AH/f+B6T2m6BmeU/1p9v8/fT43m6q6aIn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" alt="Logo" />
+        <p>Sociedade Espírita Joana D'Arc — Controle de Caixa</p>
       </div>
-      <button class="btn-ghost" id="logoutBtn" type="button">Sair</button>
+      <button class="btn-ghost" onclick="realizarLogout()">Sair</button>
     </header>
 
     <nav class="month-nav">
-      <button class="nav-arrow" id="prevMonthBtn" type="button" aria-label="Mês anterior">‹</button>
-      <div class="month-display" id="monthLabel">—</div>
-      <button class="nav-arrow" id="nextMonthBtn" type="button" aria-label="Próximo mês">›</button>
-      <button class="btn-outline" id="todayBtn" type="button">Hoje</button>
+      <button class="nav-arrow" onclick="mudarMes(-1)">&larr;</button>
+      <div class="month-display" id="monthDisplay">Janeiro / 2026</div>
+      <button class="nav-arrow" onclick="mudarMes(1)">&rarr;</button>
       <div class="nav-spacer"></div>
-      <button class="btn-outline" id="backupBtn" type="button" title="Baixar todos os dados em um arquivo JSON local">Backup</button>
-      <button class="btn-outline" id="restoreBtn" type="button" title="Carregar dados de um arquivo JSON de backup">Restaurar</button>
-      <input type="file" id="restoreInput" accept="application/json,.json" hidden>
-      <button class="btn-outline" id="balanceteBtn" type="button">Balancete</button>
-      <button class="btn-solid" id="reportBtn" type="button">Relatório</button>
+      <button class="btn-outline" onclick="abrirRelatorio()">Gerar Relatório</button>
+      <button class="btn-solid" onclick="salvarDadosManualmente()">Salvar Alterações</button>
     </nav>
 
     <main class="grid">
+      <!-- Colaboradores -->
       <section class="card" id="cardColaboradores">
-        <h2>Contribuição — Colaboradores</h2>
+        <h2>Colaboradores</h2>
         <table class="data-table">
-          <thead><tr><th>Nome</th><th class="col-valor">Valor (R$)</th><th class="col-actions"></th></tr></thead>
-          <tbody id="bodyColaboradores"></tbody>
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th class="col-valor">Valor</th>
+              <th class="col-actions"></th>
+            </tr>
+          </thead>
+          <tbody id="tbodyColaboradores"></tbody>
         </table>
-        <button class="btn-add" data-add="colaboradores" type="button">+ Adicionar colaborador</button>
-        <div class="card-total"><span>Total contribuição</span><strong id="totalColaboradores">R$ 0,00</strong></div>
+        <button class="btn-add" onclick="adicionarLinha('Colaboradores')">+ Adicionar Colaborador</button>
+        <div class="card-total">
+          <span id="labelTotalColab">Total Colaboradores</span>
+          <strong id="totalColaboradores">R$ 0,00</strong>
+        </div>
       </section>
 
+      <!-- Receitas -->
       <section class="card" id="cardReceitas">
         <h2>Receitas</h2>
         <div class="fixed-row">
-          <label for="saldoInicialInput" id="mesAnteriorLabel">Mês anterior</label>
-          <input type="number" step="0.01" id="saldoInicialInput" class="input-inline" style="display:none">
-          <strong id="mesAnteriorValor">R$ 0,00</strong>
-        </div>
-        <div class="fixed-row">
-          <span>Contribuição trabalhadores</span>
-          <strong id="contribValor">R$ 0,00</strong>
+          <span>Colaboradores (Total)</span>
+          <strong id="fixedColabValue">R$ 0,00</strong>
         </div>
         <table class="data-table">
-          <thead><tr><th>Descrição</th><th class="col-valor">Valor (R$)</th><th class="col-actions"></th></tr></thead>
-          <tbody id="bodyReceitas"></tbody>
+          <thead>
+            <tr>
+              <th>Descrição</th>
+              <th class="col-valor">Valor</th>
+              <th class="col-actions"></th>
+            </tr>
+          </thead>
+          <tbody id="tbodyReceitas"></tbody>
         </table>
-        <button class="btn-add" data-add="receitasExtra" type="button">+ Adicionar receita</button>
-        <div class="card-total"><span>Total receitas</span><strong id="totalReceitas">R$ 0,00</strong></div>
+        <button class="btn-add" onclick="adicionarLinha('Receitas')">+ Adicionar Outra Receita</button>
+        <div class="card-total">
+          <span>Total Receitas</span>
+          <strong id="totalReceitas">R$ 0,00</strong>
+        </div>
       </section>
 
+      <!-- Despesas -->
       <section class="card" id="cardDespesas">
         <h2>Despesas</h2>
         <table class="data-table">
-          <thead><tr><th>Descrição</th><th class="col-valor">Valor (R$)</th><th class="col-actions"></th></tr></thead>
-          <tbody id="bodyDespesas"></tbody>
+          <thead>
+            <tr>
+              <th>Descrição</th>
+              <th class="col-valor">Valor</th>
+              <th class="col-actions"></th>
+            </tr>
+          </thead>
+          <tbody id="tbodyDespesas"></tbody>
         </table>
-        <button class="btn-add" data-add="despesas" type="button">+ Adicionar despesa</button>
-        <div class="card-total"><span>Total despesas</span><strong id="totalDespesas">R$ 0,00</strong></div>
+        <button class="btn-add" onclick="adicionarLinha('Despesas')">+ Adicionar Despesa</button>
+        <div class="card-total">
+          <span id="labelTotalDesp">Total Despesas</span>
+          <strong id="totalDespesas">R$ 0,00</strong>
+        </div>
       </section>
 
+      <!-- Saldo -->
       <section class="card card-saldo" id="cardSaldo">
-        <span class="saldo-flame" aria-hidden="true"></span>
-        <h2>Saldo acumulado</h2>
-        <strong id="saldoAcumuladoValor">R$ 0,00</strong>
-        <p id="saldoStatus">&nbsp;</p>
+        <div class="saldo-flame"></div>
+        <h2>Saldo do Mês</h2>
+        <strong id="saldoFinal">R$ 0,00</strong>
+        <p id="saldoDescricao">Balanço do período corrente</p>
       </section>
     </main>
 
-    <p class="save-indicator" id="saveIndicator" aria-live="polite">&nbsp;</p>
+    <div class="save-indicator" id="saveIndicator">Dados sincronizados localmente</div>
   </div>
 
-<div class="report-modal" id="reportModal" hidden>
- <div class="report-modal-inner">
+  <!-- Report Modal -->
+  <div id="reportModal" class="report-modal" hidden>
+    <div class="report-modal-inner">
       <div class="report-modal-actions no-print">
-        <button class="btn-outline" id="reportPrintBtn" type="button">Imprimir</button>
-        <button class="btn-solid" id="reportPdfBtn" type="button">Baixar PDF</button>
-        <button class="btn-ghost" id="reportCloseBtn" type="button">Fechar</button>
+        <button class="btn-outline" onclick="fecharRelatorio()">Fechar</button>
+        <button class="btn-solid" onclick="window.print()">Imprimir / PDF</button>
       </div>
-      <div id="printArea"></div>
+      <div id="printArea">
+        <h1>Sociedade Espírita Joana D'Arc — Controle de Caixa</h1>
+        <p class="rep-sub" id="repPeriodo">Demonstrativo Financeiro</p>
+
+        <div class="rep-summary">
+          <div class="rep-box">
+            <span>Total de Receitas</span>
+            <strong id="repTotalReceitas">R$ 0,00</strong>
+          </div>
+          <div class="rep-box">
+            <span>Total de Despesas</span>
+            <strong id="repTotalDespesas">R$ 0,00</strong>
+          </div>
+          <div class="rep-box destaque">
+            <span>Saldo Líquido</span>
+            <strong id="repSaldoFinal">R$ 0,00</strong>
+          </div>
+        </div>
+
+        <h3>Detalhamento das Receitas</h3>
+        <table class="rep-table">
+          <thead>
+            <tr>
+              <th>Origem / Descrição</th>
+              <th class="num">Valor</th>
+            </tr>
+          </thead>
+          <tbody id="repTbodyReceitas"></tbody>
+        </table>
+
+        <h3>Detalhamento das Despesas</h3>
+        <table class="rep-table">
+          <thead>
+            <tr>
+              <th>Descrição</th>
+              <th class="num">Valor</th>
+            </tr>
+          </thead>
+          <tbody id="repTbodyDespesas"></tbody>
+        </table>
+
+        <p class="rep-note" style="margin-top:28px;">Documento gerado para fins de prestação de contas interna.</p>
+      </div>
     </div>
   </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+<script>
+  const MESES = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+  let dataAtual = new Date(2026, 0, 1);
+  let bancoDados = {};
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
-  getFirestore, doc, getDoc, setDoc, collection, getDocs
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import {
-  getAuth, signInAnonymously, onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDGZSOiF7G4ZluQcO1Q_quvOT474_9_YE8",
-  authDomain: "sejd-b1a9e.firebaseapp.com",
-  projectId: "sejd-b1a9e",
-  storageBucket: "sejd-b1a9e.firebasestorage.app",
-  messagingSenderId: "154685832711",
-  appId: "1:154685832711:web:1a75609384cb597db534a2",
-  measurementId: "G-4RWB9851RH"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-
-/* ---------------------------------------------------------------- */
-/* Utilidades                                                        */
-/* ---------------------------------------------------------------- */
-
-const MONTH_NAMES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-
-function formatBRL(v){
-  return new Intl.NumberFormat('pt-BR', { style:'currency', currency:'BRL' }).format(Number(v) || 0).replace(/\u00A0/g,' ');
-}
-function parseNumberInput(v){
-  const n = parseFloat(v);
-  return Number.isFinite(n) ? n : 0;
-}
-function uuid(){
-  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
-  return 'id-' + Date.now() + '-' + Math.random().toString(16).slice(2);
-}
-async function sha256Hex(text){
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-}
-function addMonths(key, delta){
-  const [y, m] = key.split('-').map(Number);
-  const d = new Date(Date.UTC(y, m - 1 + delta, 1));
-  return d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0');
-}
-function monthKeyToLabel(key){
-  const [y, m] = key.split('-').map(Number);
-  return MONTH_NAMES[m - 1] + ' de ' + y;
-}
-function currentRealMonthKey(){
-  const d = new Date();
-  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
-}
-function sumValores(list){
-  return (list || []).reduce((acc, item) => acc + (Number(item.valor) || 0), 0);
-}
-
-/* ---------------------------------------------------------------- */
-/* Estado                                                             */
-/* ---------------------------------------------------------------- */
-
-const state = {
-  months: {},      // key -> { colaboradores:[], receitasExtra:[], despesas:[], saldoInicial:number|null }
-  chain: {},        // key -> valores calculados
-  currentKey: null,
-  storedHash: null,
-  firstAccess: false,
-  saveTimer: null,
-  dirtyKey: null,
-};
-
-/* ---------------------------------------------------------------- */
-/* Referências DOM                                                   */
-/* ---------------------------------------------------------------- */
-
-const el = (id) => document.getElementById(id);
-const loginScreen = el('loginScreen');
-const loginCard = el('loginCard');
-const loginForm = el('loginForm');
-const loginSubtitle = el('loginSubtitle');
-const loginError = el('loginError');
-const loginStatus = el('loginStatus');
-const passwordInput = el('passwordInput');
-const passwordConfirmInput = el('passwordConfirmInput');
-const appEl = el('app');
-
-const monthLabel = el('monthLabel');
-const bodyColaboradores = el('bodyColaboradores');
-const bodyReceitas = el('bodyReceitas');
-const bodyDespesas = el('bodyDespesas');
-const totalColaboradores = el('totalColaboradores');
-const totalReceitas = el('totalReceitas');
-const totalDespesas = el('totalDespesas');
-const contribValor = el('contribValor');
-const mesAnteriorValor = el('mesAnteriorValor');
-const mesAnteriorLabel = el('mesAnteriorLabel');
-const saldoInicialInput = el('saldoInicialInput');
-const saldoAcumuladoValor = el('saldoAcumuladoValor');
-const saldoStatus = el('saldoStatus');
-const cardSaldo = el('cardSaldo');
-const saveIndicator = el('saveIndicator');
-
-const reportModal = el('reportModal');
-const printArea = el('printArea');
-
-const TBODY_BY_SECTION = {
-  colaboradores: bodyColaboradores,
-  receitasExtra: bodyReceitas,
-  despesas: bodyDespesas,
-};
-
-/* ---------------------------------------------------------------- */
-/* Autenticação                                                       */
-/* ---------------------------------------------------------------- */
-
-function showLoginError(msg){
-  loginError.textContent = msg;
-  loginCard.classList.remove('shake');
-  void loginCard.offsetWidth;
-  loginCard.classList.add('shake');
-}
-
-/* Garante o foco no campo de senha assim que a janela do navegador
-   realmente ganha foco do sistema operacional (o .focus() do JS não
-   "acende" o cursor visualmente se a janela ainda não estiver ativa). */
-window.addEventListener('focus', () => {
-  if(loginScreen.hidden) return;
-  const active = document.activeElement;
-  if(active !== passwordInput && active !== passwordConfirmInput){
-    (passwordConfirmInput.style.display !== 'none' && passwordInput.value ? passwordConfirmInput : passwordInput).focus();
-  }
-});
-
-async function initAuth(){
-  try{
-    await signInAnonymously(auth);
-  }catch(err){
-    console.error(err);
-    loginStatus.textContent = 'Não foi possível conectar ao servidor. Verifique sua internet e recarregue a página.';
-    return;
+  function formatarMoeda(valor) {
+    return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   }
 
-  onAuthStateChanged(auth, async (user) => {
-    if(!user) return;
-    try{
-      const authRef = doc(db, 'config', 'auth');
-      const snap = await getDoc(authRef);
-      loginStatus.textContent = '';
-      if(!snap.exists()){
-        state.firstAccess = true;
-        loginSubtitle.textContent = 'Primeiro acesso — defina a senha de acesso';
-        passwordConfirmInput.style.display = 'block';
-        passwordInput.focus();
-      } else {
-        state.storedHash = snap.data().hash;
-        if(sessionStorage.getItem('sejd_auth') === '1'){
-          enterApp();
-        } else {
-          passwordInput.focus();
-        }
-      }
-    }catch(err){
-      console.error(err);
-      loginStatus.textContent = 'Erro ao conectar ao banco de dados. Verifique se o Firestore está habilitado no projeto.';
-    }
-  });
-}
+  function converterParaNumero(str) {
+    if (typeof str === 'number') return str;
+    if (!str) return 0;
+    const limpo = str.replace(/[^\d,-]/g, '').replace(',', '.');
+    return parseFloat(limpo) || 0;
+  }
 
-loginForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  loginError.textContent = '';
-  const pwd = passwordInput.value;
-  if(!pwd) return;
+  function obterChaveMes() {
+    return `${dataAtual.getFullYear()}-${dataAtual.getMonth()}`;
+  }
 
-  if(state.firstAccess){
-    const confirmPwd = passwordConfirmInput.value;
-    if(pwd.length < 4){
-      showLoginError('A senha deve ter pelo menos 4 caracteres.');
-      return;
+  function inicializarMesCorrente() {
+    const chave = obterChaveMes();
+    if (!bancoDados[chave]) {
+      bancoDados[chave] = { colaboradores: [], receitas: [], despesas: [] };
     }
-    if(pwd !== confirmPwd){
-      showLoginError('As senhas não coincidem.');
-      passwordConfirmInput.value = '';
-      passwordConfirmInput.focus();
-      return;
-    }
-    try{
-      const hash = await sha256Hex(pwd);
-      await setDoc(doc(db, 'config', 'auth'), { hash, criadoEm: new Date().toISOString() });
-      enterApp();
-    }catch(err){
-      console.error(err);
-      showLoginError('Erro ao salvar a senha. Tente novamente.');
-    }
-  } else {
-    const hash = await sha256Hex(pwd);
-    if(hash === state.storedHash){
-      sessionStorage.setItem('sejd_auth', '1');
-      enterApp();
+  }
+
+  function realizarLogin(e) {
+    e.preventDefault();
+    const senha = document.getElementById('senhaInput').value;
+    if (senha.trim() !== "") {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('appContainer').style.display = 'block';
+      carregarDadosSalvos();
+      atualizarTela();
     } else {
-      showLoginError('Senha incorreta.');
-      passwordInput.value = '';
-      passwordInput.focus();
-    }
-  }
-});
-
-async function enterApp(){
-  loginScreen.hidden = true;
-  appEl.hidden = false;
-  await startApp();
-}
-
-el('logoutBtn').addEventListener('click', () => {
-  sessionStorage.removeItem('sejd_auth');
-  location.reload();
-});
-
-/* ---------------------------------------------------------------- */
-/* Dados / Firestore                                                  */
-/* ---------------------------------------------------------------- */
-
-function normalizeMonth(data){
-  const norm = (list) => (Array.isArray(list) ? list : []).map(r => ({
-    id: r.id || uuid(),
-    nome: r.nome || '',
-    valor: Number(r.valor) || 0,
-  }));
-  return {
-    colaboradores: norm(data.colaboradores),
-    receitasExtra: norm(data.receitasExtra),
-    despesas: norm(data.despesas),
-    saldoInicial: (data.saldoInicial === null || data.saldoInicial === undefined) ? null : Number(data.saldoInicial),
-  };
-}
-
-function stripForSave(month){
-  return {
-    colaboradores: month.colaboradores.map(r => ({ id:r.id, nome:r.nome||'', valor:Number(r.valor)||0 })),
-    receitasExtra: month.receitasExtra.map(r => ({ id:r.id, nome:r.nome||'', valor:Number(r.valor)||0 })),
-    despesas: month.despesas.map(r => ({ id:r.id, nome:r.nome||'', valor:Number(r.valor)||0 })),
-    saldoInicial: (month.saldoInicial === null || month.saldoInicial === undefined) ? null : Number(month.saldoInicial),
-    atualizadoEm: new Date().toISOString(),
-  };
-}
-
-async function loadAllMonths(){
-  const snap = await getDocs(collection(db, 'meses'));
-  state.months = {};
-  snap.forEach(d => { state.months[d.id] = normalizeMonth(d.data()); });
-}
-
-function sortedKeys(){
-  return Object.keys(state.months).sort();
-}
-function isEarliest(key){
-  const keys = sortedKeys();
-  return keys.length > 0 && keys[0] === key;
-}
-
-async function ensureMonth(key){
-  if(state.months[key]) return state.months[key];
-
-  let templateColabs = [];
-  let cursor = key;
-  let found = false;
-  for(let i = 0; i < 240; i++){
-    cursor = addMonths(cursor, -1);
-    if(state.months[cursor]){
-      templateColabs = state.months[cursor].colaboradores.map(c => ({ id: uuid(), nome: c.nome, valor: 0 }));
-      sortByNomeAlfabetica(templateColabs);
-      found = true;
-      break;
+      const card = document.getElementById('loginCard');
+      card.classList.add('shake');
+      document.getElementById('loginError').innerText = "Informe a senha para continuar";
+      setTimeout(() => card.classList.remove('shake'), 400);
     }
   }
 
-  const newMonth = {
-    colaboradores: templateColabs,
-    receitasExtra: [],
-    despesas: [],
-    saldoInicial: found ? null : 0,
-  };
-  state.months[key] = newMonth;
-  await setDoc(doc(db, 'meses', key), stripForSave(newMonth));
-  return newMonth;
-}
-
-function rebuildChain(){
-  const keys = sortedKeys();
-  let prevSaldo = 0;
-  const chain = {};
-  keys.forEach((k, i) => {
-    const m = state.months[k];
-    const totalContribuicao = sumValores(m.colaboradores);
-    const totalReceitasExtra = sumValores(m.receitasExtra);
-    const totalDespesas = sumValores(m.despesas);
-    const mesAnterior = i === 0 ? (Number(m.saldoInicial) || 0) : prevSaldo;
-    const totalReceitas = mesAnterior + totalContribuicao + totalReceitasExtra;
-    const saldoAcumulado = totalReceitas - totalDespesas;
-    chain[k] = { mesAnterior, totalContribuicao, totalReceitasExtra, totalReceitas, totalDespesas, saldoAcumulado };
-    prevSaldo = saldoAcumulado;
-  });
-  state.chain = chain;
-}
-
-/* ---------------------------------------------------------------- */
-/* Salvamento automático                                              */
-/* ---------------------------------------------------------------- */
-
-function scheduleSave(){
-  state.dirtyKey = state.currentKey;
-  saveIndicator.textContent = 'Salvando alterações…';
-  clearTimeout(state.saveTimer);
-  state.saveTimer = setTimeout(() => { saveMonth(state.dirtyKey); }, 700);
-}
-
-async function flushPendingSave(){
-  if(state.dirtyKey){
-    clearTimeout(state.saveTimer);
-    const key = state.dirtyKey;
-    state.dirtyKey = null;
-    await saveMonth(key);
+  function realizarLogout() {
+    document.getElementById('appContainer').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('senhaInput').value = '';
+    document.getElementById('loginError').innerText = '';
   }
-}
 
-async function saveMonth(key){
-  if(!key || !state.months[key]) return;
-  try{
-    await setDoc(doc(db, 'meses', key), stripForSave(state.months[key]));
-    if(key === state.dirtyKey) state.dirtyKey = null;
-    saveIndicator.textContent = 'Salvo às ' + new Date().toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
-  }catch(err){
-    console.error(err);
-    saveIndicator.textContent = 'Não foi possível salvar. Verifique sua conexão.';
+  function mudarMes(delta) {
+    salvarEstadoAtual();
+    dataAtual.setMonth(dataAtual.getMonth() + delta);
+    atualizarTela();
   }
-}
 
-/* ---------------------------------------------------------------- */
-/* Renderização                                                       */
-/* ---------------------------------------------------------------- */
+  function atualizarTela() {
+    inicializarMesCorrente();
+    document.getElementById('monthDisplay').innerText = `${MESES[dataAtual.getMonth()]} / ${dataAtual.getFullYear()}`;
+    
+    const chave = obterChaveMes();
+    const dados = bancoDados[chave];
 
-function createRowElement(section, row){
-  const tr = document.createElement('tr');
-  tr.dataset.id = row.id;
-  tr.innerHTML =
-    '<td><input class="cell-nome" type="text" placeholder="Nome" value="' + escapeAttr(row.nome) + '"></td>' +
-    '<td><input class="cell-valor" type="number" step="0.01" inputmode="decimal" value="' + (row.valor || '') + '"></td>' +
-    '<td><button class="row-del" type="button" aria-label="Remover linha">×</button></td>';
+    renderizarTabela('tbodyColaboradores', dados.colaboradores, 'Colaboradores');
+    renderizarTabela('tbodyReceitas', dados.receitas, 'Receitas');
+    renderizarTabela('tbodyDespesas', dados.despesas, 'Despesas');
 
-  const nomeInput = tr.querySelector('.cell-nome');
-  const valorInput = tr.querySelector('.cell-valor');
+    calcularTotais();
+  }
 
-  nomeInput.addEventListener('input', () => {
-    row.nome = nomeInput.value;
-    scheduleSave();
-  });
-  if(section === 'colaboradores'){
-    nomeInput.addEventListener('blur', () => {
-      sortColaboradoresAndRerender();
+  function renderizarTabela(idElemento, lista, tipo) {
+    const tbody = document.getElementById(idElemento);
+    tbody.innerHTML = '';
+    lista.forEach((item, index) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input type="text" value="${item.nome || item.descricao || ''}" onchange="atualizarItem('${tipo}', ${index}, 'texto', this.value)" placeholder="Descrição"></td>
+        <td><input type="text" class="cell-valor" value="${item.valor ? item.valor : ''}" onblur="formatarCampoValor(this)" onchange="atualizarItem('${tipo}', ${index}, 'valor', this.value)" placeholder="R$ 0,00"></td>
+        <td><button class="row-del" onclick="removerLinha('${tipo}', ${index})">&times;</button></td>
+      `;
+      tbody.appendChild(tr);
     });
   }
-  valorInput.addEventListener('input', () => {
-    row.valor = parseNumberInput(valorInput.value);
-    rebuildChain();
-    updateTotalsUI();
-    scheduleSave();
-  });
-  tr.querySelector('.row-del').addEventListener('click', () => removeRow(section, row.id));
 
-  return tr;
-}
-
-function escapeAttr(s){
-  return String(s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
-}
-
-function sortByNomeAlfabetica(list){
-  list.sort((a, b) => String(a.nome || '').localeCompare(String(b.nome || ''), 'pt-BR', { sensitivity:'base' }));
-}
-
-function sortColaboradoresAndRerender(){
-  const list = state.months[state.currentKey].colaboradores;
-  const activeId = document.activeElement && document.activeElement.closest ? document.activeElement.closest('tr')?.dataset.id : null;
-  sortByNomeAlfabetica(list);
-  renderTable('colaboradores');
-  if(activeId){
-    const tr = bodyColaboradores.querySelector('tr[data-id="' + activeId + '"]');
-    if(tr) tr.querySelector('.cell-valor').focus({ preventScroll:true });
-  }
-}
-
-function renderTable(section){
-  const tbody = TBODY_BY_SECTION[section];
-  tbody.innerHTML = '';
-  const rows = state.months[state.currentKey][section];
-  if(section === 'colaboradores') sortByNomeAlfabetica(rows);
-  rows.forEach(row => tbody.appendChild(createRowElement(section, row)));
-}
-
-function addRow(section){
-  const row = { id: uuid(), nome:'', valor:0 };
-  state.months[state.currentKey][section].push(row);
-  const tr = createRowElement(section, row);
-  TBODY_BY_SECTION[section].appendChild(tr);
-  tr.querySelector('.cell-nome').focus();
-  rebuildChain();
-  updateTotalsUI();
-  scheduleSave();
-}
-
-function removeRow(section, id){
-  const list = state.months[state.currentKey][section];
-  state.months[state.currentKey][section] = list.filter(r => r.id !== id);
-  const tr = TBODY_BY_SECTION[section].querySelector('tr[data-id="' + id + '"]');
-  if(tr) tr.remove();
-  rebuildChain();
-  updateTotalsUI();
-  scheduleSave();
-}
-
-document.querySelectorAll('[data-add]').forEach(btn => {
-  btn.addEventListener('click', () => addRow(btn.dataset.add));
-});
-
-function updateTotalsUI(){
-  const key = state.currentKey;
-  const c = state.chain[key];
-  if(!c) return;
-
-  totalColaboradores.textContent = formatBRL(c.totalContribuicao);
-  contribValor.textContent = formatBRL(c.totalContribuicao);
-  totalReceitas.textContent = formatBRL(c.totalReceitas);
-  totalDespesas.textContent = formatBRL(c.totalDespesas);
-  saldoAcumuladoValor.textContent = formatBRL(c.saldoAcumulado);
-
-  if(isEarliest(key)){
-    mesAnteriorLabel.textContent = 'Saldo inicial';
-    saldoInicialInput.style.display = 'inline-block';
-    mesAnteriorValor.style.display = 'none';
-    if(document.activeElement !== saldoInicialInput){
-      saldoInicialInput.value = state.months[key].saldoInicial ?? 0;
+  function adicionarLinha(tipo) {
+    const chave = obterChaveMes();
+    if (tipo === 'Colaboradores') {
+      bancoDados[chave].colaboradores.push({ nome: '', valor: '' });
+    } else if (tipo === 'Receitas') {
+      bancoDados[chave].receitas.push({ descricao: '', valor: '' });
+    } else if (tipo === 'Despesas') {
+      bancoDados[chave].despesas.push({ descricao: '', valor: '' });
     }
-  } else {
-    mesAnteriorLabel.textContent = 'Mês anterior';
-    saldoInicialInput.style.display = 'none';
-    mesAnteriorValor.style.display = 'inline';
-    mesAnteriorValor.textContent = formatBRL(c.mesAnterior);
+    atualizarTela();
   }
 
-  cardSaldo.classList.toggle('negativo', c.saldoAcumulado < 0);
-  saldoStatus.textContent = c.saldoAcumulado < 0
-    ? 'Saldo negativo — atenção às despesas do mês'
-    : 'Referente a ' + monthKeyToLabel(key);
-}
-
-saldoInicialInput.addEventListener('input', () => {
-  state.months[state.currentKey].saldoInicial = parseNumberInput(saldoInicialInput.value);
-  rebuildChain();
-  updateTotalsUI();
-  scheduleSave();
-});
-
-async function renderCurrentMonth(){
-  const key = state.currentKey;
-  await ensureMonth(key);
-  rebuildChain();
-  monthLabel.textContent = monthKeyToLabel(key);
-  renderTable('colaboradores');
-  renderTable('receitasExtra');
-  renderTable('despesas');
-  updateTotalsUI();
-}
-
-/* ---------------------------------------------------------------- */
-/* Navegação                                                          */
-/* ---------------------------------------------------------------- */
-
-async function goTo(key){
-  await flushPendingSave();
-  state.currentKey = key;
-  await renderCurrentMonth();
-}
-
-el('prevMonthBtn').addEventListener('click', () => goTo(addMonths(state.currentKey, -1)));
-
-el('nextMonthBtn').addEventListener('click', () => {
-  const target = addMonths(state.currentKey, 1);
-  const maxKey = addMonths(currentRealMonthKey(), 12);
-  if(target > maxKey){
-    saveIndicator.textContent = 'Não é possível criar meses tão distantes no futuro.';
-    return;
+  function removerLinha(tipo, index) {
+    const chave = obterChaveMes();
+    if (tipo === 'Colaboradores') bancoDados[chave].colaboradores.splice(index, 1);
+    if (tipo === 'Receitas') bancoDados[chave].receitas.splice(index, 1);
+    if (tipo === 'Despesas') bancoDados[chave].despesas.splice(index, 1);
+    atualizarTela();
   }
-  goTo(target);
-});
 
-el('todayBtn').addEventListener('click', () => goTo(currentRealMonthKey()));
-
-/* ---------------------------------------------------------------- */
-/* Relatório do mês                                                   */
-/* ---------------------------------------------------------------- */
-
-function buildMonthData(key){
-  const m = state.months[key];
-  const c = state.chain[key];
-  return {
-    key, label: monthKeyToLabel(key),
-    mesAnteriorLabel: isEarliest(key) ? 'Saldo inicial' : 'Mês anterior',
-    mesAnterior: c.mesAnterior,
-    colaboradores: m.colaboradores,
-    totalContribuicao: c.totalContribuicao,
-    receitasExtra: m.receitasExtra,
-    totalReceitasExtra: c.totalReceitasExtra,
-    totalReceitas: c.totalReceitas,
-    despesas: m.despesas,
-    totalDespesas: c.totalDespesas,
-    saldoAcumulado: c.saldoAcumulado,
-  };
-}
-
-function rowsToHTML(rows){
-  if(!rows.length) return '<p class="rep-note">Nenhum lançamento neste mês.</p>';
-  return '<table class="rep-table"><thead><tr><th>Descrição</th><th class="num">Valor</th></tr></thead><tbody>' +
-    rows.map(r => '<tr><td>' + escapeAttr(r.nome || '—') + '</td><td class="num">' + formatBRL(r.valor) + '</td></tr>').join('') +
-    '</tbody></table>';
-}
-
-function renderReport(key){
-  const d = buildMonthData(key);
-  printArea.innerHTML =
-    '<h1>Sociedade Espírita Joana D\'Arc</h1>' +
-    '<p class="rep-sub">Relatório de Caixa — ' + d.label + ' · gerado em ' + new Date().toLocaleString('pt-BR') + '</p>' +
-    '<div class="rep-summary">' +
-      '<div class="rep-box"><span>' + d.mesAnteriorLabel + '</span><strong>' + formatBRL(d.mesAnterior) + '</strong></div>' +
-      '<div class="rep-box"><span>Contribuição trabalhadores</span><strong>' + formatBRL(d.totalContribuicao) + '</strong></div>' +
-      '<div class="rep-box"><span>Total receitas</span><strong>' + formatBRL(d.totalReceitas) + '</strong></div>' +
-      '<div class="rep-box"><span>Total despesas</span><strong>' + formatBRL(d.totalDespesas) + '</strong></div>' +
-      '<div class="rep-box destaque"><span>Saldo acumulado</span><strong>' + formatBRL(d.saldoAcumulado) + '</strong></div>' +
-    '</div>' +
-    '<h3>Contribuição dos colaboradores</h3>' + rowsToHTML(d.colaboradores) +
-    '<h3>Outras receitas</h3>' + rowsToHTML(d.receitasExtra) +
-    '<h3>Despesas</h3>' + rowsToHTML(d.despesas);
-
-  reportModal.dataset.mode = 'relatorio';
-  reportModal.dataset.key = key;
-  reportModal.hidden = false;
-}
-
-function generateReportPDF(key){
-  if(!window.jspdf || !window.jspdf.jsPDF || typeof window.jspdf.jsPDF.API.autoTable !== 'function'){
-    alert('Não foi possível carregar o gerador de PDF. Verifique sua conexão com a internet e tente novamente.');
-    return;
-  }
-  const d = buildMonthData(key);
-  const { jsPDF } = window.jspdf;
-  const doc2 = new jsPDF({ unit:'pt', format:'a4' });
-
-  doc2.setFont('helvetica','bold'); doc2.setFontSize(14);
-  doc2.text("Sociedade Espírita Joana D'Arc", 40, 46);
-  doc2.setFont('helvetica','normal'); doc2.setFontSize(11);
-  doc2.text('Relatório de Caixa — ' + d.label, 40, 64);
-  doc2.setFontSize(9); doc2.setTextColor(120);
-  doc2.text('Gerado em ' + new Date().toLocaleString('pt-BR'), 40, 78);
-  doc2.setTextColor(0);
-
-  doc2.autoTable({
-    startY: 96,
-    head: [[d.mesAnteriorLabel, 'Contribuição', 'Outras receitas', 'Total receitas', 'Total despesas', 'Saldo acumulado']],
-    body: [[formatBRL(d.mesAnterior), formatBRL(d.totalContribuicao), formatBRL(d.totalReceitasExtra), formatBRL(d.totalReceitas), formatBRL(d.totalDespesas), formatBRL(d.saldoAcumulado)]],
-    theme:'grid', styles:{ fontSize:8, halign:'right' }, headStyles:{ fillColor:[47,59,82], textColor:255, halign:'center', fontSize:7.5 },
-  });
-
-  let y = doc2.lastAutoTable.finalY + 22;
-  doc2.setFont('helvetica','bold'); doc2.setFontSize(11);
-  doc2.text('Contribuição dos colaboradores', 40, y);
-  doc2.autoTable({
-    startY:y+8, head:[['Nome','Valor']],
-    body: d.colaboradores.length ? d.colaboradores.map(r => [r.nome || '—', formatBRL(r.valor)]) : [['—','—']],
-    theme:'striped', styles:{ fontSize:9 }, columnStyles:{ 1:{ halign:'right' } }, headStyles:{ fillColor:[70,82,105] },
-  });
-  y = doc2.lastAutoTable.finalY + 22;
-
-  doc2.setFont('helvetica','bold'); doc2.text('Outras receitas', 40, y);
-  doc2.autoTable({
-    startY:y+8, head:[['Descrição','Valor']],
-    body: d.receitasExtra.length ? d.receitasExtra.map(r => [r.nome || '—', formatBRL(r.valor)]) : [['—','—']],
-    theme:'striped', styles:{ fontSize:9 }, columnStyles:{ 1:{ halign:'right' } }, headStyles:{ fillColor:[70,82,105] },
-  });
-  y = doc2.lastAutoTable.finalY + 22;
-
-  doc2.setFont('helvetica','bold'); doc2.text('Despesas', 40, y);
-  doc2.autoTable({
-    startY:y+8, head:[['Descrição','Valor']],
-    body: d.despesas.length ? d.despesas.map(r => [r.nome || '—', formatBRL(r.valor)]) : [['—','—']],
-    theme:'striped', styles:{ fontSize:9 }, columnStyles:{ 1:{ halign:'right' } }, headStyles:{ fillColor:[70,82,105] },
-  });
-
-  doc2.save('relatorio-caixa-' + d.key + '.pdf');
-}
-
-/* ---------------------------------------------------------------- */
-/* Balancete (mês atual x mês anterior)                                */
-/* ---------------------------------------------------------------- */
-
-function buildBalanceteData(key){
-  const prevKey = addMonths(key, -1);
-  const cur = state.chain[key];
-  const prevExists = !!state.months[prevKey];
-  const prev = prevExists ? state.chain[prevKey] : null;
-  return {
-    key, label: monthKeyToLabel(key),
-    prevKey, prevLabel: monthKeyToLabel(prevKey), prevExists,
-    cur: { inicio: cur.mesAnterior, entradas: cur.totalContribuicao + cur.totalReceitasExtra, saidas: cur.totalDespesas, final: cur.saldoAcumulado },
-    prev: prev ? { inicio: prev.mesAnterior, entradas: prev.totalContribuicao + prev.totalReceitasExtra, saidas: prev.totalDespesas, final: prev.saldoAcumulado } : null,
-  };
-}
-
-function balanceteRowsHTML(d){
-  const rows = [
-    ['Saldo no início do mês', d.prev ? d.prev.inicio : null, d.cur.inicio],
-    ['Entradas (contribuição + receitas)', d.prev ? d.prev.entradas : null, d.cur.entradas],
-    ['Saídas (despesas)', d.prev ? d.prev.saidas : null, d.cur.saidas],
-    ['Saldo no final do mês', d.prev ? d.prev.final : null, d.cur.final],
-  ];
-  return rows.map(([label, prevV, curV]) => {
-    const variacao = (prevV === null) ? '—' : formatBRL(curV - prevV);
-    return '<tr><td>' + label + '</td><td class="num">' + (prevV === null ? '—' : formatBRL(prevV)) + '</td><td class="num">' + formatBRL(curV) + '</td><td class="num">' + variacao + '</td></tr>';
-  }).join('');
-}
-
-function renderBalancete(key){
-  const d = buildBalanceteData(key);
-  printArea.innerHTML =
-    '<h1>Sociedade Espírita Joana D\'Arc</h1>' +
-    '<p class="rep-sub">Balancete comparativo — ' + (d.prevExists ? d.prevLabel + ' × ' : '') + d.label + ' · gerado em ' + new Date().toLocaleString('pt-BR') + '</p>' +
-    (d.prevExists ? '' : '<p class="rep-note">Não há dados registrados para ' + d.prevLabel + '; a comparação mostra apenas o mês atual.</p>') +
-    '<div class="rep-summary">' +
-      '<div class="rep-box"><span>Sobrou do mês passado</span><strong>' + formatBRL(d.cur.inicio) + '</strong></div>' +
-      '<div class="rep-box"><span>Entrou este mês</span><strong>' + formatBRL(d.cur.entradas) + '</strong></div>' +
-      '<div class="rep-box"><span>Gastou este mês</span><strong>' + formatBRL(d.cur.saidas) + '</strong></div>' +
-      '<div class="rep-box destaque"><span>Tem agora</span><strong>' + formatBRL(d.cur.final) + '</strong></div>' +
-    '</div>' +
-    '<h3>Comparativo detalhado</h3>' +
-    '<table class="rep-table"><thead><tr><th></th><th class="num">' + d.prevLabel + '</th><th class="num">' + d.label + '</th><th class="num">Variação</th></tr></thead><tbody>' +
-    balanceteRowsHTML(d) + '</tbody></table>';
-
-  reportModal.dataset.mode = 'balancete';
-  reportModal.dataset.key = key;
-  reportModal.hidden = false;
-}
-
-function generateBalancetePDF(key){
-  if(!window.jspdf || !window.jspdf.jsPDF || typeof window.jspdf.jsPDF.API.autoTable !== 'function'){
-    alert('Não foi possível carregar o gerador de PDF. Verifique sua conexão com a internet e tente novamente.');
-    return;
-  }
-  const d = buildBalanceteData(key);
-  const { jsPDF } = window.jspdf;
-  const doc2 = new jsPDF({ unit:'pt', format:'a4' });
-
-  doc2.setFont('helvetica','bold'); doc2.setFontSize(14);
-  doc2.text("Sociedade Espírita Joana D'Arc", 40, 46);
-  doc2.setFont('helvetica','normal'); doc2.setFontSize(11);
-  doc2.text('Balancete comparativo — ' + (d.prevExists ? d.prevLabel + ' x ' : '') + d.label, 40, 64);
-  doc2.setFontSize(9); doc2.setTextColor(120);
-  doc2.text('Gerado em ' + new Date().toLocaleString('pt-BR'), 40, 78);
-  doc2.setTextColor(0);
-
-  doc2.autoTable({
-    startY: 96,
-    head: [['Sobrou do mês passado', 'Entrou este mês', 'Gastou este mês', 'Tem agora']],
-    body: [[formatBRL(d.cur.inicio), formatBRL(d.cur.entradas), formatBRL(d.cur.saidas), formatBRL(d.cur.final)]],
-    theme:'grid', styles:{ fontSize:9, halign:'right' }, headStyles:{ fillColor:[47,59,82], textColor:255, halign:'center' },
-  });
-
-  const y = doc2.lastAutoTable.finalY + 22;
-  doc2.setFont('helvetica','bold'); doc2.setFontSize(11);
-  doc2.text('Comparativo detalhado', 40, y);
-
-  const rows = [
-    ['Saldo no início do mês', d.prev ? formatBRL(d.prev.inicio) : '—', formatBRL(d.cur.inicio), d.prev ? formatBRL(d.cur.inicio - d.prev.inicio) : '—'],
-    ['Entradas (contribuição + receitas)', d.prev ? formatBRL(d.prev.entradas) : '—', formatBRL(d.cur.entradas), d.prev ? formatBRL(d.cur.entradas - d.prev.entradas) : '—'],
-    ['Saídas (despesas)', d.prev ? formatBRL(d.prev.saidas) : '—', formatBRL(d.cur.saidas), d.prev ? formatBRL(d.cur.saidas - d.prev.saidas) : '—'],
-    ['Saldo no final do mês', d.prev ? formatBRL(d.prev.final) : '—', formatBRL(d.cur.final), d.prev ? formatBRL(d.cur.final - d.prev.final) : '—'],
-  ];
-  doc2.autoTable({
-    startY: y + 8,
-    head: [['', d.prevLabel, d.label, 'Variação']],
-    body: rows,
-    theme:'striped', styles:{ fontSize:9 }, columnStyles:{ 1:{halign:'right'}, 2:{halign:'right'}, 3:{halign:'right'} }, headStyles:{ fillColor:[70,82,105] },
-  });
-
-  doc2.save('balancete-' + d.key + '.pdf');
-}
-
-/* ---------------------------------------------------------------- */
-/* Modal handlers                                                     */
-/* ---------------------------------------------------------------- */
-
-el('reportBtn').addEventListener('click', () => renderReport(state.currentKey));
-el('balanceteBtn').addEventListener('click', () => renderBalancete(state.currentKey));
-el('reportCloseBtn').addEventListener('click', () => { reportModal.hidden = true; });
-el('reportPrintBtn').addEventListener('click', () => window.print());
-el('reportPdfBtn').addEventListener('click', () => {
-  const key = reportModal.dataset.key;
-  if(reportModal.dataset.mode === 'balancete') generateBalancetePDF(key);
-  else generateReportPDF(key);
-});
-reportModal.addEventListener('click', (e) => { if(e.target === reportModal) reportModal.hidden = true; });
-
-/* ---------------------------------------------------------------- */
-/* Proteção contra perda de dados ao fechar a página                  */
-/* ---------------------------------------------------------------- */
-
-window.addEventListener('beforeunload', (e) => {
-  if(state.dirtyKey){
-    e.preventDefault();
-    e.returnValue = '';
-  }
-});
-
-/* ---------------------------------------------------------------- */
-/* Backup e Restauração (JSON local)                                  */
-/* ---------------------------------------------------------------- */
-
-function buildBackupPayload(){
-  const months = {};
-  sortedKeys().forEach(k => { months[k] = stripForSave(state.months[k]); });
-  return {
-    meta: {
-      app: 'sejd-caixa',
-      formato: 'sejd-caixa-backup-v1',
-      geradoEm: new Date().toISOString(),
-      totalMeses: Object.keys(months).length,
-    },
-    months,
-  };
-}
-
-function downloadJSON(obj, filename){
-  const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-}
-
-el('backupBtn').addEventListener('click', async () => {
-  try{
-    await flushPendingSave();
-    const payload = buildBackupPayload();
-    const today = new Date().toISOString().slice(0, 10);
-    downloadJSON(payload, 'backup-caixa-sejd-' + today + '.json');
-    saveIndicator.textContent = 'Backup baixado às ' + new Date().toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
-  }catch(err){
-    console.error(err);
-    saveIndicator.textContent = 'Não foi possível gerar o backup.';
-  }
-});
-
-el('restoreBtn').addEventListener('click', () => el('restoreInput').click());
-
-el('restoreInput').addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  if(!file) return;
-
-  try{
-    const text = await file.text();
-    const json = JSON.parse(text);
-    const months = (json && typeof json === 'object' && json.months) ? json.months : json;
-
-    if(!months || typeof months !== 'object' || Array.isArray(months)){
-      throw new Error('Formato inválido: esperado um objeto com os meses (ex.: {"months": {"2024-01": {...}}}).');
+  function atualizarItem(tipo, index, campo, valor) {
+    const chave = obterChaveMes();
+    const lista = tipo === 'Colaboradores' ? bancoDados[chave].colaboradores : (tipo === 'Receitas' ? bancoDados[chave].receitas : bancoDados[chave].despesas);
+    if (campo === 'texto') {
+      if (tipo === 'Colaboradores') lista[index].nome = valor;
+      else lista[index].descricao = valor;
+    } else {
+      lista[index].valor = valor;
     }
-    const keys = Object.keys(months).filter(k => /^\d{4}-(0[1-9]|1[0-2])$/.test(k));
-    if(!keys.length){
-      throw new Error('Nenhum mês válido encontrado no arquivo (as chaves devem estar no formato AAAA-MM).');
+    calcularTotais();
+  }
+
+  function formatarCampoValor(input) {
+    const num = converterParaNumero(input.value);
+    input.value = num ? formatarMoeda(num) : '';
+  }
+
+  function calcularTotais() {
+    const chave = obterChaveMes();
+    const dados = bancoDados[chave];
+
+    const totalColab = dados.colaboradores.reduce((acc, cur) => acc + converterParaNumero(cur.valor), 0);
+    const totalOutrasReceitas = dados.receitas.reduce((acc, cur) => acc + converterParaNumero(cur.valor), 0);
+    const totalDesp = dados.despesas.reduce((acc, cur) => acc + converterParaNumero(cur.valor), 0);
+
+    const totalRec = totalColab + totalOutrasReceitas;
+    const saldo = totalRec - totalDesp;
+
+    document.getElementById('totalColaboradores').innerText = formatarMoeda(totalColab);
+    document.getElementById('fixedColabValue').innerText = formatarMoeda(totalColab);
+    document.getElementById('totalReceitas').innerText = formatarMoeda(totalRec);
+    document.getElementById('totalDespesas').innerText = formatarMoeda(totalDesp);
+    
+    const saldoEl = document.getElementById('saldoFinal');
+    const cardSaldo = document.getElementById('cardSaldo');
+    saldoEl.innerText = formatarMoeda(saldo);
+
+    if (saldo < 0) {
+      cardSaldo.classList.add('negativo');
+    } else {
+      cardSaldo.classList.remove('negativo');
     }
 
-    const ok = window.confirm(
-      'Este arquivo contém ' + keys.length + ' mês(es). Restaurar irá SOBRESCREVER os dados desses meses no ' +
-      'sistema para todos os usuários. Esta ação não pode ser desfeita. Deseja continuar?'
-    );
-    if(!ok){ e.target.value = ''; return; }
-
-    keys.sort();
-    let done = 0;
-    saveIndicator.textContent = 'Restaurando dados… 0/' + keys.length;
-    for(const key of keys){
-      const normalized = normalizeMonth(months[key]);
-      state.months[key] = normalized;
-      await setDoc(doc(db, 'meses', key), stripForSave(normalized));
-      done++;
-      saveIndicator.textContent = 'Restaurando dados… ' + done + '/' + keys.length;
-    }
-
-    await loadAllMonths();
-    rebuildChain();
-    const allKeys = sortedKeys();
-    if(!allKeys.includes(state.currentKey)){
-      state.currentKey = allKeys[allKeys.length - 1];
-    }
-    await renderCurrentMonth();
-    saveIndicator.textContent = 'Restauração concluída: ' + keys.length + ' mês(es) importado(s) com sucesso.';
-  }catch(err){
-    console.error(err);
-    saveIndicator.textContent = 'Erro ao restaurar backup.';
-    alert('Não foi possível restaurar o backup: ' + err.message);
-  }finally{
-    e.target.value = '';
+    salvarLocalmente();
   }
-});
 
-/* ---------------------------------------------------------------- */
-/* Início                                                              */
-/* ---------------------------------------------------------------- */
+  function salvarEstadoAtual() {
+    salvarLocalmente();
+  }
 
-async function startApp(){
-  await loadAllMonths();
-  const keys = sortedKeys();
-  const today = currentRealMonthKey();
-  state.currentKey = keys.length ? (keys.includes(today) ? today : keys[keys.length - 1]) : today;
-  await renderCurrentMonth();
-}
+  function salvarLocalmente() {
+    localStorage.setItem('sejd_caixa_dados', JSON.stringify(bancoDados));
+    document.getElementById('saveIndicator').innerText = "Dados sincronizados localmente";
+  }
 
-initAuth();
+  function carregarDadosSalvos() {
+    const dadosGuardados = localStorage.getItem('sejd_caixa_dados');
+    if (dadosGuardados) {
+      try {
+        bancoDados = JSON.parse(dadosGuardados);
+      } catch(e) {
+        bancoDados = {};
+      }
+    }
+  }
+
+  function salvarDadosManualmente() {
+    salvarLocalmente();
+    const ind = document.getElementById('saveIndicator');
+    ind.innerText = "Alterações salvas com sucesso!";
+    setTimeout(() => { ind.innerText = "Dados sincronizados localmente"; }, 3000);
+  }
+
+  function abrirRelatorio() {
+    const chave = obterChaveMes();
+    const dados = bancoDados[chave];
+
+    document.getElementById('repPeriodo').innerText = `Demonstrativo Financeiro — ${MESES[dataAtual.getMonth()]} / ${dataAtual.getFullYear()}`;
+    
+    const totalColab = dados.colaboradores.reduce((acc, cur) => acc + converterParaNumero(cur.valor), 0);
+    const totalOutras = dados.receitas.reduce((acc, cur) => acc + converterParaNumero(cur.valor), 0);
+    const totalRec = totalColab + totalOutras;
+    const totalDesp = dados.despesas.reduce((acc, cur) => acc + converterParaNumero(cur.valor), 0);
+
+    document.getElementById('repTotalReceitas').innerText = formatarMoeda(totalRec);
+    document.getElementById('repTotalDespesas').innerText = formatarMoeda(totalDesp);
+    document.getElementById('repSaldoFinal').innerText = formatarMoeda(totalRec - totalDesp);
+
+    const tbodyRec = document.getElementById('repTbodyReceitas');
+    tbodyRec.innerHTML = `<tr><td>Colaboradores (Total Consolidado)</td><td class="num">${formatarMoeda(totalColab)}</td></tr>`;
+    dados.receitas.forEach(r => {
+      if(r.descricao || r.valor) {
+        tbodyRec.innerHTML += `<tr><td>${r.descricao || 'Sem descrição'}</td><td class="num">${formatarMoeda(converterParaNumero(r.valor))}</td></tr>`;
+      }
+    });
+
+    const tbodyDesp = document.getElementById('repTbodyDespesas');
+    tbodyDesp.innerHTML = '';
+    dados.despesas.forEach(d => {
+      if(d.descricao || d.valor) {
+        tbodyDesp.innerHTML += `<tr><td>${d.descricao || 'Sem descrição'}</td><td class="num">${formatarMoeda(converterParaNumero(d.valor))}</td></tr>`;
+      }
+    });
+
+    document.getElementById('reportModal').removeAttribute('hidden');
+  }
+
+  function fecharRelatorio() {
+    document.getElementById('reportModal').setAttribute('hidden', '');
+  }
 </script>
 </body>
 </html>
