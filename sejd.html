@@ -1032,11 +1032,11 @@ function renderBalancete(key){
     '<h1>Sociedade Espírita Joana D\'Arc</h1>' +
     '<p class="rep-sub">Balancete comparativo — ' + (d.prevExists ? d.prevLabel + ' × ' : '') + d.label + ' · gerado em ' + new Date().toLocaleString('pt-BR') + '</p>' +
     (d.prevExists ? '' : '<p class="rep-note">Não há dados registrados para ' + d.prevLabel + '; a comparação mostra apenas o mês atual.</p>') +
-    '<div class="rep-summary">' +
-      '<div class="rep-box"><span>Sobrou do mês passado</span><strong>' + formatBRL(d.cur.inicio) + '</strong></div>' +
-      '<div class="rep-box"><span>Entrou este mês</span><strong>' + formatBRL(d.cur.entradas) + '</strong></div>' +
-      '<div class="rep-box"><span>Gastou este mês</span><strong>' + formatBRL(d.cur.saidas) + '</strong></div>' +
-      '<div class="rep-box destaque"><span>Tem agora</span><strong>' + formatBRL(d.cur.final) + '</strong></div>' +
+        '<div class="rep-summary">' +
+      '<div class="rep-box"><span>SALDO ANTERIOR</span><strong>' + formatBRL(d.cur.inicio) + '</strong></div>' +
+      '<div class="rep-box"><span>RECEITAS DO MÊS</span><strong>' + formatBRL(d.cur.entradas) + '</strong></div>' +
+      '<div class="rep-box"><span>DESPESAS DO MÊS</span><strong>' + formatBRL(d.cur.saidas) + '</strong></div>' +
+      '<div class="rep-box destaque"><span>SALDO ATUAL</span><strong>' + formatBRL(d.cur.final) + '</strong></div>' +
     '</div>' +
     '<h3>Comparativo detalhado</h3>' +
     '<table class="rep-table"><thead><tr><th></th><th class="num">' + d.prevLabel + '</th><th class="num">' + d.label + '</th><th class="num">Variação</th></tr></thead><tbody>' +
@@ -1066,7 +1066,7 @@ function generateBalancetePDF(key){
 
   doc2.autoTable({
     startY: 96,
-    head: [['Sobrou do mês passado', 'Entrou este mês', 'Gastou este mês', 'Tem agora']],
+    head: [['SALDO ANTERIOR', 'RECEITAS DO MÊS', 'DESPESAS DO MÊS', 'SALDO ATUAL']],
     body: [[formatBRL(d.cur.inicio), formatBRL(d.cur.entradas), formatBRL(d.cur.saidas), formatBRL(d.cur.final)]],
     theme:'grid', styles:{ fontSize:9, halign:'right' }, headStyles:{ fillColor:[47,59,82], textColor:255, halign:'center' },
   });
