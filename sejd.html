@@ -661,6 +661,7 @@ async function ensureMonth(key){
   if(state.months[key]) return state.months[key];
 
   let templateColabs = [];
+  let templateDespesas = [];
   let cursor = key;
   let found = false;
   for(let i = 0; i < 240; i++){
@@ -668,6 +669,7 @@ async function ensureMonth(key){
     if(state.months[cursor]){
       templateColabs = state.months[cursor].colaboradores.map(c => ({ id: uuid(), nome: c.nome, valor: 0 }));
       sortByNomeAlfabetica(templateColabs);
+      templateDespesas = state.months[cursor].despesas.map(d => ({ id: uuid(), nome: d.nome, valor: 0 }));
       found = true;
       break;
     }
@@ -676,7 +678,7 @@ async function ensureMonth(key){
   const newMonth = {
     colaboradores: templateColabs,
     receitasExtra: [],
-    despesas: [],
+    despesas: templateDespesas,
     saldoInicial: found ? null : 0,
   };
   state.months[key] = newMonth;
