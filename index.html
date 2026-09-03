@@ -6,29 +6,35 @@
     <title>Agenda do Fofo</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
     <style>
         /* ================================================================== */
-        /* ============ INÍCIO DO NOVO CSS - VISUAL MELHORADO ============ */
+        /* ========================= DESIGN TOKENS ========================= */
         /* ================================================================== */
-        /* --- Variáveis de Design para fácil customização --- */
         :root {
-            --primary-color: #3b82f6; /* Azul moderno */
-            --primary-hover: #2563eb;
-            --background-color: #f8f9fa; /* Fundo geral suave */
-            --surface-color: #ffffff; /* Cor de 'cartões' e painéis */
-            --text-color: #343a40; /* Cor de texto principal */
-            --subtle-text-color: #6c757d;/* Cor de texto secundário */
-            --border-color: #dee2e6; /* Cor de bordas suaves */
-            --danger-color: #dc3545;
-            --success-color: #198754;
-            --highlight-color: #ffc107;
-            --font-family: 'Poppins', sans-serif;
-            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            --border-radius: 8px;
+            --primary-color: #2f6690;      /* Azul petróleo, mais sóbrio que o azul puro anterior */
+            --primary-hover: #244f70;
+            --primary-soft: #eaf2f8;       /* Fundo suave para hover/seleção */
+            --accent-color: #d97a3d;       /* Terracota para recorrência/destaque */
+            --accent-soft: #fbeee2;
+            --background-color: #f5f4f1;   /* Fundo levemente quente, não branco puro */
+            --surface-color: #ffffff;
+            --surface-alt: #fbfaf8;
+            --text-color: #2b2a28;
+            --subtle-text-color: #7a7772;
+            --border-color: #e3e0da;
+            --danger-color: #c0392b;
+            --danger-soft: #fbeae7;
+            --success-color: #3f7d5c;
+            --success-soft: #e9f4ee;
+            --font-display: 'Fraunces', serif;
+            --font-body: 'Poppins', sans-serif;
+            --shadow-sm: 0 1px 3px rgba(43, 42, 40, 0.06);
+            --shadow: 0 8px 24px rgba(43, 42, 40, 0.10);
+            --radius-sm: 6px;
+            --radius: 10px;
         }
 
-        /* --- Reset e Estilos Globais --- */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -36,41 +42,43 @@
         }
 
         body {
-            font-family: var(--font-family);
+            font-family: var(--font-body);
             background-color: var(--background-color);
             color: var(--text-color);
-            font-size: 14px; /* AJUSTE: Fonte base diminuída */
+            font-size: 14px;
+            line-height: 1.5;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
 
-        /* --- Estilização da Tela de Login --- */
+        /* --- Tela de Login --- */
         #login-screen {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: var(--background-color);
+            inset: 0;
+            background: linear-gradient(160deg, #f5f4f1 0%, #e9e6de 100%);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            padding: 20px;
         }
 
         #login-form {
             background-color: var(--surface-color);
-            padding: 40px;
-            border-radius: var(--border-radius);
+            padding: 40px 36px;
+            border-radius: var(--radius);
             box-shadow: var(--shadow);
             text-align: center;
             width: 100%;
             max-width: 380px;
+            border: 1px solid var(--border-color);
         }
 
         #login-form h2 {
-            margin-bottom: 25px;
+            margin-bottom: 24px;
+            font-family: var(--font-display);
             font-weight: 600;
+            font-size: 1.6rem;
             color: var(--text-color);
         }
 
@@ -80,30 +88,32 @@
         }
 
         #login-form input[type="password"] {
-            padding: 12px 40px 12px 15px;
+            padding: 12px 42px 12px 15px;
             width: 100%;
             border: 1px solid var(--border-color);
-            border-radius: var(--border-radius);
+            border-radius: var(--radius-sm);
             font-size: 1rem;
+            font-family: var(--font-body);
             transition: border-color 0.2s, box-shadow 0.2s;
         }
 
         #login-form input[type="password"]:focus {
             outline: none;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+            box-shadow: 0 0 0 3px rgba(47, 102, 144, 0.15);
         }
 
         #password-container button {
             position: absolute;
-            right: 10px;
+            right: 8px;
             top: 50%;
             transform: translateY(-50%);
             background: none;
             border: none;
             cursor: pointer;
-            font-size: 1.2rem;
+            font-size: 1.15rem;
             color: var(--subtle-text-color);
+            padding: 4px;
         }
 
         #login-button,
@@ -112,7 +122,7 @@
             color: white;
             border: none;
             padding: 12px 20px;
-            border-radius: var(--border-radius);
+            border-radius: var(--radius-sm);
             cursor: pointer;
             font-size: 1rem;
             font-weight: 500;
@@ -137,7 +147,7 @@
             margin-bottom: 15px;
         }
 
-        /* --- Layout Principal da Agenda --- */
+        /* --- Layout Principal --- */
         .container {
             display: none;
             flex-direction: column;
@@ -152,7 +162,7 @@
 
         .left-panel,
         .right-panel {
-            padding: 25px; /* AJUSTE: Espaçamento diminuído */
+            padding: 24px;
         }
 
         .left-panel {
@@ -164,33 +174,35 @@
         .right-panel {
             flex: 1;
             background-color: var(--background-color);
+            min-width: 280px;
         }
 
         h2 {
-            font-size: 1.5rem;
+            font-family: var(--font-display);
+            font-size: 1.45rem;
             font-weight: 600;
-            margin-bottom: 15px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
             border-bottom: 1px solid var(--border-color);
-            padding-bottom: 10px;
         }
 
         h3 {
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 600;
-            margin-top: 20px;
+            margin-top: 22px;
             margin-bottom: 10px;
             color: var(--primary-color);
         }
 
-        /* --- Estilos Gerais para Botões e Inputs --- */
+        /* --- Botões e Inputs Gerais --- */
         button {
-            font-family: var(--font-family);
+            font-family: var(--font-body);
             border: 1px solid var(--border-color);
             background-color: var(--surface-color);
-            border-radius: var(--border-radius);
-            padding: 6px 12px; /* AJUSTE: Espaçamento diminuído */
+            border-radius: var(--radius-sm);
+            padding: 7px 13px;
             cursor: pointer;
-            transition: all 0.2s ease-in-out;
+            transition: all 0.15s ease-in-out;
             font-weight: 500;
             font-size: 0.85em;
             color: var(--text-color);
@@ -198,7 +210,7 @@
 
         button:hover {
             border-color: var(--primary-color);
-            background-color: #f0f6ff;
+            background-color: var(--primary-soft);
             color: var(--primary-color);
         }
 
@@ -206,16 +218,23 @@
             transform: translateY(1px);
         }
 
-        /* AJUSTE: Removido width: 100% daqui para permitir campos inline */
+        button:focus-visible,
+        input:focus-visible,
+        textarea:focus-visible {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 1px;
+        }
+
         input[type="text"],
         input[type="date"],
         input[type="time"],
         textarea {
-            font-family: var(--font-family);
-            padding: 8px; /* AJUSTE: Espaçamento diminuído */
+            font-family: var(--font-body);
+            padding: 8px 10px;
             border: 1px solid var(--border-color);
-            border-radius: var(--border-radius);
+            border-radius: var(--radius-sm);
             font-size: 0.9em;
+            background-color: var(--surface-color);
             transition: border-color 0.2s, box-shadow 0.2s;
         }
 
@@ -225,17 +244,16 @@
         textarea:focus {
             outline: none;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+            box-shadow: 0 0 0 3px rgba(47, 102, 144, 0.12);
         }
 
-        /* AJUSTE: Regras específicas para inputs que devem ocupar a linha toda */
         #login-form input[type="password"],
         #alarmes input[type="text"],
         textarea#notasFixas {
             width: 100%;
         }
 
-        /* --- Botões de Ação Específicos --- */
+        /* --- Ações Específicas --- */
         #novoBtn {
             background-color: var(--primary-color);
             color: white;
@@ -248,15 +266,61 @@
             color: white;
         }
 
-        #hojeBtn,
-        #prevDayBtn,
-        #nextDayBtn,
-        .commitment button,
-        .right-panel button[title] {
-            padding: 6px 10px;
+        #limparDiaBtn {
+            border-color: var(--danger-color);
+            color: var(--danger-color);
         }
 
-        /* --- Seção da Agenda (Painel Esquerdo) --- */
+        #limparDiaBtn:hover {
+            background-color: var(--danger-soft);
+            border-color: var(--danger-color);
+            color: var(--danger-color);
+        }
+
+        .quick-links {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+
+        .quick-links button {
+            font-size: 0.8em;
+            color: var(--subtle-text-color);
+        }
+
+        /* --- Barra de progresso do dia --- */
+        #progressoWrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+            font-size: 0.85em;
+            color: var(--subtle-text-color);
+        }
+
+        #progressoBarra {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background-color: var(--border-color);
+            overflow: hidden;
+        }
+
+        #progressoBarra > div {
+            height: 100%;
+            background-color: var(--success-color);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        #progressoTexto {
+            white-space: nowrap;
+            font-weight: 500;
+        }
+
+        /* --- Seções da Agenda --- */
         .calendar-section,
         .actions,
         .search-area,
@@ -268,45 +332,47 @@
             flex-wrap: wrap;
         }
 
+        .commitment-wrapper {
+            margin-bottom: 4px;
+        }
+
         .commitment {
             display: flex;
             align-items: center;
-            margin-bottom: 5px; /* AJUSTE: Espaçamento diminuído */
-            padding: 5px;
-            border-radius: var(--border-radius);
+            padding: 6px 5px;
+            border-radius: var(--radius-sm);
             border: 1px solid transparent;
-            transition: background-color 0.2s, border-color 0.2s;
+            transition: background-color 0.15s, border-color 0.15s;
         }
 
-        /* CORREÇÃO: A regra :hover foi movida para DEPOIS de :nth-child para ter prioridade */
-        .commitment:nth-child(even) {
-            background-color: #fdfdff;
+        .commitment-wrapper:nth-child(even) .commitment {
+            background-color: var(--surface-alt);
         }
 
         .commitment.checked {
-            background-color: #e9f5ff;
-            border-color: #a3d1ff;
-        }
-
-        .commitment:hover {
-            background-color: #e9f5ff;
+            background-color: var(--primary-soft);
+            border-color: #c3dae8;
         }
 
         .commitment.checked .done {
-            color: #999;
+            color: var(--subtle-text-color);
+        }
+
+        .commitment:hover {
+            background-color: var(--primary-soft);
         }
 
         .commitment input[type="text"] {
             flex: 1;
             border: none;
             background: transparent;
-            padding: 6px;
+            padding: 6px 8px;
             margin: 0 8px;
             border-radius: 4px;
         }
 
         .commitment input[type="text"]:focus {
-            background: #f0f3f5;
+            background: var(--surface-color);
             box-shadow: none;
         }
 
@@ -314,10 +380,11 @@
             width: 16px;
             height: 16px;
             cursor: pointer;
+            accent-color: var(--primary-color);
         }
 
         .commitment button {
-            padding: 4px 8px;
+            padding: 4px 9px;
             font-size: 0.75em;
         }
 
@@ -326,87 +393,163 @@
         }
 
         .commitment button:last-of-type {
-            border-color: #ffddd9;
+            border-color: #f0cec7;
             color: var(--danger-color);
+            font-weight: 700;
         }
 
         .commitment button:last-of-type:hover {
-            background-color: #fff4f2;
+            background-color: var(--danger-soft);
+            border-color: var(--danger-color);
+        }
+
+        .sub-toggle-btn {
+            color: var(--subtle-text-color);
+            padding: 4px 7px;
+            font-size: 0.75em;
+        }
+
+        .add-sub-btn {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+            padding: 4px 8px;
+            font-size: 0.8em;
+            font-weight: 700;
+        }
+
+        .add-sub-btn:hover {
+            background-color: var(--primary-soft);
+        }
+
+        /* --- Sublinhas --- */
+        .subitems-container {
+            margin-left: 30px;
+            padding: 4px 0 4px 12px;
+            border-left: 2px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .subitems-container.collapsed {
+            display: none;
+        }
+
+        .subitem-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .subitem-row input[type="text"] {
+            flex: 1;
+            border: 1px solid transparent;
+            background-color: var(--surface-alt);
+            padding: 5px 9px;
+            border-radius: var(--radius-sm);
+            font-size: 0.85em;
+        }
+
+        .subitem-row input[type="text"]:focus {
+            background-color: var(--surface-color);
+            border-color: var(--border-color);
+        }
+
+        .subitem-row .sub-tachar-btn {
+            padding: 3px 8px;
+            font-size: 0.72em;
+            color: var(--success-color);
+            border-color: #cfe6d8;
+        }
+
+        .subitem-row .sub-tachar-btn:hover {
+            background-color: var(--success-soft);
+            border-color: var(--success-color);
+        }
+
+        .subitem-row .sub-del-btn {
+            padding: 3px 8px;
+            font-size: 0.75em;
+            font-weight: 700;
+            color: var(--danger-color);
+            border-color: #f0cec7;
+        }
+
+        .subitem-row .sub-del-btn:hover {
+            background-color: var(--danger-soft);
             border-color: var(--danger-color);
         }
 
         .done {
             text-decoration: line-through;
             color: var(--subtle-text-color);
-            opacity: 0.8;
+            opacity: 0.75;
         }
-        
-        /* NOVO: Estilo para item recorrente */
+
+        /* Item recorrente — indicador mais visível */
+        .commitment.recorrente {
+            border-left: 3px solid var(--accent-color);
+        }
+
         .commitment.recorrente input[type="text"] {
             font-style: italic;
-            color: #555;
+            color: #4a4642;
         }
+
         .commitment.recorrente button:first-of-type {
-            border-color: var(--primary-color);
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+            background-color: var(--accent-soft);
         }
 
         .destaque {
-            background: var(--highlight-color);
             animation: fadeHighlight 2s ease-out;
         }
 
         @keyframes fadeHighlight {
-            from {
-                background-color: var(--highlight-color);
-            }
-            to {
-                background-color: transparent;
-            }
+            from { background-color: #ffe6b3; }
+            to   { background-color: transparent; }
         }
 
-        /* --- Painel Direito (Widgets) --- */
+        /* --- Painel Direito --- */
         .right-panel > div {
             margin-bottom: 10px;
         }
 
-        /* (Estilos de CPF removidos para economizar espaço, mas ainda estão no seu código) */
-        #cpfStatus.valid {
-            color: var(--success-color);
-            font-weight: 500;
-        }
-
-        #cpfStatus.invalid {
-            color: var(--danger-color);
-            font-weight: 500;
-        }
-
-        /* AJUSTE: Faz o input do CPF e Pesquisa crescerem para preencher o espaço */
-        #cpf,
         #search {
             flex: 1;
-            min-width: 100px; /* Garante que não fiquem pequenos demais */
+            min-width: 100px;
         }
 
         .search-results {
             background-color: var(--surface-color);
             border: 1px solid var(--border-color);
             padding: 5px;
-            border-radius: var(--border-radius);
-            max-height: 150px; /* AJUSTE: Altura diminuída */
+            border-radius: var(--radius-sm);
+            max-height: 150px;
             overflow-y: auto;
             font-size: 0.85em;
         }
 
         .search-results div {
             cursor: pointer;
-            padding: 6px 10px;
+            padding: 7px 10px;
             border-radius: 6px;
-            transition: background-color 0.2s;
+            transition: background-color 0.15s;
         }
 
         .search-results div:hover {
-            background-color: #e9f5ff;
+            background-color: var(--primary-soft);
             color: var(--primary-color);
+        }
+
+        .search-results .empty {
+            color: var(--subtle-text-color);
+            cursor: default;
+            padding: 7px 10px;
+        }
+        .search-results .empty:hover {
+            background: none;
         }
 
         #alarmes > div {
@@ -416,55 +559,128 @@
             align-items: center;
         }
 
-        /* --- Scrollbar Customizada --- */
+        #alarm-feedback {
+            font-size: 0.9em;
+            color: var(--success-color);
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: 500;
+            min-height: 1.2em;
+            transition: opacity 0.3s;
+        }
+
+        /* --- Indicador de carregamento --- */
+        #loadingIndicator {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            color: var(--subtle-text-color);
+            font-size: 0.85em;
+            margin-bottom: 10px;
+        }
+
+        #loadingIndicator.active {
+            display: flex;
+        }
+
+        .spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid var(--border-color);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* --- Toast de feedback global --- */
+        #toastContainer {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+            width: 90%;
+            max-width: 420px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background-color: var(--text-color);
+            color: #fff;
+            padding: 10px 18px;
+            border-radius: var(--radius-sm);
+            font-size: 0.85em;
+            box-shadow: var(--shadow);
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.toast-error {
+            background-color: var(--danger-color);
+        }
+
+        .toast.toast-success {
+            background-color: var(--success-color);
+        }
+
+        /* --- Scrollbar --- */
         ::-webkit-scrollbar {
             width: 8px;
         }
 
         ::-webkit-scrollbar-track {
-            background: #f1f1f1;
+            background: transparent;
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #ccc;
+            background: #cfcbc3;
             border-radius: 10px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: #aaa;
+            background: #b3ada2;
         }
 
-        /* ================================================================== */
-        /* ============= FIM DO NOVO CSS - VISUAL MELHORADO ============= */
-        /* ================================================================== */
-
-        /* --- Estilos dos Modais (NOVO) --- */
+        /* --- Modais --- */
         .modal-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            inset: 0;
+            background-color: rgba(43, 42, 40, 0.45);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 2000;
+            padding: 16px;
         }
 
         .modal-content {
             background-color: var(--surface-color);
-            padding: 30px;
-            border-radius: var(--border-radius);
+            padding: 28px;
+            border-radius: var(--radius);
             box-shadow: var(--shadow);
-            width: 90%;
-            max-width: 450px;
+            width: 100%;
+            max-width: 440px;
         }
 
         .modal-content h3 {
             margin-top: 0;
             margin-bottom: 15px;
             color: var(--primary-color);
+            font-size: 1.1rem;
         }
 
         .modal-content input[type="text"] {
@@ -475,9 +691,11 @@
             display: block;
             margin-bottom: 8px;
             font-size: 0.95em;
+            cursor: pointer;
         }
         .modal-content #frequenciaOpcoes input[type="radio"] {
-             margin-right: 8px;
+            margin-right: 8px;
+            accent-color: var(--primary-color);
         }
 
         .modal-actions {
@@ -509,15 +727,38 @@
         }
 
         .modal-actions button[id^="excluir"]:hover {
-            background-color: #b02a37;
+            background-color: #a3311f;
         }
-         .modal-actions button#cancelarExcluirBtn {
-            background-color: #6c757d;
-         }
-         .modal-actions button#cancelarExcluirBtn:hover {
-            background-color: #5a6268;
-         }
+        .modal-actions button#cancelarExcluirBtn,
+        .modal-actions button#cancelarLimparBtn {
+            background-color: #8a8680;
+            color: white;
+            border: none;
+        }
+        .modal-actions button#cancelarExcluirBtn:hover,
+        .modal-actions button#cancelarLimparBtn:hover {
+            background-color: #706c66;
+        }
+        .modal-actions button#confirmarLimparBtn {
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+        }
+        .modal-actions button#confirmarLimparBtn:hover {
+            background-color: #a3311f;
+        }
 
+        @media (max-width: 767px) {
+            .left-panel, .right-panel {
+                padding: 18px;
+            }
+            .actions, .calendar-section, .day-nav {
+                gap: 6px;
+            }
+            .actions button, .day-nav button, .calendar-section button {
+                flex: 1 1 auto;
+            }
+        }
     </style>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -542,26 +783,32 @@
     <div class="container" id="main-content">
         <div class="left-panel">
             <h2>Agenda de compromissos</h2>
-            <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+            <div class="quick-links">
                 <button onclick="window.open('https://luizcezarmelo.github.io/a/contas.html', '_blank')">Despesas</button>
                 <button onclick="window.open('https://luizcezarmelo.github.io/a/Tuto.html', '_blank')">Windows</button>
                 <button onclick="window.open('https://luizcezarmelo.github.io/a/gasosa.html', '_blank')">Gasolina</button>
-             </div>
+            </div>
             <div class="calendar-section">
                 <input type="date" id="dataSelecionada">
-                <button id="hojeBtn" title="Hoje">📅</button>
+                <button id="hojeBtn" title="Hoje">📅 Hoje</button>
             </div>
             <div class="day-nav">
-                <button id="prevDayBtn" title="Dia anterior">◀</button>
-                <button id="nextDayBtn" title="Próximo dia">▶</button>
+                <button id="prevDayBtn" title="Dia anterior">◀ Anterior</button>
+                <button id="nextDayBtn" title="Próximo dia">Próximo ▶</button>
             </div>
             <div class="actions">
-                <button id="novoBtn">Novo</button>
+                <button id="novoBtn">+ Novo</button>
                 <button id="organizarBtn">Organizar</button>
                 <button id="copiarBtn">Copiar</button>
                 <button id="colarBtn">Colar</button>
                 <button id="exportarBtn">Exportar TXT</button>
-                <button id="recorrenteBtn" title="Novo Recorrente">🔄</button>
+                <button id="recorrenteBtn" title="Novo Recorrente">🔄 Recorrente</button>
+                <button id="limparDiaBtn" title="Limpar todos os compromissos do dia">🗑️ Limpar dia</button>
+            </div>
+            <div id="loadingIndicator"><div class="spinner"></div><span>Carregando...</span></div>
+            <div id="progressoWrap">
+                <span id="progressoTexto">0 de 0 concluídos</span>
+                <div id="progressoBarra"><div></div></div>
             </div>
             <div id="agenda"></div>
         </div>
@@ -576,7 +823,7 @@
             <div id="searchResults" class="search-results"></div>
 
             <h3>⏰ Alarmes</h3>
-            <div id="alarm-feedback" style="font-size: 0.9em; color: var(--success-color); margin-bottom: 10px; text-align: center; font-weight: 500; min-height: 1.2em;"></div>
+            <div id="alarm-feedback"></div>
             <div id="alarmes" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
                 <div>
                     <input type="text" id="alarmMessage1" placeholder="Descrição do alarme 1">
@@ -633,11 +880,51 @@
         </div>
     </div>
 
+    <div id="modalExcluirNormal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h3>Excluir Compromisso</h3>
+            <p id="excluirNormalTexto" style="margin-bottom: 15px;">Deseja excluir este compromisso?</p>
+            <div class="modal-actions">
+                <button id="confirmarExcluirNormalBtn" style="background-color: var(--danger-color); color: white; border: none;">Excluir</button>
+                <button id="cancelarExcluirNormalBtn">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalLimparDia" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h3>Limpar dia</h3>
+            <p style="margin-bottom: 15px;">Isso vai apagar todos os compromissos deste dia (itens recorrentes voltam a aparecer normalmente). Deseja continuar?</p>
+            <div class="modal-actions">
+                <button id="confirmarLimparBtn">Limpar</button>
+                <button id="cancelarLimparBtn">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer"></div>
 
     <script>
-        // --- LÓGICA DE LOGIN INSERIDA AQUI ---
-        // NENHUMA ALTERAÇÃO FEITA NO JAVASCRIPT
-        const PASSWORD_NODE = 'appPassword'; // Nome do nó no Firebase para armazenar a senha
+        /* ==================================================================
+         SISTEMA DE TOAST (feedback visual não bloqueante)
+        ================================================================== */
+        function mostrarToast(mensagem, tipo = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast' + (tipo === 'error' ? ' toast-error' : tipo === 'success' ? ' toast-success' : '');
+            toast.textContent = mensagem;
+            container.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.add('show'));
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3200);
+        }
+
+        /* ==================================================================
+         LÓGICA DE LOGIN
+        ================================================================== */
+        const PASSWORD_NODE = 'appPassword';
         const mainContent = document.getElementById('main-content');
         const loginScreen = document.getElementById('login-screen');
         const passwordInput = document.getElementById('password-input');
@@ -646,7 +933,6 @@
         const setupMessage = document.getElementById('setup-message');
         const loginTitle = document.getElementById('login-title');
 
-        // Inicializa o Firebase (manter a sua configuração)
         const firebaseConfig = {
             apiKey: "AIzaSyDQOGFiqafMZh0ha6XW62P1DpIKJE8TBYc",
             authDomain: "agenda-online-7b71c.firebaseapp.com",
@@ -660,54 +946,56 @@
         const database = firebase.database();
         let correctPassword = null;
 
-        // Função para verificar a senha no Firebase
         async function loadPassword() {
-            const snapshot = await database.ref(PASSWORD_NODE).once('value');
-            correctPassword = snapshot.val();
-            if (correctPassword) {
-                setupMessage.style.display = 'none';
-                loginTitle.textContent = 'Acesso Restrito';
-            } else {
-                setupMessage.style.display = 'block';
-                loginTitle.textContent = 'Configurar Senha';
-                document.getElementById('login-button').style.display = 'none';
-                passwordInput.placeholder = 'Defina uma senha';
+            try {
+                const snapshot = await database.ref(PASSWORD_NODE).once('value');
+                correctPassword = snapshot.val();
+                if (correctPassword) {
+                    setupMessage.style.display = 'none';
+                    loginTitle.textContent = 'Acesso Restrito';
+                } else {
+                    setupMessage.style.display = 'block';
+                    loginTitle.textContent = 'Configurar Senha';
+                    document.getElementById('login-button').style.display = 'none';
+                    passwordInput.placeholder = 'Defina uma senha';
+                }
+                loginScreen.style.display = 'flex';
+                passwordInput.focus();
+            } catch (error) {
+                console.error('Erro ao carregar senha:', error);
+                mostrarToast('Não foi possível conectar. Verifique sua internet.', 'error');
+                loginScreen.style.display = 'flex';
             }
-            loginScreen.style.display = 'flex';
-            passwordInput.focus(); // Foco automático no campo de senha
         }
 
-        // Função para definir a senha pela primeira vez
         function setPassword() {
             const newPassword = passwordInput.value;
             if (newPassword && newPassword.trim() !== '') {
                 database.ref(PASSWORD_NODE).set(newPassword).then(() => {
-                    alert('Senha definida com sucesso!');
-                    loadPassword(); // Recarrega para mostrar a tela de login
+                    mostrarToast('Senha definida com sucesso!', 'success');
+                    loadPassword();
                     passwordInput.value = '';
                     document.getElementById('login-button').style.display = 'block';
                     passwordInput.placeholder = 'Digite a senha';
                 }).catch(error => {
                     console.error("Erro ao salvar a senha:", error);
-                    alert("Ocorreu um erro. Tente novamente.");
+                    mostrarToast('Ocorreu um erro ao salvar. Tente novamente.', 'error');
                 });
             } else {
-                alert('A senha não pode ser vazia.');
+                mostrarToast('A senha não pode ser vazia.', 'error');
             }
         }
 
-        // Função para verificar a senha digitada
         function checkPassword() {
             const enteredPassword = passwordInput.value;
             if (enteredPassword === correctPassword) {
                 showMainContent();
             } else {
                 errorMessage.style.display = 'block';
-                passwordInput.value = ''; // Limpa o campo da senha
+                passwordInput.value = '';
             }
         }
 
-        // Função para mostrar o conteúdo principal
         function showMainContent() {
             loginScreen.style.display = 'none';
             mainContent.style.display = 'flex';
@@ -716,7 +1004,6 @@
             loadAlarms();
         }
 
-        // Função para alternar a visibilidade da senha
         function togglePasswordVisibility() {
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
@@ -727,7 +1014,6 @@
             }
         }
 
-        // Função para permitir o login com a tecla Enter
         function handleKeyPress(event) {
             if (event.key === 'Enter') {
                 if (correctPassword) {
@@ -738,13 +1024,13 @@
             }
         }
 
-        // Inicia o processo de login
         window.addEventListener('load', () => {
             loadPassword();
         });
-        // --- FIM DA LÓGICA DE LOGIN ---
 
-        // Elementos principais e variáveis globais
+        /* ==================================================================
+         ELEMENTOS E VARIÁVEIS GLOBAIS
+        ================================================================== */
         const agendaEl = document.getElementById('agenda');
         const searchEl = document.getElementById('search');
         const searchResultsEl = document.getElementById('searchResults');
@@ -758,15 +1044,20 @@
         const prevDayBtn = document.getElementById('prevDayBtn');
         const nextDayBtn = document.getElementById('nextDayBtn');
         const notasFixasEl = document.getElementById('notasFixas');
-
-        // NOVO: Botão recorrente
         const recorrenteBtn = document.getElementById('recorrenteBtn');
+        const limparDiaBtn = document.getElementById('limparDiaBtn');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const progressoTexto = document.getElementById('progressoTexto');
+        const progressoBarra = document.querySelector('#progressoBarra > div');
 
         const maxCompromissos = 20;
         let bufferCopiados = [];
 
-        /* Configuração inicial */
         dataInput.value = new Date().toISOString().split('T')[0];
+
+        function mostrarCarregando(ativo) {
+            loadingIndicator.classList.toggle('active', ativo);
+        }
 
         /* Listeners de interface */
         dataInput.addEventListener('change', carregarAgenda);
@@ -775,12 +1066,15 @@
         copiarBtn.addEventListener('click', copiarCompromissos);
         colarBtn.addEventListener('click', colarCompromissos);
         exportarBtn.addEventListener('click', () => exportarParaTXT(dataInput.value));
-        
-        // NOVO: Listener do botão recorrente
+
         recorrenteBtn.addEventListener('click', () => {
-             document.getElementById('recorrenteTexto').value = ''; // Limpa o campo
-             document.getElementById('modalRecorrente').style.display = 'flex';
-             document.getElementById('recorrenteTexto').focus();
+            document.getElementById('recorrenteTexto').value = '';
+            document.getElementById('modalRecorrente').style.display = 'flex';
+            document.getElementById('recorrenteTexto').focus();
+        });
+
+        limparDiaBtn.addEventListener('click', () => {
+            document.getElementById('modalLimparDia').style.display = 'flex';
         });
 
         hojeBtn.addEventListener('click', () => {
@@ -789,18 +1083,24 @@
             carregarAgenda();
         });
         prevDayBtn.addEventListener('click', () => {
-            const d = new Date(dataInput.value + "T12:00:00"); // Adiciona hora para evitar problemas de fuso
+            const d = new Date(dataInput.value + "T12:00:00");
             d.setDate(d.getDate() - 1);
             dataInput.value = d.toISOString().split('T')[0];
             carregarAgenda();
         });
         nextDayBtn.addEventListener('click', () => {
-            const d = new Date(dataInput.value + "T12:00:00"); // Adiciona hora para evitar problemas de fuso
+            const d = new Date(dataInput.value + "T12:00:00");
             d.setDate(d.getDate() + 1);
             dataInput.value = d.toISOString().split('T')[0];
             carregarAgenda();
         });
-        searchEl.addEventListener('input', pesquisarCompromisso);
+
+        /* Busca com debounce para não sobrecarregar o Firebase a cada tecla */
+        let searchDebounceTimer;
+        searchEl.addEventListener('input', () => {
+            clearTimeout(searchDebounceTimer);
+            searchDebounceTimer = setTimeout(pesquisarCompromisso, 400);
+        });
 
         /* Salvamento com delay */
         let debounceTimer;
@@ -809,390 +1109,30 @@
             debounceTimer = setTimeout(() => salvarAgenda(), 1000);
         }
 
-        /* --- FUNÇÃO UTILITÁRIA PARA MAIÚSCULAS (NOVA) --- */
         function toUpperOnInput(e) {
             if (e.target.matches('input[type="text"], textarea')) {
                 const pos = e.target.selectionStart;
                 e.target.value = e.target.value.toUpperCase();
-                // Garante que o cursor volte para onde estava
                 e.target.setSelectionRange(pos, pos);
             }
         }
-        /* ------------------------------------------------- */
 
         /**
          * ==================================================================
-         * INÍCIO DAS FUNÇÕES PRINCIPAIS MODIFICADAS (RECORRÊNCIA)
+         * MONTAGEM DA AGENDA DO DIA (função única, usada por tela e exportação)
          * ==================================================================
          */
-
-        /* Carregar agenda do dia selecionado (VERSÃO MODIFICADA) */
-        async function carregarAgenda() {
-            const data = dataInput.value;
-            const diaSelecionado = new Date(data + 'T12:00:00'); // Usar T12 para evitar problemas de fuso
-            
-            agendaEl.innerHTML = ''; // Limpa a agenda atual
-
-            // 1. Cria a estrutura da agenda
-            const section = document.createElement('div');
-            section.className = 'date-section';
-            section.dataset.data = data;
-            const compromissos = document.createElement('div');
-            compromissos.className = 'commitments';
-
-            // 2. Busca os dados NORMAIS do dia
-            const snapshot = await database.ref('agenda/' + data).once('value');
-            let dadosSalvos = snapshot.val() || [];
-
-            // 3. Busca as REGRAS de recorrência
-            const recorrenciasSnap = await database.ref('recorrencias').once('value');
-            const todasRecorrencias = recorrenciasSnap.val() || {};
-
-            // 4. Preenche com campos vazios se houver menos que o máximo
-            while (dadosSalvos.length < maxCompromissos) {
-                dadosSalvos.push({ texto: '', hora: '', tachado: false, selecionado: false });
-            }
-            dadosSalvos = dadosSalvos.slice(0, maxCompromissos); // Garante o limite
-
-            // 5. Calcula quais recorrentes devem aparecer HOJE
-            const textosJaNaAgenda = new Set(dadosSalvos.map(d => d.texto).filter(Boolean));
-            const slotsVaziosIndices = [];
-            dadosSalvos.forEach((d, i) => {
-                if (!d.texto) slotsVaziosIndices.push(i);
-            });
-
-            for (const id in todasRecorrencias) {
-                const regra = { ...todasRecorrencias[id], idRecorrente: id, isRecorrente: true };
-                
-                // Se o texto já existe na agenda do dia (foi modificado/tachado), não mostra a regra
-                if (textosJaNaAgenda.has(regra.texto)) {
-                    continue;
-                }
-
-                if (deveAparecerNesteDia(regra, diaSelecionado)) {
-                    if (slotsVaziosIndices.length > 0) {
-                        const index = slotsVaziosIndices.shift(); // Pega o primeiro slot vazio
-                        // Injeta o item recorrente no slot vazio
-                        dadosSalvos[index] = { ...regra, tachado: false, selecionado: false };
-                    } else {
-                        // Opcional: Logar que não há mais espaço para recorrentes
-                        // console.log("Sem espaço para o item recorrente:", regra.texto);
-                    }
-                }
-            }
-
-            // 6. Renderiza todos os compromissos (normais e recorrentes injetados)
-            dadosSalvos.forEach(item => {
-                compromissos.appendChild(criarCampoCompromisso(item, data)); // Passa a data para a função
-            });
-
-            section.appendChild(compromissos);
-            agendaEl.appendChild(section);
-        }
-
-        /* Salvamento da agenda (SEM MODIFICAÇÃO, MAS IMPORTANTE) */
-        // Esta função salva o estado ATUAL dos 20 campos.
-        // Se um item recorrente foi "tachado", ele é salvo como um item normal,
-        // o que o "congela" e faz com que a regra de recorrência seja ignorada
-        // na próxima vez (override). Isso é o comportamento desejado.
-        function salvarAgenda() {
-            const data = dataInput.value;
-            const section = document.querySelector('.date-section');
-            if (!section) return;
-
-            const textos = [];
-            section.querySelectorAll('.commitment').forEach(div => {
-                const input = div.querySelector('input[type=text]');
-                const checkbox = div.querySelector('input[type=checkbox]');
-                
-                // Pega o item "original" que foi usado para criar este campo
-                // Se for recorrente, não salvamos a regra, apenas o estado atual
-                const itemOriginal = div._agendaItem || {}; 
-
-                textos.push({
-                    texto: input.value,
-                    hora: '', // Hora não está sendo usada/salva
-                    tachado: input.classList.contains('done'),
-                    selecionado: checkbox.checked
-                    // Não salvamos 'isRecorrente' etc. no nó 'agenda/data'
-                });
-            });
-
-            database.ref('agenda/' + data).set(textos);
-        }
-
-        /* Cria um campo de compromisso (VERSÃO MODIFICADA) */
-        function criarCampoCompromisso(item = { texto: '', hora: '', tachado: false, selecionado: false }, dataAtual) {
-            const div = document.createElement('div');
-            div.className = 'commitment';
-            
-            // Armazena a referência do item original no elemento DOM
-            // para ser usado nos listeners de OK e Excluir
-            div._agendaItem = item; 
-
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.checked = item.selecionado;
-            checkbox.addEventListener('change', () => {
-                div.classList.toggle('checked', checkbox.checked);
-                salvarAgenda(); // Salva o estado de seleção
-            });
-
-            if (item.selecionado) {
-                div.classList.add('checked');
-            }
-
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.value = item.texto || '';
-            if (item.tachado) input.classList.add('done');
-            
-            // Listeners do input
-            input.addEventListener('input', salvarComDelay);
-            input.addEventListener('input', toUpperOnInput);
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    const allInputs = [...document.querySelectorAll('.commitment input[type=text]')];
-                    const idx = allInputs.indexOf(input);
-                    const next = allInputs[idx + 1];
-                    if (next) next.focus();
-                }
-            });
-
-            const okBtn = document.createElement('button');
-            okBtn.textContent = 'OK';
-            
-            // Lógica do Botão OK
-            okBtn.onclick = () => {
-                input.classList.toggle('done');
-                // Ao "tachar" (OK), o item (recorrente ou não) 
-                // será salvo permanentemente na agenda do dia pela função salvarAgenda()
-                salvarAgenda(); 
-            };
-
-            const delBtn = document.createElement('button');
-            delBtn.textContent = 'Excluir';
-            
-            // Lógica do Botão Excluir (MODIFICADA)
-            delBtn.onclick = () => {
-                if (item.isRecorrente) {
-                    // Se for recorrente, abre o modal de exclusão
-                    abrirModalExcluirRecorrente(item, dataAtual);
-                } else {
-                    // Se for normal, apenas limpa o campo e salva
-                    input.value = '';
-                    input.classList.remove('done');
-                    checkbox.checked = false;
-                    div.classList.remove('checked');
-                    salvarAgenda();
-                }
-            };
-            
-            // Adiciona indicador visual para recorrentes
-            if (item.isRecorrente) {
-                div.classList.add('recorrente');
-                okBtn.textContent = '🔄'; // Emoji para indicar que é um item recorrente
-                okBtn.title = 'Concluir (transforma em item normal neste dia)';
-                delBtn.title = 'Excluir (abrirá opções de recorrência)';
-            }
-
-
-            div.appendChild(okBtn);
-            div.appendChild(input);
-            div.appendChild(checkbox);
-            div.appendChild(delBtn);
-
-            return div;
-        }
-
-        /**
-         * ==================================================================
-         * FIM DAS FUNÇÕES PRINCIPAIS MODIFICADAS
-         * ==================================================================
-         */
-
-        /* Adiciona um novo campo de compromisso */
-        function adicionarCompromisso() {
-            const compromissos = document.querySelector('.commitments');
-            
-            // Procura o primeiro campo vazio
-            const campoVazio = [...compromissos.children].find(div => !div.querySelector('input[type=text]').value);
-            
-            if (campoVazio) {
-                 // Foca no primeiro campo vazio
-                campoVazio.querySelector('input[type=text]').focus();
-            } else if (compromissos.children.length < maxCompromissos) {
-                // Adiciona um novo se não houver vazios e houver espaço
-                const novoCampo = criarCampoCompromisso({}, dataInput.value); // Passa a data
-                compromissos.appendChild(novoCampo);
-                novoCampo.querySelector('input[type=text]').focus();
-            }
-        }
-
-        function organizarAgenda() {
-            const compromissosDiv = document.querySelector('.commitments');
-            if (!compromissosDiv) return;
-
-            // 1. Coletar todos os dados dos campos que estão preenchidos
-            const dadosPreenchidos = [];
-            const todosOsCampos = compromissosDiv.querySelectorAll('.commitment');
-
-            todosOsCampos.forEach(div => {
-                const input = div.querySelector('input[type="text"]');
-                if (input.value.trim() !== '') {
-                    // Pega o item original (pode ser recorrente ou não)
-                    const item = div._agendaItem || {};
-                    const checkbox = div.querySelector('input[type="checkbox"]');
-                    
-                    dadosPreenchidos.push({
-                        texto: input.value,
-                        tachado: input.classList.contains('done'),
-                        selecionado: checkbox.checked,
-                        // Preserva a informação de recorrência se ela existir
-                        isRecorrente: item.isRecorrente,
-                        idRecorrente: item.idRecorrente,
-                        startDate: item.startDate,
-                        frequencia: item.frequencia
-                    });
-                }
-            });
-
-            // 2. Limpa todos os campos (visualmente)
-            todosOsCampos.forEach((div, index) => {
-                const input = div.querySelector('input[type="text"]');
-                const checkbox = div.querySelector('input[type="checkbox"]');
-                input.value = '';
-                checkbox.checked = false;
-                input.classList.remove('done');
-                div.classList.remove('checked', 'recorrente');
-                div.querySelector('button').textContent = 'OK'; // Reseta o botão
-                div._agendaItem = { texto: '', hora: '', tachado: false, selecionado: false }; // Reseta o item
-            });
-
-            // 3. Reescreve os dados nos campos desde o início
-            dadosPreenchidos.forEach((dados, index) => {
-                 if (index < todosOsCampos.length) {
-                    const div = todosOsCampos[index];
-                    const input = div.querySelector('input[type="text"]');
-                    const checkbox = div.querySelector('input[type="checkbox"]');
-                    
-                    input.value = dados.texto;
-                    checkbox.checked = dados.selecionado;
-                    
-                    // Ajusta as classes CSS (para visual)
-                    input.classList.toggle('done', dados.tachado);
-                    div.classList.toggle('checked', dados.selecionado);
-                    
-                    // Re-associa o item original
-                    div._agendaItem = dados; 
-                    
-                    // Re-aplica estilo recorrente se for o caso
-                    if(dados.isRecorrente) {
-                        div.classList.add('recorrente');
-                        div.querySelector('button').textContent = '🔄';
-                    }
-                 }
-            });
-
-            // 4. Salvar o novo estado no Firebase
-            salvarAgenda();
-        }
-
-        /* Pesquisa por compromissos no Firebase */
-        async function pesquisarCompromisso() {
-            const termo = searchEl.value.trim().toLowerCase();
-            searchResultsEl.innerHTML = '';
-            if (termo.length < 3) return;
-
-            const resultados = [];
-            // 1. Pesquisa na 'agenda'
-            const snapshotAgenda = await database.ref('agenda').once('value');
-            const todasAsAgendas = snapshotAgenda.val();
-            if (todasAsAgendas) {
-                for (const data in todasAsAgendas) {
-                    const dadosDoDia = todasAsAgendas[data] || [];
-                    dadosDoDia.forEach((item, index) => {
-                        if (item.texto && item.texto.toLowerCase().includes(termo)) {
-                            resultados.push({ data, index, item, tipo: 'agenda' });
-                        }
-                    });
-                }
-            }
-
-            // 2. Pesquisa em 'recorrencias'
-            const snapshotRec = await database.ref('recorrencias').once('value');
-            const todasRecorrencias = snapshotRec.val();
-            if (todasRecorrencias) {
-                for (const id in todasRecorrencias) {
-                    const regra = todasRecorrencias[id];
-                    if (regra.texto && regra.texto.toLowerCase().includes(termo)) {
-                        resultados.push({
-                            data: regra.startDate,
-                            index: 0,
-                            item: regra,
-                            tipo: 'recorrente'
-                        });
-                    }
-                }
-            }
-
-
-            if (resultados.length > 0) {
-                resultados.forEach(({ data, index, item, tipo }) => {
-                    const divResultado = document.createElement('div');
-                    let prefixo = (tipo === 'recorrente') ? '🔄 Recorrente (início):' : 'Dia:';
-                    divResultado.textContent = `${prefixo} ${data} - ${item.texto}`;
-                    
-                    divResultado.onclick = () => {
-                        dataInput.value = data; // Pula para o dia (ou dia de início)
-                        carregarAgenda().then(() => {
-                            if (tipo === 'agenda') {
-                                // Tenta encontrar o item específico
-                                const compromisso = agendaEl.querySelectorAll('.commitment')[index];
-                                if (compromisso) {
-                                    compromisso.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                    compromisso.classList.add('destaque');
-                                    setTimeout(() => compromisso.classList.remove('destaque'), 2000);
-                                }
-                            } else {
-                                // Para recorrente, apenas destaca o primeiro que encontrar com o texto
-                                const compromisso = [...agendaEl.querySelectorAll('.commitment input[type=text]')]
-                                                    .find(input => input.value === item.texto);
-                                if (compromisso) {
-                                    const parent = compromisso.closest('.commitment');
-                                    parent.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                    parent.classList.add('destaque');
-                                    setTimeout(() => parent.classList.remove('destaque'), 2000);
-                                }
-                            }
-                        });
-                    };
-                    searchResultsEl.appendChild(divResultado);
-                });
-            } else {
-                searchResultsEl.textContent = 'Nenhum compromisso encontrado.';
-            }
-        }
-
-
-        /* Limpa busca */
-        function limparBusca() {
-            searchEl.value = '';
-            searchResultsEl.innerHTML = '';
-        }
-
-        /* Exporta para TXT */
-        async function exportarParaTXT(data) {
-            // Re-usa a lógica de carregamento para obter a lista combinada
+        async function montarAgendaDoDia(data) {
             const diaSelecionado = new Date(data + 'T12:00:00');
+
             const snapshot = await database.ref('agenda/' + data).once('value');
             let dadosSalvos = snapshot.val() || [];
-            
+
             const recorrenciasSnap = await database.ref('recorrencias').once('value');
             const todasRecorrencias = recorrenciasSnap.val() || {};
 
             while (dadosSalvos.length < maxCompromissos) {
-                dadosSalvos.push({ texto: '', hora: '', tachado: false, selecionado: false });
+                dadosSalvos.push({ texto: '', hora: '', tachado: false, selecionado: false, subitens: [] });
             }
             dadosSalvos = dadosSalvos.slice(0, maxCompromissos);
 
@@ -1204,7 +1144,11 @@
 
             for (const id in todasRecorrencias) {
                 const regra = { ...todasRecorrencias[id], idRecorrente: id, isRecorrente: true };
-                if (textosJaNaAgenda.has(regra.texto)) continue;
+
+                if (textosJaNaAgenda.has(regra.texto)) {
+                    continue;
+                }
+
                 if (deveAparecerNesteDia(regra, diaSelecionado)) {
                     if (slotsVaziosIndices.length > 0) {
                         const index = slotsVaziosIndices.shift();
@@ -1213,69 +1157,516 @@
                 }
             }
 
-            // Agora 'dadosSalvos' contém a lista completa do dia
-            let conteudo = 'Agenda de ' + data + '\n\n';
-            let contador = 1;
-            dadosSalvos.forEach((item) => {
-                if (item.texto) {
-                    let sufixo = item.tachado ? ' (Concluído)' : '';
-                    if (item.isRecorrente && !item.tachado) sufixo += ' (Recorrente)';
-                    
-                    conteudo += (contador++) + '. ' + item.texto + sufixo + '\n';
-                }
+            return dadosSalvos;
+        }
+
+        /* Carregar agenda do dia selecionado */
+        async function carregarAgenda() {
+            const data = dataInput.value;
+            mostrarCarregando(true);
+
+            try {
+                const dadosSalvos = await montarAgendaDoDia(data);
+
+                agendaEl.innerHTML = '';
+                const section = document.createElement('div');
+                section.className = 'date-section';
+                section.dataset.data = data;
+                const compromissos = document.createElement('div');
+                compromissos.className = 'commitments';
+
+                dadosSalvos.forEach(item => {
+                    compromissos.appendChild(criarCampoCompromisso(item, data));
+                });
+
+                section.appendChild(compromissos);
+                agendaEl.appendChild(section);
+                atualizarProgresso();
+            } catch (error) {
+                console.error('Erro ao carregar agenda:', error);
+                mostrarToast('Não foi possível carregar a agenda deste dia.', 'error');
+            } finally {
+                mostrarCarregando(false);
+            }
+        }
+
+        function atualizarProgresso() {
+            const inputs = [...document.querySelectorAll('.commitment input[type=text]')].filter(i => i.value.trim() !== '');
+            const total = inputs.length;
+            const feitos = inputs.filter(i => i.classList.contains('done')).length;
+            progressoTexto.textContent = `${feitos} de ${total} concluídos`;
+            progressoBarra.style.width = total > 0 ? `${Math.round((feitos / total) * 100)}%` : '0%';
+        }
+
+        /* Salvamento da agenda */
+        function salvarAgenda() {
+            const data = dataInput.value;
+            const section = document.querySelector('.date-section');
+            if (!section) return;
+
+            const textos = [];
+            section.querySelectorAll('.commitment').forEach(div => {
+                const input = div.querySelector('input[type=text]');
+                const checkbox = div.querySelector('input[type=checkbox]');
+
+                textos.push({
+                    texto: input.value,
+                    hora: '',
+                    tachado: input.classList.contains('done'),
+                    selecionado: checkbox.checked,
+                    subitens: coletarSubitens(div)
+                });
             });
 
+            database.ref('agenda/' + data).set(textos).catch(error => {
+                console.error('Erro ao salvar agenda:', error);
+                mostrarToast('Falha ao salvar. Verifique sua internet.', 'error');
+            });
 
-            const blob = new Blob([conteudo], { type: 'text/plain;charset=utf-8' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `agenda_${data}.txt`;
-            a.click();
+            atualizarProgresso();
         }
 
         /* ==================================================================
-         FUNÇÃO CORRIGIDA (COPIAR)
-        ==================================================================
-        */
+         SUBLINHAS (subitens de um compromisso)
+        ================================================================== */
+        const maxSubitens = 5;
+
+        function getSubitensContainer(commitmentDiv) {
+            return commitmentDiv.parentElement.querySelector('.subitems-container');
+        }
+
+        function criarSubitemRow(commitmentDiv, subitem = { texto: '', tachado: false }) {
+            const row = document.createElement('div');
+            row.className = 'subitem-row';
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = subitem.texto || '';
+            input.placeholder = 'Sublinha...';
+            if (subitem.tachado) input.classList.add('done');
+
+            input.addEventListener('input', (e) => {
+                toUpperOnInput(e);
+                salvarComDelay();
+            });
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    adicionarSubitem(commitmentDiv);
+                }
+            });
+
+            const tacharBtn = document.createElement('button');
+            tacharBtn.className = 'sub-tachar-btn';
+            tacharBtn.textContent = 'OK';
+            tacharBtn.title = 'Marcar sublinha como concluída';
+            tacharBtn.onclick = () => {
+                input.classList.toggle('done');
+                salvarAgenda();
+            };
+
+            const delBtn = document.createElement('button');
+            delBtn.className = 'sub-del-btn';
+            delBtn.textContent = '×';
+            delBtn.title = 'Excluir sublinha';
+            delBtn.onclick = () => removerSubitem(commitmentDiv, row);
+
+            row.appendChild(input);
+            row.appendChild(tacharBtn);
+            row.appendChild(delBtn);
+            return row;
+        }
+
+        function renderSubitens(commitmentDiv, item) {
+            const container = getSubitensContainer(commitmentDiv);
+            container.innerHTML = '';
+            const subitens = item.subitens || [];
+            subitens.forEach(sub => container.appendChild(criarSubitemRow(commitmentDiv, sub)));
+
+            if (subitens.length > 0) {
+                container.classList.remove('collapsed');
+            } else {
+                container.classList.add('collapsed');
+            }
+            atualizarToggleVisibilidade(commitmentDiv);
+        }
+
+        function atualizarToggleVisibilidade(commitmentDiv) {
+            const container = getSubitensContainer(commitmentDiv);
+            const toggleBtn = commitmentDiv.querySelector('.sub-toggle-btn');
+            if (!toggleBtn) return;
+            const hasSub = container.querySelectorAll('.subitem-row').length > 0;
+            toggleBtn.style.visibility = hasSub ? 'visible' : 'hidden';
+            toggleBtn.textContent = container.classList.contains('collapsed') ? '▸' : '▾';
+        }
+
+        function adicionarSubitem(commitmentDiv) {
+            const container = getSubitensContainer(commitmentDiv);
+            const atuais = container.querySelectorAll('.subitem-row').length;
+            if (atuais >= maxSubitens) {
+                mostrarToast('Limite de ' + maxSubitens + ' sublinhas por compromisso.', 'error');
+                return;
+            }
+            const row = criarSubitemRow(commitmentDiv, { texto: '', tachado: false });
+            container.appendChild(row);
+            container.classList.remove('collapsed');
+            atualizarToggleVisibilidade(commitmentDiv);
+            row.querySelector('input').focus();
+            salvarAgenda();
+        }
+
+        function removerSubitem(commitmentDiv, row) {
+            row.remove();
+            atualizarToggleVisibilidade(commitmentDiv);
+            salvarAgenda();
+        }
+
+        function coletarSubitens(commitmentDiv) {
+            const container = getSubitensContainer(commitmentDiv);
+            return [...container.querySelectorAll('.subitem-row')].map(row => ({
+                texto: row.querySelector('input[type=text]').value,
+                tachado: row.querySelector('input[type=text]').classList.contains('done')
+            }));
+        }
+
+        /* Cria um campo de compromisso (retorna o wrapper: linha principal + sublinhas) */
+        function criarCampoCompromisso(item = { texto: '', hora: '', tachado: false, selecionado: false, subitens: [] }, dataAtual) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'commitment-wrapper';
+
+            const div = document.createElement('div');
+            div.className = 'commitment';
+            div._agendaItem = item;
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = item.texto || '';
+            if (item.tachado) input.classList.add('done');
+
+            input.addEventListener('input', salvarComDelay);
+            input.addEventListener('input', toUpperOnInput);
+            input.addEventListener('input', atualizarProgresso);
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    const allInputs = [...document.querySelectorAll('.commitment input[type=text]')];
+                    const idx = allInputs.indexOf(input);
+                    const next = allInputs[idx + 1];
+                    if (next) next.focus();
+                }
+            });
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = item.selecionado;
+            checkbox.addEventListener('change', () => {
+                div.classList.toggle('checked', checkbox.checked);
+                salvarAgenda();
+            });
+
+            if (item.selecionado) {
+                div.classList.add('checked');
+            }
+
+            const okBtn = document.createElement('button');
+            okBtn.textContent = 'OK';
+
+            okBtn.onclick = () => {
+                input.classList.toggle('done');
+                salvarAgenda();
+            };
+
+            const toggleBtn = document.createElement('button');
+            toggleBtn.className = 'sub-toggle-btn';
+            toggleBtn.textContent = '▾';
+            toggleBtn.title = 'Mostrar/ocultar sublinhas';
+            toggleBtn.style.visibility = 'hidden';
+            toggleBtn.onclick = () => {
+                const container = getSubitensContainer(div);
+                container.classList.toggle('collapsed');
+                atualizarToggleVisibilidade(div);
+            };
+
+            const addSubBtn = document.createElement('button');
+            addSubBtn.className = 'add-sub-btn';
+            addSubBtn.textContent = '+';
+            addSubBtn.title = 'Adicionar sublinha';
+            addSubBtn.onclick = () => adicionarSubitem(div);
+
+            const delBtn = document.createElement('button');
+            delBtn.textContent = '×';
+
+            delBtn.onclick = () => {
+                if (item.isRecorrente) {
+                    abrirModalExcluirRecorrente(item, dataAtual);
+                } else if (input.value.trim() !== '') {
+                    abrirModalExcluirNormal(div, input, checkbox);
+                }
+            };
+
+            if (item.isRecorrente) {
+                div.classList.add('recorrente');
+                okBtn.textContent = '🔄';
+                okBtn.title = 'Concluir (transforma em item normal neste dia)';
+                delBtn.title = 'Excluir (abrirá opções de recorrência)';
+            }
+
+            div.appendChild(input);
+            div.appendChild(checkbox);
+            div.appendChild(okBtn);
+            div.appendChild(toggleBtn);
+            div.appendChild(addSubBtn);
+            div.appendChild(delBtn);
+
+            const subitemsContainer = document.createElement('div');
+            subitemsContainer.className = 'subitems-container collapsed';
+
+            wrapper.appendChild(div);
+            wrapper.appendChild(subitemsContainer);
+
+            renderSubitens(div, item);
+
+            return wrapper;
+        }
+
+        /* Adiciona um novo campo de compromisso */
+        function adicionarCompromisso() {
+            const compromissos = document.querySelector('.commitments');
+            if (!compromissos) return;
+
+            const campoVazio = [...compromissos.children].find(div => !div.querySelector('input[type=text]').value);
+
+            if (campoVazio) {
+                campoVazio.querySelector('input[type=text]').focus();
+            } else if (compromissos.children.length < maxCompromissos) {
+                const novoCampo = criarCampoCompromisso({}, dataInput.value);
+                compromissos.appendChild(novoCampo);
+                novoCampo.querySelector('input[type=text]').focus();
+            } else {
+                mostrarToast('A agenda deste dia já está cheia.', 'error');
+            }
+        }
+
+        function organizarAgenda() {
+            const compromissosDiv = document.querySelector('.commitments');
+            if (!compromissosDiv) return;
+
+            const dadosPreenchidos = [];
+            const todosOsCampos = compromissosDiv.querySelectorAll('.commitment');
+
+            todosOsCampos.forEach(div => {
+                const input = div.querySelector('input[type="text"]');
+                if (input.value.trim() !== '') {
+                    const item = div._agendaItem || {};
+                    const checkbox = div.querySelector('input[type="checkbox"]');
+
+                    dadosPreenchidos.push({
+                        texto: input.value,
+                        tachado: input.classList.contains('done'),
+                        selecionado: checkbox.checked,
+                        isRecorrente: item.isRecorrente,
+                        idRecorrente: item.idRecorrente,
+                        startDate: item.startDate,
+                        frequencia: item.frequencia,
+                        subitens: coletarSubitens(div)
+                    });
+                }
+            });
+
+            todosOsCampos.forEach((div) => {
+                const input = div.querySelector('input[type="text"]');
+                const checkbox = div.querySelector('input[type="checkbox"]');
+                input.value = '';
+                checkbox.checked = false;
+                input.classList.remove('done');
+                div.classList.remove('checked', 'recorrente');
+                div.querySelector('button').textContent = 'OK';
+                div._agendaItem = { texto: '', hora: '', tachado: false, selecionado: false, subitens: [] };
+                renderSubitens(div, div._agendaItem);
+            });
+
+            dadosPreenchidos.forEach((dados, index) => {
+                if (index < todosOsCampos.length) {
+                    const div = todosOsCampos[index];
+                    const input = div.querySelector('input[type="text"]');
+                    const checkbox = div.querySelector('input[type="checkbox"]');
+
+                    input.value = dados.texto;
+                    checkbox.checked = dados.selecionado;
+
+                    input.classList.toggle('done', dados.tachado);
+                    div.classList.toggle('checked', dados.selecionado);
+
+                    div._agendaItem = dados;
+
+                    if (dados.isRecorrente) {
+                        div.classList.add('recorrente');
+                        div.querySelector('button').textContent = '🔄';
+                    }
+
+                    renderSubitens(div, dados);
+                }
+            });
+
+            salvarAgenda();
+            mostrarToast('Agenda organizada.', 'success');
+        }
+
+        /* Pesquisa por compromissos no Firebase */
+        async function pesquisarCompromisso() {
+            const termo = searchEl.value.trim().toLowerCase();
+            searchResultsEl.innerHTML = '';
+            if (termo.length < 3) return;
+
+            try {
+                const resultados = [];
+                const snapshotAgenda = await database.ref('agenda').once('value');
+                const todasAsAgendas = snapshotAgenda.val();
+                if (todasAsAgendas) {
+                    for (const data in todasAsAgendas) {
+                        const dadosDoDia = todasAsAgendas[data] || [];
+                        dadosDoDia.forEach((item, index) => {
+                            if (item.texto && item.texto.toLowerCase().includes(termo)) {
+                                resultados.push({ data, index, item, tipo: 'agenda' });
+                            }
+                        });
+                    }
+                }
+
+                const snapshotRec = await database.ref('recorrencias').once('value');
+                const todasRecorrencias = snapshotRec.val();
+                if (todasRecorrencias) {
+                    for (const id in todasRecorrencias) {
+                        const regra = todasRecorrencias[id];
+                        if (regra.texto && regra.texto.toLowerCase().includes(termo)) {
+                            resultados.push({
+                                data: regra.startDate,
+                                index: 0,
+                                item: regra,
+                                tipo: 'recorrente'
+                            });
+                        }
+                    }
+                }
+
+                if (resultados.length > 0) {
+                    resultados.forEach(({ data, index, item, tipo }) => {
+                        const divResultado = document.createElement('div');
+                        let prefixo = (tipo === 'recorrente') ? '🔄 Recorrente (início):' : 'Dia:';
+                        divResultado.textContent = `${prefixo} ${data} - ${item.texto}`;
+
+                        divResultado.onclick = () => {
+                            dataInput.value = data;
+                            carregarAgenda().then(() => {
+                                if (tipo === 'agenda') {
+                                    const compromisso = agendaEl.querySelectorAll('.commitment')[index];
+                                    if (compromisso) {
+                                        compromisso.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                        compromisso.classList.add('destaque');
+                                        setTimeout(() => compromisso.classList.remove('destaque'), 2000);
+                                    }
+                                } else {
+                                    const compromisso = [...agendaEl.querySelectorAll('.commitment input[type=text]')]
+                                        .find(input => input.value === item.texto);
+                                    if (compromisso) {
+                                        const parent = compromisso.closest('.commitment');
+                                        parent.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                        parent.classList.add('destaque');
+                                        setTimeout(() => parent.classList.remove('destaque'), 2000);
+                                    }
+                                }
+                            });
+                        };
+                        searchResultsEl.appendChild(divResultado);
+                    });
+                } else {
+                    const vazio = document.createElement('div');
+                    vazio.className = 'empty';
+                    vazio.textContent = 'Nenhum compromisso encontrado.';
+                    searchResultsEl.appendChild(vazio);
+                }
+            } catch (error) {
+                console.error('Erro na pesquisa:', error);
+                mostrarToast('Não foi possível pesquisar agora.', 'error');
+            }
+        }
+
+        function limparBusca() {
+            searchEl.value = '';
+            searchResultsEl.innerHTML = '';
+        }
+
+        /* Exporta para TXT — reutiliza montarAgendaDoDia */
+        async function exportarParaTXT(data) {
+            try {
+                const dadosSalvos = await montarAgendaDoDia(data);
+
+                let conteudo = 'Agenda de ' + data + '\n\n';
+                let contador = 1;
+                dadosSalvos.forEach((item) => {
+                    if (item.texto) {
+                        let sufixo = item.tachado ? ' (Concluído)' : '';
+                        if (item.isRecorrente && !item.tachado) sufixo += ' (Recorrente)';
+
+                        conteudo += (contador++) + '. ' + item.texto + sufixo + '\n';
+
+                        (item.subitens || []).forEach(sub => {
+                            if (sub.texto && sub.texto.trim() !== '') {
+                                conteudo += '    - ' + sub.texto + (sub.tachado ? ' (Concluído)' : '') + '\n';
+                            }
+                        });
+                    }
+                });
+
+                const blob = new Blob([conteudo], { type: 'text/plain;charset=utf-8' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `agenda_${data}.txt`;
+                a.click();
+            } catch (error) {
+                console.error('Erro ao exportar:', error);
+                mostrarToast('Não foi possível exportar a agenda.', 'error');
+            }
+        }
+
         function copiarCompromissos() {
             bufferCopiados = [];
             const section = document.querySelector('.date-section');
             if (!section) return;
             const compromissos = section.querySelectorAll('.commitment');
-            
+
             compromissos.forEach(div => {
                 const input = div.querySelector('input[type="text"]');
-                
-                // LÓGICA ORIGINAL RESTAURADA:
-                // Copia o item se ele tiver texto e NÃO estiver tachado ('done')
+
                 if (input.value.trim() !== '' && !input.classList.contains('done')) {
-                    bufferCopiados.push(input.value);
-                    input.classList.add('done'); // Tacha o item após copiar
+                    bufferCopiados.push({ texto: input.value, subitens: coletarSubitens(div) });
+                    input.classList.add('done');
                 }
             });
-            
-            salvarAgenda(); // Salva o novo estado (com os itens tachados)
+
+            if (bufferCopiados.length > 0) {
+                salvarAgenda();
+                mostrarToast(`${bufferCopiados.length} compromisso(s) copiado(s).`, 'success');
+            } else {
+                mostrarToast('Nada para copiar neste dia.', 'error');
+            }
         }
 
-        /* ==================================================================
-         FUNÇÃO COLAR (Sem alterações, já estava correta)
-        ==================================================================
-        */
         function colarCompromissos() {
-            if (!bufferCopiados.length) return;
+            if (!bufferCopiados.length) {
+                mostrarToast('Nenhum compromisso copiado ainda.', 'error');
+                return;
+            }
             const compromissosDiv = document.querySelector('.commitments');
             if (!compromissosDiv) return;
 
             let idxBuffer = 0;
 
             function encontrarOuAdicionarCampoVazio() {
-                // Prioriza campos vazios
                 const vazio = [...compromissosDiv.children].find(div => !div.querySelector('input[type=text]').value);
                 if (vazio) return vazio;
-                
-                // Se não houver vazios, mas houver espaço, adiciona
+
                 if (compromissosDiv.children.length < maxCompromissos) {
-                    const novo = criarCampoCompromisso({}, dataInput.value); // Passa a data
+                    const novo = criarCampoCompromisso({}, dataInput.value);
                     compromissosDiv.appendChild(novo);
                     return novo;
                 }
@@ -1284,32 +1675,41 @@
 
             while (idxBuffer < bufferCopiados.length) {
                 const campo = encontrarOuAdicionarCampoVazio();
-                if (!campo) break; // Para se a agenda estiver cheia
-                const input = campo.querySelector('input[type=text]');
-                const checkbox = campo.querySelector('input[type="checkbox"]');
-                input.value = bufferCopiados[idxBuffer++];
-                input.classList.remove('done'); // Garante que o item colado não venha tachado
+                if (!campo) {
+                    mostrarToast('A agenda ficou cheia antes de colar tudo.', 'error');
+                    break;
+                }
+                const mainDiv = campo.querySelector('.commitment');
+                const input = mainDiv.querySelector('input[type=text]');
+                const checkbox = mainDiv.querySelector('input[type="checkbox"]');
+                const dadosItem = bufferCopiados[idxBuffer++];
+                input.value = dadosItem.texto;
+                input.classList.remove('done');
                 checkbox.checked = false;
-                campo.classList.remove('checked');
+                mainDiv.classList.remove('checked');
+                mainDiv._agendaItem = { ...(mainDiv._agendaItem || {}), texto: dadosItem.texto, subitens: dadosItem.subitens || [] };
+                renderSubitens(mainDiv, mainDiv._agendaItem);
             }
             salvarAgenda();
         }
 
-        /* Funções de CPF (Ocultadas para economizar espaço, mas ainda presentes no seu código) */
-        function validarCPF(cpf) { if (!cpf || cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false; let soma = 0, resto; for (let i = 1; i <= 9; i++) soma += parseInt(cpf[i - 1]) * (11 - i); resto = (soma * 10) % 11; if (resto === 10 || resto === 11) resto = 0; if (resto !== parseInt(cpf[9])) return false; soma = 0; for (let i = 1; i <= 10; i++) soma += parseInt(cpf[i - 1]) * (12 - i); resto = (soma * 10) % 11; if (resto === 10 || resto === 11) resto = 0; return resto === parseInt(cpf[10]); }
-        /* document.getElementById('cpf').addEventListener('input', () => { const raw = document.getElementById('cpf').value.replace(/\D/g, ''); const status = document.getElementById('cpfStatus'); const valido = validarCPF(raw); status.textContent = valido ? 'CPF válido' : 'CPF inválido'; status.className = valido ? 'valid' : 'invalid'; }); function copiarCPF() { let raw = document.getElementById('cpf').value.replace(/\D/g, ''); if (validarCPF(raw)) { let formatado = raw.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4"); navigator.clipboard.writeText(formatado); } } function limparCPF() { document.getElementById('cpf').value = ''; document.getElementById('cpfStatus').textContent = ''; document.getElementById('cpfStatus').className = ''; } */
-
         /* Funções das Notas Fixas com Firebase */
         async function carregarNotasFixas() {
-            const snapshot = await database.ref('notasFixas').once('value');
-            notasFixasEl.value = snapshot.val() || '';
+            try {
+                const snapshot = await database.ref('notasFixas').once('value');
+                notasFixasEl.value = snapshot.val() || '';
+            } catch (error) {
+                console.error('Erro ao carregar notas:', error);
+                mostrarToast('Não foi possível carregar os lembretes.', 'error');
+            }
         }
 
         notasFixasEl.addEventListener('input', () => {
-            // Aplica a capitalização ao digitar nas notas
-            toUpperOnInput({ target: notasFixasEl }); // <-- APLICAÇÃO DA CORREÇÃO AQUI
-            // Salva no Firebase
-            database.ref('notasFixas').set(notasFixasEl.value);
+            toUpperOnInput({ target: notasFixasEl });
+            database.ref('notasFixas').set(notasFixasEl.value).catch(error => {
+                console.error('Erro ao salvar notas:', error);
+                mostrarToast('Falha ao salvar os lembretes.', 'error');
+            });
         });
 
         /* --- ALARMES PERSISTENTES --- */
@@ -1319,50 +1719,49 @@
         let triggeredAlarms = new Set();
 
         async function loadAlarms() {
-            const snapshot = await database.ref('alarms').once('value');
-            const savedAlarms = snapshot.val();
-            if (savedAlarms) {
-                for (const id in savedAlarms) {
-                    const alarmData = savedAlarms[id];
-                    if (alarmData && alarmData.time && alarmData.message) {
-                        document.getElementById(`alarmMessage${id}`).value = alarmData.message;
-                        document.getElementById(`alarmTime${id}`).value = alarmData.time;
-                        setAlarm(id, true);
+            try {
+                const snapshot = await database.ref('alarms').once('value');
+                const savedAlarms = snapshot.val();
+                if (savedAlarms) {
+                    for (const id in savedAlarms) {
+                        const alarmData = savedAlarms[id];
+                        if (alarmData && alarmData.time && alarmData.message) {
+                            document.getElementById(`alarmMessage${id}`).value = alarmData.message;
+                            document.getElementById(`alarmTime${id}`).value = alarmData.time;
+                            setAlarm(id, true);
+                        }
                     }
                 }
+            } catch (error) {
+                console.error('Erro ao carregar alarmes:', error);
+                mostrarToast('Não foi possível carregar os alarmes.', 'error');
             }
 
-            // Aplica o listener de capitalização nos inputs de alarme
             document.querySelectorAll('#alarmes input[type="text"]').forEach(input => {
-                input.addEventListener('input', toUpperOnInput); // <-- APLICAÇÃO DA CORREÇÃO AQUI
+                input.addEventListener('input', toUpperOnInput);
             });
         }
 
-        // ==================================================================
-        // ============ FUNÇÃO setAlarm (Versão Robusta) ============
-        // ==================================================================
         function setAlarm(id, silent = false) {
             const msgEl = document.getElementById(`alarmMessage${id}`);
             const timeEl = document.getElementById(`alarmTime${id}`);
             const msg = msgEl.value.trim();
             const time = timeEl.value;
 
-            // Pega o elemento de feedback
             const feedbackEl = document.getElementById('alarm-feedback');
-
-            // --- ALTERAÇÃO DE ROBUSTEZ ---
-            // Limpa o feedback SÓ SE o elemento existir
             if (feedbackEl) {
                 feedbackEl.textContent = '';
             }
-            // --- FIM DA ALTERAÇÃO ---
 
             if (!msg || !time) {
-                if (!silent) alert("Preencha a frase e o horário do alarme " + id);
+                if (!silent) mostrarToast('Preencha a frase e o horário do alarme ' + id, 'error');
                 return;
             }
 
-            database.ref(`alarms/${id}`).set({ message: msg, time: time });
+            database.ref(`alarms/${id}`).set({ message: msg, time: time }).catch(error => {
+                console.error('Erro ao salvar alarme:', error);
+                mostrarToast('Falha ao salvar o alarme.', 'error');
+            });
 
             if (alarmTimeouts[id]) {
                 clearTimeout(alarmTimeouts[id]);
@@ -1379,30 +1778,22 @@
 
             const diff = alarm.getTime() - now.getTime();
 
-            // --- ALTERAÇÃO DE ROBUSTEZ ---
-            // Só mostra o feedback se não for silencioso E o elemento existir
-            if (!silent && feedbackEl) { // <--- Adicionado "&& feedbackEl"
+            if (!silent && feedbackEl) {
                 const totalMinutes = Math.floor(diff / (1000 * 60));
                 const hours = Math.floor(totalMinutes / 60);
                 const minutes = totalMinutes % 60;
                 feedbackEl.textContent = `Alarme programado para daqui a ${hours}h e ${minutes}min.`;
 
-                // Limpa a mensagem após 4 segundos
                 setTimeout(() => {
-                    // Limpa de novo, SÓ SE o elemento existir
                     if (feedbackEl) {
                         feedbackEl.textContent = '';
                     }
                 }, 4000);
             }
-            // --- FIM DA ALTERAÇÃO ---
 
             alarmTimeouts[id] = setTimeout(() => triggerAlarm(msg, id), diff);
         }
 
-        // ==================================================================
-        // ============ FUNÇÃO clearAlarm (Versão Robusta) ============
-        // ==================================================================
         function clearAlarm(id) {
             if (alarmTimeouts[id]) {
                 clearTimeout(alarmTimeouts[id]);
@@ -1411,15 +1802,14 @@
             document.getElementById(`alarmMessage${id}`).value = '';
             document.getElementById(`alarmTime${id}`).value = '';
 
-            database.ref(`alarms/${id}`).remove();
+            database.ref(`alarms/${id}`).remove().catch(error => {
+                console.error('Erro ao limpar alarme:', error);
+            });
 
-            // --- ALTERAÇÃO DE ROBUSTEZ ---
-            // Limpa a mensagem de feedback SÓ SE o elemento existir
             const feedbackEl = document.getElementById('alarm-feedback');
             if (feedbackEl) {
                 feedbackEl.textContent = '';
             }
-            // --- FIM DA ALTERAÇÃO ---
         }
 
         function triggerAlarm(message, id) {
@@ -1454,22 +1844,19 @@
             window.removeEventListener('click', stopAlarmBlink);
         }
 
-
         /**
          * ==================================================================
-         * INÍCIO DAS NOVAS FUNÇÕES DE RECORRÊNCIA
+         * RECORRÊNCIA
          * ==================================================================
          */
-
-        // Elementos dos Modais
         const modalRecorrente = document.getElementById('modalRecorrente');
         const modalExcluirRecorrente = document.getElementById('modalExcluirRecorrente');
+        const modalExcluirNormal = document.getElementById('modalExcluirNormal');
+        const modalLimparDia = document.getElementById('modalLimparDia');
         const recorrenteTextoEl = document.getElementById('recorrenteTexto');
 
-        // Aplica o listener de capitalização também no modal
         recorrenteTextoEl.addEventListener('input', toUpperOnInput);
 
-        // --- Listeners do Modal de NOVO RECORRENTE ---
         document.getElementById('cancelarRecorrenteBtn').addEventListener('click', () => {
             modalRecorrente.style.display = 'none';
         });
@@ -1477,39 +1864,39 @@
         document.getElementById('salvarRecorrenteBtn').addEventListener('click', () => {
             const texto = recorrenteTextoEl.value.trim().toUpperCase();
             if (!texto) {
-                alert('Por favor, digite a descrição do compromisso.');
+                mostrarToast('Digite a descrição do compromisso.', 'error');
                 return;
             }
-            
+
             const frequenciaEl = document.querySelector('input[name="frequencia"]:checked');
             if (!frequenciaEl) {
-                alert('Por favor, selecione uma frequência.');
+                mostrarToast('Selecione uma frequência.', 'error');
                 return;
             }
-            
-            const frequencia = frequenciaEl.value;
-            const startDate = dataInput.value; // Começa no dia selecionado
 
-            // Cria um ID único no Firebase
+            const frequencia = frequenciaEl.value;
+            const startDate = dataInput.value;
+
             const novoId = database.ref('recorrencias').push().key;
 
             const regra = {
                 texto: texto,
                 startDate: startDate,
                 frequencia: frequencia,
-                excecoes: {} // Nó para armazenar exceções de dias
+                excecoes: {}
             };
 
             database.ref('recorrencias/' + novoId).set(regra).then(() => {
                 modalRecorrente.style.display = 'none';
-                carregarAgenda(); // Recarrega a agenda para mostrar o novo item
+                carregarAgenda();
+                mostrarToast('Compromisso recorrente criado.', 'success');
+            }).catch(error => {
+                console.error('Erro ao criar recorrência:', error);
+                mostrarToast('Falha ao criar o compromisso recorrente.', 'error');
             });
         });
 
-
-        // --- Funções e Listeners do Modal de EXCLUIR RECORRENTE ---
-        
-        // Variáveis temporárias para guardar o item a ser excluído
+        /* --- Exclusão de item recorrente --- */
         let itemParaExcluir = null;
         let dataParaExcluir = null;
 
@@ -1526,55 +1913,90 @@
             dataParaExcluir = null;
         });
 
-        // Botão "Excluir somente esta"
         document.getElementById('excluirUmBtn').addEventListener('click', () => {
             if (!itemParaExcluir || !dataParaExcluir) return;
 
             const id = itemParaExcluir.idRecorrente;
             const data = dataParaExcluir;
 
-            // Adiciona a data atual ao nó de exceções da regra
             database.ref(`recorrencias/${id}/excecoes/${data}`).set(true).then(() => {
                 modalExcluirRecorrente.style.display = 'none';
-                carregarAgenda(); // Recarrega para o item sumir
+                carregarAgenda();
+            }).catch(error => {
+                console.error('Erro ao excluir ocorrência:', error);
+                mostrarToast('Falha ao excluir esta ocorrência.', 'error');
             });
         });
 
-        // Botão "Excluir esta e futuras"
         document.getElementById('excluirFuturosBtn').addEventListener('click', () => {
             if (!itemParaExcluir || !dataParaExcluir) return;
 
             const id = itemParaExcluir.idRecorrente;
-            
-            // Define uma 'endDate' para a regra, sendo o dia anterior ao atual
+
             const d = new Date(dataParaExcluir + "T12:00:00");
             d.setDate(d.getDate() - 1);
             const dataFim = d.toISOString().split('T')[0];
 
             database.ref(`recorrencias/${id}/endDate`).set(dataFim).then(() => {
                 modalExcluirRecorrente.style.display = 'none';
-                carregarAgenda(); // Recarrega para o item sumir
+                carregarAgenda();
+            }).catch(error => {
+                console.error('Erro ao excluir futuros:', error);
+                mostrarToast('Falha ao excluir as próximas ocorrências.', 'error');
             });
         });
 
+        /* --- Exclusão de item normal (com confirmação) --- */
+        let campoParaExcluir = null;
 
-        // --- Função Helper: O "Cérebro" da Recorrência ---
-        
-        /**
-         * Verifica se uma regra de recorrência deve aparecer em um dia específico.
-         * @param {object} regra - O objeto da regra de recorrência.
-         * @param {Date} diaSelecionado - O objeto Date do dia a ser verificado.
-         */
+        function abrirModalExcluirNormal(div, input, checkbox) {
+            campoParaExcluir = { div, input, checkbox };
+            document.getElementById('excluirNormalTexto').textContent = `Deseja excluir "${input.value}"?`;
+            modalExcluirNormal.style.display = 'flex';
+        }
+
+        document.getElementById('cancelarExcluirNormalBtn').addEventListener('click', () => {
+            modalExcluirNormal.style.display = 'none';
+            campoParaExcluir = null;
+        });
+
+        document.getElementById('confirmarExcluirNormalBtn').addEventListener('click', () => {
+            if (!campoParaExcluir) return;
+            const { div, input, checkbox } = campoParaExcluir;
+            input.value = '';
+            input.classList.remove('done');
+            checkbox.checked = false;
+            div.classList.remove('checked');
+            salvarAgenda();
+            modalExcluirNormal.style.display = 'none';
+            campoParaExcluir = null;
+        });
+
+        /* --- Limpar todos os compromissos do dia --- */
+        document.getElementById('cancelarLimparBtn').addEventListener('click', () => {
+            modalLimparDia.style.display = 'none';
+        });
+
+        document.getElementById('confirmarLimparBtn').addEventListener('click', () => {
+            const data = dataInput.value;
+            database.ref('agenda/' + data).remove().then(() => {
+                modalLimparDia.style.display = 'none';
+                carregarAgenda();
+                mostrarToast('Dia limpo.', 'success');
+            }).catch(error => {
+                console.error('Erro ao limpar o dia:', error);
+                mostrarToast('Falha ao limpar o dia.', 'error');
+            });
+        });
+
+        /* --- Cérebro da Recorrência --- */
         function deveAparecerNesteDia(regra, diaSelecionado) {
-            // Ajusta o startDate para T12 para evitar problemas de fuso
             const startDate = new Date(regra.startDate + 'T12:00:00');
-            
-            // 1. Se o dia for ANTERIOR ao início, não mostra
+
             if (diaSelecionado < startDate) {
                 return false;
             }
 
-            // 2. Se o dia for DEPOIS do fim, não mostra
             if (regra.endDate) {
                 const endDate = new Date(regra.endDate + 'T12:00:00');
                 if (diaSelecionado > endDate) {
@@ -1582,13 +2004,11 @@
                 }
             }
 
-            // 3. Se o dia for uma EXCEÇÃO, não mostra
             const dataFormatada = diaSelecionado.toISOString().split('T')[0];
             if (regra.excecoes && regra.excecoes[dataFormatada]) {
                 return false;
             }
 
-            // 4. Verifica a Frequência
             const diaInicio = startDate.getDate();
             const diaSemanaInicio = startDate.getDay();
             const mesInicio = startDate.getMonth();
@@ -1599,28 +2019,21 @@
 
             switch (regra.frequencia) {
                 case 'diario':
-                    return true; // Já passou pelas checagens de início, fim e exceção
-                
+                    return true;
+
                 case 'semanal':
                     return diaSemanaSel === diaSemanaInicio;
-                
+
                 case 'mensal':
                     return diaSel === diaInicio;
-                
+
                 case 'anual':
                     return diaSel === diaInicio && mesSel === mesInicio;
-                
+
                 default:
                     return false;
             }
         }
-
-        /**
-         * ==================================================================
-         * FIM DAS NOVAS FUNÇÕES DE RECORRÊNCIA
-         * ==================================================================
-         */
-
     </script>
 </body>
 </html>
