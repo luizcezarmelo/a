@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -148,11 +147,9 @@ const db = getDatabase(app);
 const ROOT = "agenda_diaria";
 const $ = id => document.getElementById(id);
 
-const todayISO = () => {
-  const d=new Date(), y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,"0"), day=String(d.getDate()).padStart(2,"0");
-  return `${y}-${m}-${day}`;
-};
-const addDays = (iso,n) => { const d=new Date(iso+"T12:00:00"); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); };
+const toLocalISO = d => { const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,"0"), day=String(d.getDate()).padStart(2,"0"); return `${y}-${m}-${day}`; };
+const todayISO = () => toLocalISO(new Date());
+const addDays = (iso,n) => { const d=new Date(iso+"T12:00:00"); d.setDate(d.getDate()+n); return toLocalISO(d); };
 const escapeHTML = (s="") => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmtDate = iso => new Intl.DateTimeFormat("pt-BR",{weekday:"long",day:"2-digit",month:"long",year:"numeric"}).format(new Date(iso+"T12:00:00"));
 const fmtShort = iso => new Intl.DateTimeFormat("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"}).format(new Date(iso+"T12:00:00"));
@@ -175,6 +172,10 @@ async function initLock(){
   $("lockScreen").classList.remove("hidden"); clearPin();
 }
 async function submitPin(){
+  if(!(window.crypto && window.crypto.subtle)){
+    $("pinError").textContent="SEU NAVEGADOR/CONEXÃO NÃO PERMITE CRIPTOGRAFIA SEGURA (ACESSE VIA HTTPS).";
+    return;
+  }
   const pin=[...document.querySelectorAll("#pinBox input")].map(i=>i.value).join("");
   if(!/^\d{4}$/.test(pin)){ $("pinError").textContent="DIGITE EXATAMENTE 4 NÚMEROS."; return; }
   const hash=await sha256(pin);
@@ -206,6 +207,22 @@ function normalizeDay(raw){
     }
   }
   return base;
+}
+function compactDay(day){
+  day.commitments.forEach(c=>{
+    const subs=Array.isArray(c.subs)?c.subs:[];
+    const used=subs.filter(s=>s && (s.active||s.text||s.done)).map(s=>({
+      text:typeof s.text==='string'?s.text:'',
+      done:!!s.done,
+      active:true
+    }));
+    while(used.length<10)used.push({text:'',done:false,active:false});
+    c.subs=used.slice(0,10);
+  });
+  const filled=day.commitments.filter(c=>c.text||c.done||c.highlight||c.subs.some(s=>s.active||s.text||s.done));
+  while(filled.length<20)filled.push({text:'',done:false,highlight:false,subs:Array.from({length:10},()=>({text:'',done:false,active:false}))});
+  day.commitments=filled.slice(0,20);
+  return day;
 }
 async function loadDay(date){
   const snap=await get(ref(db,`${ROOT}/days/${date}`));
@@ -251,28 +268,19 @@ async function notifyAlarm(title,body){
   toast(`${title}: ${body}`);
 }
 $("alarm1").addEventListener("change",saveMeta); $("alarm2").addEventListener("change",saveMeta);
-$("notes").addEventListener("input",()=>{$("notes").value=$("notes").value.toUpperCase();saveMeta();});
+$("notes").addEventListener("input",()=>{
+  const el=$("notes"), start=el.selectionStart, end=el.selectionEnd;
+  el.value=el.value.toUpperCase();
+  el.setSelectionRange(start,end);
+  saveMeta();
+});
 
 function renderAgenda(){
   const data=dataCache[selectedDate]||defaultDay();
 
   // Compacta primeiro os subcompromissos: nenhum vazio pode ficar entre os preenchidos.
   // Os itens preenchidos sobem mantendo a ordem; os vazios ficam no final.
-  data.commitments.forEach(c=>{
-    const subs=Array.isArray(c.subs)?c.subs:[];
-    const used=subs.filter(s=>s && (s.active||s.text||s.done)).map(s=>({
-      text:typeof s.text==='string'?s.text:'',
-      done:!!s.done,
-      active:true
-    }));
-    while(used.length<10)used.push({text:'',done:false,active:false});
-    c.subs=used.slice(0,10);
-  });
-
-  // Compromissos preenchidos sobem automaticamente; nenhum vazio fica no meio.
-  const filled=data.commitments.filter(c=>c.text||c.done||c.highlight||c.subs.some(s=>s.active||s.text||s.done));
-  while(filled.length<20)filled.push({text:'',done:false,highlight:false,subs:Array.from({length:10},()=>({text:'',done:false,active:false}))});
-  data.commitments=filled.slice(0,20);
+  compactDay(data);
 
   // Guarda o foco/cursor para que o autosave do Firebase não interrompa a digitação.
   const active=document.activeElement;
@@ -387,8 +395,10 @@ function bindAgendaEvents(){
     main.oninput=e=>{
       const c=getCommitment();
       if(!c)return;
-      e.target.value=e.target.value.toUpperCase();
-      c.text=e.target.value;
+      const el=e.target, start=el.selectionStart, end=el.selectionEnd;
+      el.value=el.value.toUpperCase();
+      el.setSelectionRange(start,end);
+      c.text=el.value;
       scheduleSave();
     };
 
@@ -406,8 +416,10 @@ function bindAgendaEvents(){
       input.oninput=e=>{
         const c=getCommitment();
         if(!c||!c.subs[j])return;
-        e.target.value=e.target.value.toUpperCase();
-        c.subs[j].text=e.target.value;
+        const el=e.target, start=el.selectionStart, end=el.selectionEnd;
+        el.value=el.value.toUpperCase();
+        el.setSelectionRange(start,end);
+        c.subs[j].text=el.value;
         c.subs[j].active=true;
         scheduleSave();
       };
@@ -450,7 +462,7 @@ function renderCalendar(){
   $("calTitle").textContent=monthName(calendarMonth);
   const y=calendarMonth.getFullYear(),m=calendarMonth.getMonth(),start=new Date(y,m,1).getDay();
   $("days").innerHTML=Array.from({length:42},(_,i)=>{
-    const d=new Date(y,m,i-start+1),iso=d.toISOString().slice(0,10),other=d.getMonth()!==m;
+    const d=new Date(y,m,i-start+1),iso=toLocalISO(d),other=d.getMonth()!==m;
     const cls=`day ${other?"other":""} ${iso===todayISO()?"today":""} ${iso===selectedDate?"selected":""}`;
     return `<button class="${cls}" data-date="${iso}">${d.getDate()}</button>`;
   }).join("");
@@ -466,35 +478,85 @@ $("todayBtnCal").onclick=()=>selectDate(todayISO());
 $("lockBtnCal").onclick=()=>{ $("app").classList.add("hidden"); $("lockScreen").classList.remove("hidden"); pinMode="login"; $("lockTitle").textContent="AGENDA BLOQUEADA"; $("lockText").textContent="DIGITE SUA SENHA DE 4 NÚMEROS."; $("pinAction").textContent="ENTRAR"; $("pinError").textContent=""; clearPin(); };
 
 $("migrateBtnCal").onclick=async()=>{
-  const current=todayISO(),next=addDays(current,1),cd=await loadDay(current),nd=await loadDay(next);let moved=0;
+  // Cancela qualquer salvamento pendente do dia atualmente selecionado — vamos
+  // gravar a versão final explicitamente ao fim desta função.
+  clearTimeout(savingTimer);
+
+  const current=selectedDate;
+  const next=addDays(current,1);
+
+  // Usa sempre o que está em memória (mais atual que o Firebase, pois inclui
+  // digitações recentes ainda não sincronizadas) e só busca do Firebase se o
+  // dia nunca foi carregado nesta sessão.
+  const cd=compactDay(normalizeDay(dataCache[current]||await loadDay(current)));
+  const nd=compactDay(normalizeDay(dataCache[next]||await loadDay(next)));
+
+  let moved=0;
   for(let i=0;i<20;i++){
-    const c=cd.commitments[i],nc=nd.commitments[i], principalPending=!c.done&&c.text;
-    if(principalPending){c.done=true;moved++;if(c.text&&!nc.text)nc.text=c.text;}
-    for(let j=0;j<10;j++){
-      const s=c.subs[j];if(!s.done&&s.text){
-        const target=!nc.subs[j].text?nc.subs[j]:nc.subs.find(x=>!x.text&&!x.done);
-        if(target){target.text=s.text;s.done=true;moved++;}
-      }
-    }
-    if(!c.text&&c.subs.every(s=>s.done||!s.text))continue;
+    const c=cd.commitments[i];
+    if(c.done || !c.text) continue; // só migra compromissos com texto que ainda não foram concluídos
+
+    // Tenta manter o mesmo índice no dia seguinte; se ocupado, procura o primeiro slot livre.
+    let targetIndex = (!nd.commitments[i].text && !nd.commitments[i].done) ? i : nd.commitments.findIndex(x=>!x.text&&!x.done);
+    if(targetIndex===-1) continue; // sem espaço no dia seguinte — o item permanece pendente, nada é perdido
+
+    // Copia o compromisso inteiro (texto + todos os subcompromissos, taxados ou não) para o dia seguinte.
+    nd.commitments[targetIndex]={
+      text:c.text,
+      done:false,
+      highlight:c.highlight,
+      subs:c.subs.map(s=>({text:s.text,done:s.done,active:s.active||!!s.text||s.done}))
+    };
+    c.done=true;
+    moved++;
   }
-  await set(ref(db,`${ROOT}/days/${current}`),cd);await set(ref(db,`${ROOT}/days/${next}`),nd);
-  dataCache[current]=cd;dataCache[next]=nd;if(selectedDate===current)renderAgenda();
-  toast(moved?`${moved} ITEM(NS) MIGRADO(S) PARA ${fmtShort(next)}.`:"NÃO HÁ ITENS NÃO TAXADOS PARA MIGRAR.");
+
+  dataCache[current]=cd;
+  dataCache[next]=nd;
+
+  try{
+    await set(ref(db,`${ROOT}/days/${current}`),cd);
+    await set(ref(db,`${ROOT}/days/${next}`),nd);
+  }catch{
+    toast("ERRO AO SALVAR A MIGRAÇÃO NO FIREBASE.");
+    return;
+  }
+
+  if(selectedDate===current) renderAgenda();
+  toast(moved?`${moved} COMPROMISSO(S) MIGRADO(S) PARA ${fmtShort(next)}.`:"NÃO HÁ COMPROMISSOS PENDENTES PARA MIGRAR.");
 };
 
-$("search").oninput=async e=>{
-  e.target.value=e.target.value.toUpperCase();const q=e.target.value.trim(),box=$("searchResults");
+let searchDebounceTimer=null, searchToken=0;
+$("search").oninput=e=>{
+  const el=e.target, start=el.selectionStart, end=el.selectionEnd;
+  el.value=el.value.toUpperCase();
+  el.setSelectionRange(start,end);
+  const q=el.value.trim(),box=$("searchResults");
+  clearTimeout(searchDebounceTimer);
+  searchToken++; // qualquer busca em andamento vira obsoleta a partir daqui
   if(q.length<4){box.classList.add("hidden");box.innerHTML="";return;}
+  box.innerHTML=`<div class="empty-search">PESQUISANDO...</div>`;
+  box.classList.remove("hidden");
+  searchDebounceTimer=setTimeout(()=>runSearch(q),300);
+};
+async function runSearch(q){
+  const myToken=searchToken, box=$("searchResults");
   const dates=new Set(Object.keys(dataCache));for(let k=-45;k<=45;k++)dates.add(addDays(todayISO(),k));
+  const entries=await Promise.all([...dates].map(async date=>{
+    let d=dataCache[date];
+    if(!d){try{d=await loadDay(date);dataCache[date]=d;}catch{return null;}}
+    return {date,d};
+  }));
+  if(myToken!==searchToken)return; // usuário já digitou outra coisa; descarta este resultado desatualizado
   const results=[];
-  for(const date of dates){
-    let d=dataCache[date];if(!d){try{d=await loadDay(date);dataCache[date]=d;}catch{continue;}}
+  entries.forEach(entry=>{
+    if(!entry)return;
+    const {date,d}=entry;
     d.commitments.forEach((c,i)=>{if(c.text.includes(q))results.push({date,i,sub:null,text:c.text});c.subs.forEach((s,j)=>{if(s.text.includes(q))results.push({date,i,sub:j,text:s.text});});});
-  }
+  });
   box.innerHTML=results.length?results.slice(0,80).map(r=>`<div class="result" data-result-date="${r.date}" data-result-i="${r.i}" data-result-sub="${r.sub??""}"><strong>${escapeHTML(r.text)}</strong><small>${fmtShort(r.date)} · ${r.sub===null?"COMPROMISSO "+(r.i+1):"SUBCOMPROMISSO "+(r.i+1)+"."+(r.sub+1)}</small></div>`).join(""):`<div class="empty-search">NENHUM RESULTADO ENCONTRADO.</div>`;
   box.classList.remove("hidden");
-};
+}
 $("searchResults").onclick=async e=>{
   const r=e.target.closest(".result");if(!r)return;
   await selectDate(r.dataset.resultDate);const i=Number(r.dataset.resultI),j=r.dataset.resultSub===""?null:Number(r.dataset.resultSub),card=document.querySelector(`.commitment[data-index="${i}"]`);
@@ -502,7 +564,6 @@ $("searchResults").onclick=async e=>{
   $("searchResults").classList.add("hidden");$("search").value="";
 };
 document.addEventListener("click",e=>{if(!e.target.closest(".search-wrap"))$("searchResults").classList.add("hidden");});
-document.addEventListener("input",e=>{if(e.target.matches("textarea"))e.target.value=e.target.value.toUpperCase();});
 
 function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.remove("show"),3200);}
 async function startApp(){
