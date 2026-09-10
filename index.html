@@ -42,9 +42,10 @@ button,input,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!im
 .commitment.highlight{border-color:#f4b4b4;background:#fff8f8;box-shadow:0 4px 16px rgba(220,38,38,.08)}
 .commitment.done{background:#f9fcfa;border-color:#d5e9da}.commitment.done .main-input{text-decoration:line-through;color:#8a929d}.commitment.done .commitment-head{background:#fbfdfb}
 .commitment-head{display:grid;grid-template-columns:34px 27px 30px minmax(0,1fr) auto;gap:6px;align-items:center;padding:7px}.index{font-size:12px;font-weight:900;color:#8a94a2;text-align:center}.plus-sub{height:28px;width:27px;border:1px solid var(--line);background:#fff;border-radius:7px;display:grid;place-items:center;font-size:19px;line-height:1;color:#5f6b79;font-weight:500}.plus-sub:hover{background:#f1f5f9;color:var(--primary);border-color:#b9c8df}
-.check-btn,.del-btn,.star-btn{height:32px;border:1px solid var(--line);background:#fff;border-radius:8px;display:grid;place-items:center;font-weight:900}
+.check-btn,.del-btn,.star-btn,.move-btn{height:32px;border:1px solid var(--line);background:#fff;border-radius:8px;display:grid;place-items:center;font-weight:900}
 .check-btn{color:#718096}.check-btn:hover{background:#f1f5f9}.commitment.done .check-btn{background:#edf8f0;color:#4b9b5e;border-color:#cfe6d4;box-shadow:inset 0 0 0 1px rgba(75,155,94,.04)}.del-btn{color:#b42318}.del-btn:hover{background:#fff1f1}
 .star-btn{color:#a36a00}.star-btn.active{background:#fff0f0;color:#dc2626;border-color:#f2b4b4}
+.move-btn{width:28px;color:#475569}.move-btn:hover{background:#f1f5f9}.move-btn:disabled{opacity:.35;cursor:not-allowed;background:#fff}
 .main-input,.sub-input{width:100%;border:1px solid var(--line);outline:0;background:#fff;color:var(--ink);font-weight:750;min-width:0;text-transform:uppercase;border-radius:7px;padding:7px 9px;box-shadow:inset 0 1px 2px rgba(15,23,42,.03)}
 .main-input{font-size:14px;padding:8px 4px}.sub-input{font-size:13px;padding:7px 9px}.main-input::placeholder,.sub-input::placeholder{color:#a4acb7;font-weight:600}
 .subs{display:block;border-top:1px solid #edf0f3;background:#fbfcfd;padding:4px 7px 7px 71px}.commitment.expanded .subs{display:block}
@@ -61,7 +62,7 @@ button,input,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!im
 .empty-search{padding:16px;color:var(--muted);font-size:12px;text-align:center}
 .toast{position:fixed;right:20px;bottom:20px;z-index:200;padding:12px 15px;background:#172033;color:#fff;border-radius:10px;box-shadow:var(--shadow);font-size:12px;font-weight:750;opacity:0;transform:translateY(10px);pointer-events:none;transition:.2s}.toast.show{opacity:1;transform:translateY(0)}
 @media(max-width:980px){.layout{grid-template-columns:1fr}.calendar-card{position:static}.bottom-grid{grid-template-columns:1fr}.topbar-inner{align-items:flex-start;flex-direction:column}.actions{justify-content:flex-start}}
-@media(max-width:620px){.layout{padding:12px}.search-wrap{padding:0 12px 12px}.commitment-head{grid-template-columns:28px 28px minmax(0,1fr) 30px}.subs{padding-left:58px}.alarm-grid{grid-template-columns:1fr}.date-title{font-size:20px}}
+@media(max-width:620px){.layout{padding:12px}.search-wrap{padding:0 12px 12px}.commitment-head{grid-template-columns:28px 28px minmax(0,1fr) 30px}.subs{padding-left:58px}.alarm-grid{grid-template-columns:1fr}.date-title{font-size:20px}.move-btn{width:24px;height:28px}.check-btn,.del-btn,.star-btn{height:28px}}
 </style>
 </head>
 <body>
@@ -128,10 +129,9 @@ button,input,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!im
 </div>
 <div class="toast" id="toast"></div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
-import { getDatabase, ref, get, set, onValue } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-database.js";
-
+<script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-database-compat.js"></script>
+<script>
 const firebaseConfig = {
   apiKey: "AIzaSyDQOGFiqafMZh0ha6XW62P1DpIKJE8TBYc",
   authDomain: "agenda-online-7b71c.firebaseapp.com",
@@ -142,14 +142,35 @@ const firebaseConfig = {
   appId: "1:28125733214:web:162d1cce5d14f55c24afcf"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// Camada de compatibilidade: reproduz a mesma assinatura da API modular
+// (ref/get/set/onValue) usada no restante do código, mas por cima do SDK
+// "compat" carregado acima via <script> comum. Isso evita o import de módulo
+// ES, que os navegadores bloqueiam ao abrir o arquivo direto do disco
+// (file://) — assim o app funciona com duplo-clique, sem precisar de servidor.
+function ref(database,path){ return database.ref(path); }
+function get(reference){ return reference.once("value"); }
+function set(reference,value){ return reference.set(value); }
+function onValue(reference,onNext,onError){
+  reference.on("value",onNext,onError);
+  return () => reference.off("value",onNext);
+}
+
 const ROOT = "agenda_diaria";
 const $ = id => document.getElementById(id);
 
 const toLocalISO = d => { const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,"0"), day=String(d.getDate()).padStart(2,"0"); return `${y}-${m}-${day}`; };
 const todayISO = () => toLocalISO(new Date());
 const addDays = (iso,n) => { const d=new Date(iso+"T12:00:00"); d.setDate(d.getDate()+n); return toLocalISO(d); };
+// Usado só pelo botão Migrar: pula sábado e domingo (0=domingo, 6=sábado).
+// O calendário, a busca e o restante do app continuam usando addDays normalmente.
+const nextWorkDay = iso => {
+  let d=addDays(iso,1);
+  while([0,6].includes(new Date(d+"T12:00:00").getDay())) d=addDays(d,1);
+  return d;
+};
 const escapeHTML = (s="") => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmtDate = iso => new Intl.DateTimeFormat("pt-BR",{weekday:"long",day:"2-digit",month:"long",year:"numeric"}).format(new Date(iso+"T12:00:00"));
 const fmtShort = iso => new Intl.DateTimeFormat("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"}).format(new Date(iso+"T12:00:00"));
@@ -275,6 +296,17 @@ $("notes").addEventListener("input",()=>{
   saveMeta();
 });
 
+function moveCommitment(index,direction){
+  const target=index+direction;
+  if(target<0||target>=20)return;
+  const data=dataCache[selectedDate]||defaultDay();
+  const arr=data.commitments;
+  const tmp=arr[index]; arr[index]=arr[target]; arr[target]=tmp;
+  dataCache[selectedDate]=data;
+  renderAgenda();
+  scheduleSave();
+}
+
 function renderAgenda(){
   const data=dataCache[selectedDate]||defaultDay();
 
@@ -312,6 +344,8 @@ function renderAgenda(){
         <input class="main-input" data-main="${i}" value="${escapeHTML(c.text)}" placeholder="" autocomplete="off" spellcheck="false">
         <div style="display:flex;gap:5px">
           <button type="button" class="star-btn ${c.highlight?'active':''}" title="DESTACAR">${c.highlight?'★':'☆'}</button>
+          <button type="button" class="move-btn" title="MOVER PARA CIMA" aria-label="MOVER COMPROMISSO PARA CIMA" data-action="move-up" ${i===0?'disabled':''}>↑</button>
+          <button type="button" class="move-btn" title="MOVER PARA BAIXO" aria-label="MOVER COMPROMISSO PARA BAIXO" data-action="move-down" ${i===19?'disabled':''}>↓</button>
           <button type="button" class="del-btn" title="APAGAR COMPROMISSO" data-action="delete">×</button>
         </div>
       </div>
@@ -362,6 +396,18 @@ function bindAgendaEvents(){
       c.highlight=!c.highlight;
       renderAgenda();
       scheduleSave();
+    };
+
+    card.querySelector('[data-action="move-up"]').onclick=(e)=>{
+      e.preventDefault();
+      e.stopPropagation();
+      moveCommitment(i,-1);
+    };
+
+    card.querySelector('[data-action="move-down"]').onclick=(e)=>{
+      e.preventDefault();
+      e.stopPropagation();
+      moveCommitment(i,1);
     };
 
     card.querySelector('[data-action=delete]').onclick=(e)=>{
@@ -483,7 +529,7 @@ $("migrateBtnCal").onclick=async()=>{
   clearTimeout(savingTimer);
 
   const current=selectedDate;
-  const next=addDays(current,1);
+  const next=nextWorkDay(current);
 
   // Usa sempre o que está em memória (mais atual que o Firebase, pois inclui
   // digitações recentes ainda não sincronizadas) e só busca do Firebase se o
