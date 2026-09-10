@@ -53,8 +53,7 @@ button,input,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!im
 .sub-check,.sub-del{height:29px;border:1px solid var(--line);background:#fff;border-radius:7px;font-weight:900;display:grid;place-items:center}.sub-check{color:#718096}
 .sub-row.done .sub-check{background:#edf8f0;color:#4b9b5e;border-color:#cfe6d4}.sub-row.done{background:#fbfdfb}.sub-row.done .sub-input{text-decoration:line-through;color:#77808d}.sub-del{color:#b42318}
 .add-sub{display:none}
-.bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}.info-card{padding:15px}.info-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px}.info-head h2{font-size:15px;margin:0}.info-head span{font-size:10px;color:var(--muted);font-weight:800}
-.alarm-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.alarm{border:1px solid var(--line);border-radius:11px;padding:10px;background:#fafbfc}.alarm label{display:block;font-size:10px;font-weight:900;color:#77808d;margin-bottom:5px}.alarm input{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px;background:#fff;font-weight:800}
+.bottom-grid{display:grid;grid-template-columns:1fr;gap:18px;margin-top:18px}.info-card{padding:15px}.info-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px}.info-head h2{font-size:15px;margin:0}.info-head span{font-size:10px;color:var(--muted);font-weight:800}
 .notes{width:100%;min-height:190px;resize:vertical;border:1px solid var(--line);border-radius:10px;padding:10px;outline:none;text-transform:uppercase}.notes:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.08)}
 .save-state{font-size:10px;color:var(--muted);text-align:right;margin-top:7px}
 .search-results{position:absolute;left:20px;right:20px;top:51px;background:#fff;border:1px solid var(--line);border-radius:11px;box-shadow:var(--shadow);z-index:30;max-height:360px;overflow:auto}
@@ -62,7 +61,7 @@ button,input,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!im
 .empty-search{padding:16px;color:var(--muted);font-size:12px;text-align:center}
 .toast{position:fixed;right:20px;bottom:20px;z-index:200;padding:12px 15px;background:#172033;color:#fff;border-radius:10px;box-shadow:var(--shadow);font-size:12px;font-weight:750;opacity:0;transform:translateY(10px);pointer-events:none;transition:.2s}.toast.show{opacity:1;transform:translateY(0)}
 @media(max-width:980px){.layout{grid-template-columns:1fr}.calendar-card{position:static}.bottom-grid{grid-template-columns:1fr}.topbar-inner{align-items:flex-start;flex-direction:column}.actions{justify-content:flex-start}}
-@media(max-width:620px){.layout{padding:12px}.search-wrap{padding:0 12px 12px}.commitment-head{grid-template-columns:28px 28px minmax(0,1fr) 30px}.subs{padding-left:58px}.alarm-grid{grid-template-columns:1fr}.date-title{font-size:20px}.move-btn{width:24px;height:28px}.check-btn,.del-btn,.star-btn{height:28px}}
+@media(max-width:620px){.layout{padding:12px}.search-wrap{padding:0 12px 12px}.commitment-head{grid-template-columns:28px 28px minmax(0,1fr) 30px}.subs{padding-left:58px}.date-title{font-size:20px}.move-btn{width:24px;height:28px}.check-btn,.del-btn,.star-btn{height:28px}}
 </style>
 </head>
 <body>
@@ -111,15 +110,7 @@ button,input,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!im
   <section class="agenda-card card" id="agendaList"></section>
   <div class="bottom-grid">
     <section class="info-card card">
-      <div class="info-head"><h2>⏰ ALARMES DO DIA</h2><span id="alarmDate"></span></div>
-      <div class="alarm-grid">
-        <div class="alarm"><label>ALARME 1</label><input id="alarm1" type="time"></div>
-        <div class="alarm"><label>ALARME 2</label><input id="alarm2" type="time"></div>
-      </div>
-      <div class="save-state">OS ALARMES SÃO SALVOS AUTOMATICAMENTE.</div>
-    </section>
-    <section class="info-card card">
-      <div class="info-head"><h2>📝 ANOTAÇÕES GERAIS</h2><span>DIA ATUAL</span></div>
+      <div class="info-head"><h2>📝 ANOTAÇÕES GERAIS</h2><span>FIXO — VALE PARA TODOS OS DIAS</span></div>
       <textarea class="notes" id="notes" placeholder="DIGITE ANOTAÇÕES GERAIS..."></textarea>
       <div class="save-state">SALVAMENTO AUTOMÁTICO.</div>
     </section>
@@ -177,7 +168,7 @@ const fmtShort = iso => new Intl.DateTimeFormat("pt-BR",{day:"2-digit",month:"2-
 const monthName = d => new Intl.DateTimeFormat("pt-BR",{month:"long",year:"numeric"}).format(d);
 
 let selectedDate=todayISO(), calendarMonth=new Date(selectedDate+"T12:00:00"), today=selectedDate;
-let dataCache={}, unsubscribeSelected=null, savingTimer=null, alarmTimers=[], pinMode="create", pinHash=null;
+let dataCache={}, unsubscribeSelected=null, savingTimer=null, pinMode="create", pinHash=null;
 
 async function sha256(text){
   const hash=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(text));
@@ -264,36 +255,21 @@ function saveSelectedDay(){
 }
 function scheduleSave(){clearTimeout(savingTimer);$("saveStatus").textContent="ALTERAÇÕES PENDENTES...";savingTimer=setTimeout(saveSelectedDay,350);}
 
-async function loadCurrentMeta(){
-  const date=todayISO(), snap=await get(ref(db,`${ROOT}/currentDayMeta/${date}`)), meta=snap.exists()?snap.val():{};
-  $("alarm1").value=meta.alarm1||""; $("alarm2").value=meta.alarm2||""; $("notes").value=meta.notes||""; $("alarmDate").textContent=fmtShort(date); setupAlarms();
+// As anotações gerais agora ficam num único registro fixo no banco
+// (agenda_diaria/generalNotes), sem nenhuma data envolvida — por isso
+// valem para todos os dias e não "somem" ao virar o dia.
+async function loadNotes(){
+  const snap=await get(ref(db,`${ROOT}/generalNotes`));
+  $("notes").value=snap.exists()?(snap.val()||""):"";
 }
-function saveMeta(){
-  const date=todayISO(), meta={alarm1:$("alarm1").value||"",alarm2:$("alarm2").value||"",notes:$("notes").value||""};
-  set(ref(db,`${ROOT}/currentDayMeta/${date}`),meta).catch(()=>toast("ERRO AO SALVAR ALARMES/ANOTAÇÕES.")); setupAlarms();
+function saveNotes(){
+  set(ref(db,`${ROOT}/generalNotes`),$("notes").value||"").catch(()=>toast("ERRO AO SALVAR ANOTAÇÕES."));
 }
-function setupAlarms(){
-  alarmTimers.forEach(clearTimeout); alarmTimers=[];
-  const now=new Date();
-  [$("alarm1").value,$("alarm2").value].forEach((time,index)=>{
-    if(!time)return; const [h,m]=time.split(":").map(Number), target=new Date(); target.setHours(h,m,0,0);
-    if(target<=now)return;
-    alarmTimers.push(setTimeout(()=>{notifyAlarm(`ALARME ${index+1}`,`HORÁRIO PROGRAMADO: ${time}`);setupAlarms();},target-now));
-  });
-}
-async function notifyAlarm(title,body){
-  if("Notification"in window){
-    if(Notification.permission==="granted")new Notification(title,{body});
-    else if(Notification.permission!=="denied"){const p=await Notification.requestPermission();if(p==="granted")new Notification(title,{body});}
-  }
-  toast(`${title}: ${body}`);
-}
-$("alarm1").addEventListener("change",saveMeta); $("alarm2").addEventListener("change",saveMeta);
 $("notes").addEventListener("input",()=>{
   const el=$("notes"), start=el.selectionStart, end=el.selectionEnd;
   el.value=el.value.toUpperCase();
   el.setSelectionRange(start,end);
-  saveMeta();
+  saveNotes();
 });
 
 function moveCommitment(index,direction){
@@ -615,7 +591,7 @@ function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show")
 async function startApp(){
   today=todayISO();selectedDate=today;calendarMonth=new Date(today+"T12:00:00");renderCalendar();
   $("dateTitle").innerHTML=`${fmtDate(today)}<small>COMPROMISSOS DO DIA SELECIONADO</small>`;
-  dataCache[today]=await loadDay(today);watchSelectedDay();renderAgenda();await loadCurrentMeta();
+  dataCache[today]=await loadDay(today);watchSelectedDay();renderAgenda();await loadNotes();
   if(!(await get(ref(db,`${ROOT}/days/${today}`))).exists())await set(ref(db,`${ROOT}/days/${today}`),defaultDay());
 }
 initLock();
