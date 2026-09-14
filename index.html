@@ -236,6 +236,21 @@ function compactDay(day){
   day.commitments=filled.slice(0,20);
   return day;
 }
+
+// Reordena os compromissos de um dia colocando os que têm estrela (highlight)
+// primeiro, mantendo a ordem relativa dentro de cada grupo (estrela / sem estrela).
+// Não mexe em subcompromissos nem em nenhuma outra propriedade.
+function sortByStar(day){
+  day.commitments = day.commitments
+    .map((c,idx)=>({c,idx}))
+    .sort((a,b)=>{
+      const ah=a.c.highlight?0:1, bh=b.c.highlight?0:1;
+      if(ah!==bh) return ah-bh;
+      return a.idx-b.idx;
+    })
+    .map(x=>x.c);
+}
+
 async function loadDay(date){
   const snap=await get(ref(db,`${ROOT}/days/${date}`));
   return normalizeDay(snap.exists()?snap.val():null);
@@ -367,9 +382,16 @@ function bindAgendaEvents(){
     card.querySelector('.star-btn').onclick=(e)=>{
       e.preventDefault();
       e.stopPropagation();
-      const c=getCommitment();
+      const data=dataCache[selectedDate]||defaultDay();
+      if(!dataCache[selectedDate]) dataCache[selectedDate]=data;
+      const c=data.commitments[i];
       if(!c)return;
       c.highlight=!c.highlight;
+      // Só reordena quando a estrela está sendo LIGADA: o compromisso sobe
+      // para ficar logo abaixo do último já marcado com estrela (ou vira o
+      // primeiro, se nenhum outro tiver estrela). Ao desmarcar, a posição
+      // não muda.
+      if(c.highlight) sortByStar(data);
       renderAgenda();
       scheduleSave();
     };
@@ -532,6 +554,11 @@ $("migrateBtnCal").onclick=async()=>{
     c.done=true;
     moved++;
   }
+
+  // Reaplica a ordenação por estrela no dia de destino: compromissos migrados
+  // com estrela entram já posicionados no topo (abaixo das estrelas que já
+  // existirem lá), em vez de ficarem apenas no primeiro slot vazio.
+  if(moved) sortByStar(nd);
 
   dataCache[current]=cd;
   dataCache[next]=nd;
