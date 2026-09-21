@@ -27,6 +27,7 @@ button,input,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!im
 .actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.tool-btn{border:1px solid var(--line);background:#fff;color:var(--ink);padding:9px 12px;border-radius:10px;font-weight:750}
 .tool-btn:hover{border-color:#b9c2ce;background:#f8fafc}.tool-btn.today{background:#eef4ff;color:var(--primary);border-color:#cddcff}
 .tool-btn.migrate{background:#fff7e6;color:#9a5b00;border-color:#f6d48d}
+.tool-btn.repeat{background:#f3e8ff;color:#6d28d9;border-color:#dcc6fb}
 .search-wrap{max-width:1500px;margin:auto;padding:0 20px 14px;position:relative}.search{width:100%;height:43px;border:1px solid var(--line);border-radius:11px;padding:0 15px 0 42px;background:#f8fafc;outline:none;text-transform:uppercase}
 .search:focus{background:#fff;border-color:var(--primary);box-shadow:0 0 0 4px rgba(37,99,235,.08)}.search-icon{position:absolute;left:34px;top:12px;color:#7b8491}
 .layout{max-width:1500px;margin:0 auto;padding:18px 20px 28px;display:grid;grid-template-columns:300px minmax(0,1fr);gap:18px}.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
@@ -41,7 +42,8 @@ button,input,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!im
 .agenda-card{padding:12px}.commitment{border:1px solid var(--line);border-radius:13px;margin:7px 0;background:#fff;overflow:hidden;transition:.15s}
 .commitment.highlight{border-color:#f4b4b4;background:#fff8f8;box-shadow:0 4px 16px rgba(220,38,38,.08)}
 .commitment.done{background:#f9fcfa;border-color:#d5e9da}.commitment.done .main-input{text-decoration:line-through;color:#8a929d}.commitment.done .commitment-head{background:#fbfdfb}
-.commitment-head{display:grid;grid-template-columns:34px 27px 30px minmax(0,1fr) auto;gap:6px;align-items:center;padding:7px}.index{font-size:12px;font-weight:900;color:#8a94a2;text-align:center}.plus-sub{height:28px;width:27px;border:1px solid var(--line);background:#fff;border-radius:7px;display:grid;place-items:center;font-size:19px;line-height:1;color:#5f6b79;font-weight:500}.plus-sub:hover{background:#f1f5f9;color:var(--primary);border-color:#b9c8df}
+.commitment.recurring{border-left:4px solid #7c3aed}
+.commitment-head{display:grid;grid-template-columns:34px 27px 30px minmax(0,1fr) auto;gap:6px;align-items:center;padding:7px}.index{font-size:12px;font-weight:900;color:#8a94a2;text-align:center;display:flex;flex-direction:column;align-items:center;gap:1px}.recurring-badge{font-size:10px;line-height:1}.plus-sub{height:28px;width:27px;border:1px solid var(--line);background:#fff;border-radius:7px;display:grid;place-items:center;font-size:19px;line-height:1;color:#5f6b79;font-weight:500}.plus-sub:hover{background:#f1f5f9;color:var(--primary);border-color:#b9c8df}
 .check-btn,.del-btn,.star-btn,.move-btn{height:32px;border:1px solid var(--line);background:#fff;border-radius:8px;display:grid;place-items:center;font-weight:900}
 .check-btn{color:#718096}.check-btn:hover{background:#f1f5f9}.commitment.done .check-btn{background:#edf8f0;color:#4b9b5e;border-color:#cfe6d4;box-shadow:inset 0 0 0 1px rgba(75,155,94,.04)}.del-btn{color:#b42318}.del-btn:hover{background:#fff1f1}
 .star-btn{color:#a36a00}.star-btn.active{background:#fff0f0;color:#dc2626;border-color:#f2b4b4}
@@ -60,6 +62,25 @@ button,input,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!im
 .result{padding:10px 13px;border-bottom:1px solid #eef1f4;cursor:pointer}.result:last-child{border-bottom:0}.result:hover{background:#f8fafc}.result strong{display:block;font-size:12px}.result small{color:var(--muted);font-size:10px}
 .empty-search{padding:16px;color:var(--muted);font-size:12px;text-align:center}
 .toast{position:fixed;right:20px;bottom:20px;z-index:200;padding:12px 15px;background:#172033;color:#fff;border-radius:10px;box-shadow:var(--shadow);font-size:12px;font-weight:750;opacity:0;transform:translateY(10px);pointer-events:none;transition:.2s}.toast.show{opacity:1;transform:translateY(0)}
+.modal-overlay{position:fixed;inset:0;z-index:500;background:rgba(15,23,42,.45);display:grid;place-items:center;padding:16px}
+.modal-overlay.hidden{display:none}
+.modal-card{width:min(440px,94vw);max-height:88vh;overflow:auto;background:#fff;border-radius:18px;padding:22px;box-shadow:0 30px 70px rgba(0,0,0,.3)}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.modal-head h2{font-size:17px;margin:0}
+.modal-label{font-size:11px;font-weight:900;color:var(--muted);margin:12px 0 6px;text-transform:uppercase}
+.modal-input,.modal-date{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;outline:none;font-weight:700}
+.modal-input{text-transform:uppercase}
+.modal-input:focus,.modal-date:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+.modal-choice{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+.choice-btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 8px;font-weight:800;font-size:12.5px;color:#475569;text-align:center}
+.choice-btn.active{background:#f3e8ff;color:#6d28d9;border-color:#dcc6fb}
+.modal-hint{font-size:11px;color:var(--muted);margin:12px 0 0;line-height:1.5}
+.modal-ok{width:100%;margin-top:14px;padding:12px}
+.modal-rules{margin-top:6px}
+.rule-item{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:9px 10px;margin-top:8px}
+.rule-item strong{display:block;font-size:12.5px}
+.rule-item small{color:var(--muted);font-size:10.5px}
+.rule-item .del-btn{height:30px;width:30px;border:1px solid var(--line);border-radius:8px}
 @media(max-width:980px){.layout{grid-template-columns:1fr}.calendar-card{position:static}.bottom-grid{grid-template-columns:1fr}.topbar-inner{align-items:flex-start;flex-direction:column}.actions{justify-content:flex-start}}
 @media(max-width:620px){.layout{padding:12px}.search-wrap{padding:0 12px 12px}.commitment-head{grid-template-columns:28px 28px minmax(0,1fr) 30px}.subs{padding-left:58px}.date-title{font-size:20px}.move-btn{width:24px;height:28px}.check-btn,.del-btn,.star-btn{height:28px}}
 </style>
@@ -101,6 +122,7 @@ button,input,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!im
   <div class="calendar-actions">
     <button class="tool-btn today" id="todayBtnCal">HOJE</button>
     <button class="tool-btn migrate" id="migrateBtnCal">↗ MIGRAR</button>
+    <button class="tool-btn repeat" id="repeatBtnCal">🔁 REPETIR</button>
     <button class="tool-btn" id="lockBtnCal">🔒 BLOQUEAR</button>
   </div>
 </aside>
@@ -118,6 +140,24 @@ button,input,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!im
 </main>
 </div>
 </div>
+
+<div class="modal-overlay hidden" id="repeatModal">
+  <div class="modal-card">
+    <div class="modal-head"><h2>🔁 COMPROMISSO RECORRENTE</h2><button class="icon-btn" id="repeatClose">×</button></div>
+    <label class="modal-label">TEXTO DO COMPROMISSO</label>
+    <input class="modal-input" id="repeatText" placeholder="EX: LEITURA GÁS" autocomplete="off">
+    <label class="modal-label">DATA DE REFERÊNCIA (ESCOLHA NO CALENDÁRIO)</label>
+    <input class="modal-date" id="repeatDate" type="date">
+    <div class="modal-choice" id="repeatChoice">
+      <button type="button" class="choice-btn active" id="repeatMonthdayBtn">TODO DIA <span id="repeatMonthdayLabel">--</span> DO MÊS</button>
+      <button type="button" class="choice-btn" id="repeatWeekdayBtn">TODA <span id="repeatWeekdayLabel">--</span></button>
+    </div>
+    <p class="modal-hint">VALE POR 6 MESES A PARTIR DE HOJE. EDITAR O TEXTO MUDA EM TODAS AS OCORRÊNCIAS; APAGAR REMOVE DALI PRA FRENTE.</p>
+    <button class="primary-btn modal-ok" id="repeatCreate">CRIAR RECORRÊNCIA</button>
+    <div class="modal-rules" id="repeatRulesList"></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-app-compat.js"></script>
@@ -151,6 +191,7 @@ function onValue(reference,onNext,onError){
 
 const ROOT = "agenda_diaria";
 const $ = id => document.getElementById(id);
+const WEEKDAY_NAMES = ["DOMINGO","SEGUNDA-FEIRA","TERÇA-FEIRA","QUARTA-FEIRA","QUINTA-FEIRA","SEXTA-FEIRA","SÁBADO"];
 
 const toLocalISO = d => { const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,"0"), day=String(d.getDate()).padStart(2,"0"); return `${y}-${m}-${day}`; };
 const todayISO = () => toLocalISO(new Date());
@@ -162,6 +203,12 @@ const nextWorkDay = iso => {
   while([0,6].includes(new Date(d+"T12:00:00").getDay())) d=addDays(d,1);
   return d;
 };
+// Usado só pelas regras de recorrência: soma meses de calendário a uma data ISO.
+function addMonths(iso,months){
+  const d=new Date(iso+"T12:00:00");
+  d.setMonth(d.getMonth()+months);
+  return toLocalISO(d);
+}
 const escapeHTML = (s="") => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmtDate = iso => new Intl.DateTimeFormat("pt-BR",{weekday:"long",day:"2-digit",month:"long",year:"numeric"}).format(new Date(iso+"T12:00:00"));
 const fmtShort = iso => new Intl.DateTimeFormat("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"}).format(new Date(iso+"T12:00:00"));
@@ -169,6 +216,8 @@ const monthName = d => new Intl.DateTimeFormat("pt-BR",{month:"long",year:"numer
 
 let selectedDate=todayISO(), calendarMonth=new Date(selectedDate+"T12:00:00"), today=selectedDate;
 let dataCache={}, unsubscribeSelected=null, savingTimer=null, pinMode="create", pinHash=null;
+let recurringRulesCache={}; // { [ruleId]: {text,type,value,createdAt,endDate,createdAtTs} }
+let repeatType="monthday";
 
 async function sha256(text){
   const hash=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(text));
@@ -205,18 +254,40 @@ document.querySelectorAll("#pinBox input").forEach((input,index,all)=>{
 });
 $("pinAction").addEventListener("click",submitPin);
 
-function defaultDay(){
-  return {commitments:Array.from({length:20},()=>({text:"",done:false,highlight:false,subs:Array.from({length:10},()=>({text:"",done:false,active:false}))}))};
+// Normaliza um array bruto de 10 subcompromissos (usado tanto pelos
+// compromissos manuais/migrados quanto pelo status diário de recorrências).
+function normalizeSubs(rawSubs){
+  const subs=Array.from({length:10},()=>({text:"",done:false,active:false}));
+  if(Array.isArray(rawSubs)) for(let j=0;j<10;j++){
+    const s=rawSubs[j]||{};
+    subs[j]={text:typeof s.text==="string"?s.text:"",done:!!s.done,active:!!s.active||!!s.text||!!s.done};
+  }
+  return subs;
 }
+function defaultDay(){
+  return {
+    commitments:Array.from({length:20},()=>({text:"",done:false,highlight:false,subs:normalizeSubs(null)})),
+    recurringStatus:{}
+  };
+}
+// Cada dia agora guarda: commitments (20 quadros manuais/migrados, igual antes)
+// + recurringStatus (feito/estrela/subs por dia de cada regra recorrente que
+// aparecer naquele dia). O TEXTO da recorrência nunca fica salvo no dia — ele
+// vem sempre ao vivo de recurringRulesCache, então editar a regra muda em
+// todas as datas de uma vez.
 function normalizeDay(raw){
   const base=defaultDay();
   if(raw&&Array.isArray(raw.commitments)) for(let i=0;i<20;i++){
     const c=raw.commitments[i]||{};
     base.commitments[i].text=typeof c.text==="string"?c.text:"";
     base.commitments[i].done=!!c.done; base.commitments[i].highlight=!!c.highlight;
-    if(Array.isArray(c.subs)) for(let j=0;j<10;j++){
-      const s=c.subs[j]||{}; base.commitments[i].subs[j]={text:typeof s.text==="string"?s.text:"",done:!!s.done,active:!!s.active||!!s.text||!!s.done};
-    }
+    base.commitments[i].subs=normalizeSubs(c.subs);
+  }
+  if(raw&&raw.recurringStatus&&typeof raw.recurringStatus==="object"){
+    Object.keys(raw.recurringStatus).forEach(ruleId=>{
+      const s=raw.recurringStatus[ruleId]||{};
+      base.recurringStatus[ruleId]={done:!!s.done,highlight:!!s.highlight,subs:normalizeSubs(s.subs)};
+    });
   }
   return base;
 }
@@ -239,7 +310,8 @@ function compactDay(day){
 
 // Reordena os compromissos de um dia colocando os que têm estrela (highlight)
 // primeiro, mantendo a ordem relativa dentro de cada grupo (estrela / sem estrela).
-// Não mexe em subcompromissos nem em nenhuma outra propriedade.
+// Não mexe em subcompromissos nem em nenhuma outra propriedade. Não se aplica
+// a compromissos recorrentes: a posição deles é sempre fixa (ordem de criação).
 function sortByStar(day){
   day.commitments = day.commitments
     .map((c,idx)=>({c,idx}))
@@ -249,6 +321,29 @@ function sortByStar(day){
       return a.idx-b.idx;
     })
     .map(x=>x.c);
+}
+
+// ---- Regras de recorrência ----
+function ruleAppliesOn(rule,dateISO){
+  if(!rule) return false;
+  if(dateISO<rule.createdAt||dateISO>rule.endDate) return false;
+  const d=new Date(dateISO+"T12:00:00");
+  if(rule.type==="monthday") return d.getDate()===rule.value;
+  if(rule.type==="weekday") return d.getDay()===rule.value;
+  return false;
+}
+function getRulesForDate(dateISO){
+  return Object.entries(recurringRulesCache||{})
+    .map(([id,rule])=>({id,...rule}))
+    .filter(rule=>ruleAppliesOn(rule,dateISO))
+    .sort((a,b)=>(a.createdAtTs||0)-(b.createdAtTs||0));
+}
+function watchRecurringRules(){
+  onValue(ref(db,`${ROOT}/recurringRules`),snap=>{
+    recurringRulesCache=snap.exists()?snap.val():{};
+    renderAgenda();
+    renderRepeatRulesList();
+  },()=>{ toast("ERRO AO SINCRONIZAR REGRAS RECORRENTES."); });
 }
 
 async function loadDay(date){
@@ -298,210 +393,307 @@ function moveCommitment(index,direction){
   scheduleSave();
 }
 
+// Foca o campo principal do próximo card na tela (seja ele recorrente ou
+// manual), usado pelo Enter no fim de um compromisso/subcompromisso.
+function focusNextMain(currentCard){
+  const cards=[...document.querySelectorAll('#agendaList .commitment')];
+  const next=cards[cards.indexOf(currentCard)+1];
+  next?.querySelector('[data-main]')?.focus({preventScroll:true});
+}
+
+function buildSubsHTML(subs,displayNumber){
+  let subHTML='';
+  for(let j=0;j<10;j++){
+    const sub=subs[j]||{text:'',done:false,active:false};
+    if(!sub.active && !sub.text && !sub.done) break;
+    subHTML+=`<div class="sub-row ${sub.done?'done':''}">
+      <div class="sub-index">${displayNumber}.${j+1}</div>
+      <button type="button" class="sub-check" title="CONFIRMAR / MARCAR SUBCOMPROMISSO" aria-label="CONFIRMAR SUBCOMPROMISSO" data-sub-check="${j}">✓</button>
+      <input class="sub-input" data-sub="${j}" value="${escapeHTML(sub.text)}" autocomplete="off" spellcheck="false">
+      <button type="button" class="sub-del" title="APAGAR SUBCOMPROMISSO" data-sub-delete="${j}">×</button>
+    </div>`;
+  }
+  return subHTML;
+}
+function renderCommitmentCard(o){
+  const subHTML=buildSubsHTML(o.subs,o.displayNumber);
+  const idAttr=o.isRule?`data-rule-id="${o.ruleId}"`:`data-index="${o.index}"`;
+  const classes=`commitment ${o.done?'done':''} ${o.highlight?'highlight':''} ${o.isRule?'recurring':''}`;
+  const deleteTitle=o.isRule?'APAGAR REGRA RECORRENTE (TODAS AS PRÓXIMAS OCORRÊNCIAS)':'APAGAR COMPROMISSO';
+  const moveButtons=o.isRule?'':`
+      <button type="button" class="move-btn" title="MOVER PARA CIMA" aria-label="MOVER COMPROMISSO PARA CIMA" data-action="move-up" ${!o.canMoveUp?'disabled':''}>↑</button>
+      <button type="button" class="move-btn" title="MOVER PARA BAIXO" aria-label="MOVER COMPROMISSO PARA BAIXO" data-action="move-down" ${!o.canMoveDown?'disabled':''}>↓</button>`;
+  const badge=o.isRule?'<span class="recurring-badge" title="COMPROMISSO RECORRENTE">🔁</span>':'';
+  return `<article class="${classes}" ${idAttr}>
+    <div class="commitment-head">
+      <div class="index">${String(o.displayNumber).padStart(2,'0')}${badge}</div>
+      <button type="button" class="plus-sub" title="CRIAR SUBCOMPROMISSO" data-plus-sub>+</button>
+      <button type="button" class="check-btn" title="CONFIRMAR / MARCAR CONCLUÍDO" aria-label="CONFIRMAR COMPROMISSO" data-action="check">✓</button>
+      <input class="main-input" data-main value="${escapeHTML(o.text)}" placeholder="" autocomplete="off" spellcheck="false">
+      <div style="display:flex;gap:5px">
+        <button type="button" class="star-btn ${o.highlight?'active':''}" title="DESTACAR">${o.highlight?'★':'☆'}</button>
+        ${moveButtons}
+        <button type="button" class="del-btn" title="${deleteTitle}" data-action="delete">×</button>
+      </div>
+    </div>
+    <div class="subs">${subHTML}</div>
+  </article>`;
+}
+
 function renderAgenda(){
   const data=dataCache[selectedDate]||defaultDay();
+  dataCache[selectedDate]=data;
 
-  // Compacta primeiro os subcompromissos: nenhum vazio pode ficar entre os preenchidos.
-  // Os itens preenchidos sobem mantendo a ordem; os vazios ficam no final.
+  // Compacta os subcompromissos e os compromissos manuais/migrados (nenhum
+  // vazio pode ficar entre os preenchidos). Não mexe nas regras recorrentes.
   compactDay(data);
 
   // Guarda o foco/cursor para que o autosave do Firebase não interrompa a digitação.
   const active=document.activeElement;
   const activeCard=active?.closest?.('.commitment');
+  const activeRuleId=activeCard?.dataset.ruleId;
   const activeIndex=activeCard?.dataset.index;
   const activeSub=active?.dataset?.sub;
   const activeMain=active?.hasAttribute?.('data-main');
   const cursorStart=active?.selectionStart ?? null;
   const cursorEnd=active?.selectionEnd ?? null;
 
-  $('agendaList').innerHTML=data.commitments.map((c,i)=>{
-    let subHTML='';
-    for(let j=0;j<10;j++){
-      const sub=c.subs[j]||{text:'',done:false,active:false};
-      if(!sub.active && !sub.text && !sub.done) break;
-      subHTML+=`<div class="sub-row ${sub.done?'done':''}">
-        <div class="sub-index">${i+1}.${j+1}</div>
-        <button type="button" class="sub-check" title="CONFIRMAR / MARCAR SUBCOMPROMISSO" aria-label="CONFIRMAR SUBCOMPROMISSO" data-sub-check="${j}">✓</button>
-        <input class="sub-input" data-sub="${j}" value="${escapeHTML(sub.text)}" autocomplete="off" spellcheck="false">
-        <button type="button" class="sub-del" title="APAGAR SUBCOMPROMISSO" data-sub-delete="${j}">×</button>
-      </div>`;
-    }
+  const rules=getRulesForDate(selectedDate);
+  const ruleCount=rules.length;
+  const maxManual=Math.max(0,20-ruleCount);
+  const manualSlice=data.commitments.slice(0,maxManual);
 
-    return `<article class="commitment ${c.done?'done':''} ${c.highlight?'highlight':''}" data-index="${i}">
-      <div class="commitment-head">
-        <div class="index">${String(i+1).padStart(2,'0')}</div>
-        <button type="button" class="plus-sub" title="CRIAR SUBCOMPROMISSO" data-plus-sub>+</button>
-        <button type="button" class="check-btn" title="CONFIRMAR / MARCAR CONCLUÍDO" aria-label="CONFIRMAR COMPROMISSO" data-action="check">✓</button>
-        <input class="main-input" data-main="${i}" value="${escapeHTML(c.text)}" placeholder="" autocomplete="off" spellcheck="false">
-        <div style="display:flex;gap:5px">
-          <button type="button" class="star-btn ${c.highlight?'active':''}" title="DESTACAR">${c.highlight?'★':'☆'}</button>
-          <button type="button" class="move-btn" title="MOVER PARA CIMA" aria-label="MOVER COMPROMISSO PARA CIMA" data-action="move-up" ${i===0?'disabled':''}>↑</button>
-          <button type="button" class="move-btn" title="MOVER PARA BAIXO" aria-label="MOVER COMPROMISSO PARA BAIXO" data-action="move-down" ${i===19?'disabled':''}>↓</button>
-          <button type="button" class="del-btn" title="APAGAR COMPROMISSO" data-action="delete">×</button>
-        </div>
-      </div>
-      <div class="subs">${subHTML}</div>
-    </article>`;
-  }).join('');
+  let html='';
+  rules.forEach((rule,idx)=>{
+    const status=data.recurringStatus[rule.id]||{done:false,highlight:false,subs:normalizeSubs(null)};
+    html+=renderCommitmentCard({
+      displayNumber:idx+1, isRule:true, ruleId:rule.id, text:rule.text,
+      done:status.done, highlight:status.highlight, subs:status.subs
+    });
+  });
+  manualSlice.forEach((c,i)=>{
+    html+=renderCommitmentCard({
+      displayNumber:ruleCount+i+1, isRule:false, index:i, text:c.text,
+      done:c.done, highlight:c.highlight, subs:c.subs,
+      canMoveUp:i>0, canMoveDown:i<maxManual-1
+    });
+  });
 
+  $('agendaList').innerHTML=html;
   bindAgendaEvents();
 
-  if(activeIndex!==undefined){
+  if(activeRuleId){
+    let target=null;
+    if(activeSub!==undefined) target=document.querySelector(`.commitment[data-rule-id="${activeRuleId}"] [data-sub="${activeSub}"]`);
+    else if(activeMain) target=document.querySelector(`.commitment[data-rule-id="${activeRuleId}"] [data-main]`);
+    if(target){ target.focus({preventScroll:true}); if(cursorStart!==null && typeof target.setSelectionRange==='function') target.setSelectionRange(cursorStart,cursorEnd??cursorStart); }
+  }else if(activeIndex!==undefined){
     let target=null;
     if(activeSub!==undefined) target=document.querySelector(`.commitment[data-index="${activeIndex}"] [data-sub="${activeSub}"]`);
     else if(activeMain) target=document.querySelector(`.commitment[data-index="${activeIndex}"] [data-main]`);
-    if(target){
-      target.focus({preventScroll:true});
-      if(cursorStart!==null && typeof target.setSelectionRange==='function') target.setSelectionRange(cursorStart,cursorEnd??cursorStart);
-    }
+    if(target){ target.focus({preventScroll:true}); if(cursorStart!==null && typeof target.setSelectionRange==='function') target.setSelectionRange(cursorStart,cursorEnd??cursorStart); }
   }
 }
 
 function bindAgendaEvents(){
-  // Os eventos usam sempre o índice atual em dataCache. Isso evita referências
-  // antigas quando o Firebase envia uma atualização depois de criar um sub.
-  document.querySelectorAll('.commitment').forEach(card=>{
-    const i=Number(card.dataset.index);
+  document.querySelectorAll('.commitment[data-rule-id]').forEach(card=>bindRuleCardEvents(card,card.dataset.ruleId));
+  document.querySelectorAll('.commitment[data-index]').forEach(card=>bindManualCardEvents(card,Number(card.dataset.index)));
+}
 
-    const getCommitment=()=>{
-      const data=dataCache[selectedDate]||defaultDay();
-      if(!dataCache[selectedDate]) dataCache[selectedDate]=data;
-      return data.commitments[i];
-    };
+function bindManualCardEvents(card,i){
+  const getCommitment=()=>{
+    const data=dataCache[selectedDate]||defaultDay();
+    if(!dataCache[selectedDate]) dataCache[selectedDate]=data;
+    return data.commitments[i];
+  };
 
-    card.querySelector('[data-action=check]').onclick=(e)=>{
-      e.preventDefault();
-      e.stopPropagation();
-      const c=getCommitment();
-      if(!c)return;
-      c.done=!c.done;
-      renderAgenda();
-      scheduleSave();
-    };
+  card.querySelector('[data-action=check]').onclick=(e)=>{
+    e.preventDefault(); e.stopPropagation();
+    const c=getCommitment(); if(!c)return;
+    c.done=!c.done; renderAgenda(); scheduleSave();
+  };
 
-    card.querySelector('.star-btn').onclick=(e)=>{
-      e.preventDefault();
-      e.stopPropagation();
-      const data=dataCache[selectedDate]||defaultDay();
-      if(!dataCache[selectedDate]) dataCache[selectedDate]=data;
-      const c=data.commitments[i];
-      if(!c)return;
-      c.highlight=!c.highlight;
-      // Só reordena quando a estrela está sendo LIGADA: o compromisso sobe
-      // para ficar logo abaixo do último já marcado com estrela (ou vira o
-      // primeiro, se nenhum outro tiver estrela). Ao desmarcar, a posição
-      // não muda.
-      if(c.highlight) sortByStar(data);
-      renderAgenda();
-      scheduleSave();
-    };
+  card.querySelector('.star-btn').onclick=(e)=>{
+    e.preventDefault(); e.stopPropagation();
+    const data=dataCache[selectedDate]||defaultDay();
+    if(!dataCache[selectedDate]) dataCache[selectedDate]=data;
+    const c=data.commitments[i]; if(!c)return;
+    c.highlight=!c.highlight;
+    if(c.highlight) sortByStar(data);
+    renderAgenda(); scheduleSave();
+  };
 
-    card.querySelector('[data-action="move-up"]').onclick=(e)=>{
-      e.preventDefault();
-      e.stopPropagation();
-      moveCommitment(i,-1);
-    };
+  card.querySelector('[data-action="move-up"]').onclick=(e)=>{ e.preventDefault(); e.stopPropagation(); moveCommitment(i,-1); };
+  card.querySelector('[data-action="move-down"]').onclick=(e)=>{ e.preventDefault(); e.stopPropagation(); moveCommitment(i,1); };
 
-    card.querySelector('[data-action="move-down"]').onclick=(e)=>{
-      e.preventDefault();
-      e.stopPropagation();
-      moveCommitment(i,1);
-    };
+  card.querySelector('[data-action=delete]').onclick=(e)=>{
+    e.preventDefault(); e.stopPropagation();
+    const data=dataCache[selectedDate]||defaultDay();
+    const c=data.commitments[i]; if(!c)return;
+    const hasData=c.text||c.done||c.highlight||c.subs.some(s=>s.active||s.text||s.done);
+    if(hasData&&!confirm(`APAGAR O COMPROMISSO E TODOS OS SEUS SUBCOMPROMISSOS?`))return;
+    data.commitments.splice(i,1);
+    data.commitments.push({text:'',done:false,highlight:false,subs:normalizeSubs(null)});
+    renderAgenda(); scheduleSave();
+  };
 
-    card.querySelector('[data-action=delete]').onclick=(e)=>{
-      e.preventDefault();
-      e.stopPropagation();
-      const data=dataCache[selectedDate]||defaultDay();
-      const c=data.commitments[i];
-      if(!c)return;
-      const hasData=c.text||c.done||c.highlight||c.subs.some(s=>s.active||s.text||s.done);
-      if(hasData&&!confirm(`APAGAR O COMPROMISSO ${i+1} E TODOS OS SEUS SUBCOMPROMISSOS?`))return;
-      data.commitments.splice(i,1);
-      data.commitments.push({text:'',done:false,highlight:false,subs:Array.from({length:10},()=>({text:'',done:false,active:false}))});
-      renderAgenda();
-      scheduleSave();
-    };
+  card.querySelector('[data-plus-sub]').onclick=(e)=>{
+    e.preventDefault(); e.stopPropagation();
+    const c=getCommitment(); if(!c)return;
+    const j=c.subs.findIndex(s=>!s.active&&!s.text&&!s.done);
+    if(j<0){toast('LIMITE DE 10 SUBCOMPROMISSOS ATINGIDO.');return;}
+    c.subs[j].active=true;
+    renderAgenda(); scheduleSave();
+    setTimeout(()=>document.querySelector(`.commitment[data-index="${i}"] [data-sub="${j}"]`)?.focus({preventScroll:true}),0);
+  };
 
-    card.querySelector('[data-plus-sub]').onclick=(e)=>{
-      e.preventDefault();
-      e.stopPropagation();
-      const c=getCommitment();
-      if(!c)return;
-      const j=c.subs.findIndex(s=>!s.active&&!s.text&&!s.done);
-      if(j<0){toast('LIMITE DE 10 SUBCOMPROMISSOS ATINGIDO.');return;}
-      c.subs[j].active=true;
-      renderAgenda();
-      scheduleSave();
-      setTimeout(()=>document.querySelector(`.commitment[data-index="${i}"] [data-sub="${j}"]`)?.focus({preventScroll:true}),0);
-    };
+  const main=card.querySelector('[data-main]');
+  main.oninput=e=>{
+    const c=getCommitment(); if(!c)return;
+    const el=e.target, start=el.selectionStart, end=el.selectionEnd;
+    el.value=el.value.toUpperCase(); el.setSelectionRange(start,end);
+    c.text=el.value; scheduleSave();
+  };
+  main.onkeydown=e=>{
+    if(e.key!=='Enter')return;
+    e.preventDefault(); e.stopPropagation();
+    const first=card.querySelector('[data-sub="0"]');
+    if(first) first.focus({preventScroll:true});
+    else focusNextMain(card);
+  };
 
-    const main=card.querySelector('[data-main]');
-    main.oninput=e=>{
-      const c=getCommitment();
-      if(!c)return;
+  card.querySelectorAll('[data-sub]').forEach(input=>{
+    const j=Number(input.dataset.sub);
+    input.oninput=e=>{
+      const c=getCommitment(); if(!c||!c.subs[j])return;
       const el=e.target, start=el.selectionStart, end=el.selectionEnd;
-      el.value=el.value.toUpperCase();
-      el.setSelectionRange(start,end);
-      c.text=el.value;
-      scheduleSave();
+      el.value=el.value.toUpperCase(); el.setSelectionRange(start,end);
+      c.subs[j].text=el.value; c.subs[j].active=true; scheduleSave();
     };
-
-    main.onkeydown=e=>{
+    input.onkeydown=e=>{
       if(e.key!=='Enter')return;
-      e.preventDefault();
-      e.stopPropagation();
-      const first=card.querySelector('[data-sub="0"]');
-      if(first) first.focus({preventScroll:true});
-      else document.querySelector(`.commitment[data-index="${Math.min(i+1,19)}"] [data-main]`)?.focus({preventScroll:true});
+      e.preventDefault(); e.stopPropagation();
+      const next=card.querySelector(`[data-sub="${j+1}"]`);
+      if(next) next.focus({preventScroll:true});
+      else focusNextMain(card);
     };
+  });
 
-    card.querySelectorAll('[data-sub]').forEach(input=>{
-      const j=Number(input.dataset.sub);
-      input.oninput=e=>{
-        const c=getCommitment();
-        if(!c||!c.subs[j])return;
-        const el=e.target, start=el.selectionStart, end=el.selectionEnd;
-        el.value=el.value.toUpperCase();
-        el.setSelectionRange(start,end);
-        c.subs[j].text=el.value;
-        c.subs[j].active=true;
-        scheduleSave();
-      };
-      input.onkeydown=e=>{
-        if(e.key!=='Enter')return;
-        e.preventDefault();
-        e.stopPropagation();
-        const next=card.querySelector(`[data-sub="${j+1}"]`);
-        if(next) next.focus({preventScroll:true});
-        else document.querySelector(`.commitment[data-index="${Math.min(i+1,19)}"] [data-main]`)?.focus({preventScroll:true});
-      };
-    });
+  card.querySelectorAll('[data-sub-check]').forEach(btn=>btn.onclick=(e)=>{
+    e.preventDefault(); e.stopPropagation();
+    const c=getCommitment(); const j=Number(btn.dataset.subCheck);
+    if(!c||!c.subs[j])return;
+    c.subs[j].done=!c.subs[j].done; c.subs[j].active=true;
+    renderAgenda(); scheduleSave();
+  });
 
-    card.querySelectorAll('[data-sub-check]').forEach(btn=>btn.onclick=(e)=>{
-      e.preventDefault();
-      e.stopPropagation();
-      const c=getCommitment();
-      const j=Number(btn.dataset.subCheck);
-      if(!c||!c.subs[j])return;
-      c.subs[j].done=!c.subs[j].done;
-      c.subs[j].active=true;
-      renderAgenda();
-      scheduleSave();
-    });
-
-    card.querySelectorAll('[data-sub-delete]').forEach(btn=>btn.onclick=(e)=>{
-      e.preventDefault();
-      e.stopPropagation();
-      const c=getCommitment();
-      const j=Number(btn.dataset.subDelete);
-      if(!c||!c.subs[j])return;
-      c.subs.splice(j,1);
-      c.subs.push({text:'',done:false,active:false});
-      renderAgenda();
-      scheduleSave();
-    });
+  card.querySelectorAll('[data-sub-delete]').forEach(btn=>btn.onclick=(e)=>{
+    e.preventDefault(); e.stopPropagation();
+    const c=getCommitment(); const j=Number(btn.dataset.subDelete);
+    if(!c||!c.subs[j])return;
+    c.subs.splice(j,1); c.subs.push({text:'',done:false,active:false});
+    renderAgenda(); scheduleSave();
   });
 }
+
+function bindRuleCardEvents(card,ruleId){
+  const rule=recurringRulesCache[ruleId];
+  if(!rule)return; // regra pode ter sido apagada bem na hora de renderizar
+
+  const getStatus=()=>{
+    const data=dataCache[selectedDate]||defaultDay();
+    if(!dataCache[selectedDate]) dataCache[selectedDate]=data;
+    if(!data.recurringStatus[ruleId]) data.recurringStatus[ruleId]={done:false,highlight:false,subs:normalizeSubs(null)};
+    return data.recurringStatus[ruleId];
+  };
+
+  card.querySelector('[data-action=check]').onclick=(e)=>{
+    e.preventDefault(); e.stopPropagation();
+    const s=getStatus(); s.done=!s.done; renderAgenda(); scheduleSave();
+  };
+
+  card.querySelector('.star-btn').onclick=(e)=>{
+    e.preventDefault(); e.stopPropagation();
+    const s=getStatus(); s.highlight=!s.highlight; renderAgenda(); scheduleSave();
+  };
+
+  card.querySelector('[data-action=delete]').onclick=async(e)=>{
+    e.preventDefault(); e.stopPropagation();
+    if(!confirm(`APAGAR A REGRA RECORRENTE "${rule.text||'(SEM TEXTO)'}" E TODAS AS PRÓXIMAS OCORRÊNCIAS? ESSA AÇÃO NÃO PODE SER DESFEITA.`))return;
+    try{
+      await set(ref(db,`${ROOT}/recurringRules/${ruleId}`),null);
+      delete recurringRulesCache[ruleId];
+      toast('REGRA RECORRENTE REMOVIDA.');
+      renderAgenda(); renderRepeatRulesList();
+    }catch{ toast('ERRO AO REMOVER A REGRA.'); }
+  };
+
+  card.querySelector('[data-plus-sub]').onclick=(e)=>{
+    e.preventDefault(); e.stopPropagation();
+    const s=getStatus();
+    const j=s.subs.findIndex(sub=>!sub.active&&!sub.text&&!sub.done);
+    if(j<0){toast('LIMITE DE 10 SUBCOMPROMISSOS ATINGIDO.');return;}
+    s.subs[j].active=true;
+    renderAgenda(); scheduleSave();
+    setTimeout(()=>document.querySelector(`.commitment[data-rule-id="${ruleId}"] [data-sub="${j}"]`)?.focus({preventScroll:true}),0);
+  };
+
+  const main=card.querySelector('[data-main]');
+  let ruleTextTimer=null;
+  main.oninput=e=>{
+    const el=e.target, start=el.selectionStart, end=el.selectionEnd;
+    el.value=el.value.toUpperCase(); el.setSelectionRange(start,end);
+    if(recurringRulesCache[ruleId]) recurringRulesCache[ruleId].text=el.value;
+    clearTimeout(ruleTextTimer);
+    $('saveStatus').textContent='ALTERAÇÕES PENDENTES...';
+    ruleTextTimer=setTimeout(()=>{
+      set(ref(db,`${ROOT}/recurringRules/${ruleId}/text`),el.value)
+        .then(()=>$('saveStatus').textContent='SALVO / SINCRONIZADO')
+        .catch(()=>{$('saveStatus').textContent='ERRO AO SALVAR'; toast('ERRO AO SALVAR O TEXTO DA REGRA.');});
+    },350);
+  };
+  main.onkeydown=e=>{
+    if(e.key!=='Enter')return;
+    e.preventDefault(); e.stopPropagation();
+    const first=card.querySelector('[data-sub="0"]');
+    if(first) first.focus({preventScroll:true});
+    else focusNextMain(card);
+  };
+
+  card.querySelectorAll('[data-sub]').forEach(input=>{
+    const j=Number(input.dataset.sub);
+    input.oninput=e=>{
+      const s=getStatus(); if(!s.subs[j])return;
+      const el=e.target, start=el.selectionStart, end=el.selectionEnd;
+      el.value=el.value.toUpperCase(); el.setSelectionRange(start,end);
+      s.subs[j].text=el.value; s.subs[j].active=true; scheduleSave();
+    };
+    input.onkeydown=e=>{
+      if(e.key!=='Enter')return;
+      e.preventDefault(); e.stopPropagation();
+      const next=card.querySelector(`[data-sub="${j+1}"]`);
+      if(next) next.focus({preventScroll:true});
+      else focusNextMain(card);
+    };
+  });
+
+  card.querySelectorAll('[data-sub-check]').forEach(btn=>btn.onclick=(e)=>{
+    e.preventDefault(); e.stopPropagation();
+    const s=getStatus(); const j=Number(btn.dataset.subCheck);
+    if(!s.subs[j])return;
+    s.subs[j].done=!s.subs[j].done; s.subs[j].active=true;
+    renderAgenda(); scheduleSave();
+  });
+
+  card.querySelectorAll('[data-sub-delete]').forEach(btn=>btn.onclick=(e)=>{
+    e.preventDefault(); e.stopPropagation();
+    const s=getStatus(); const j=Number(btn.dataset.subDelete);
+    if(!s.subs[j])return;
+    s.subs.splice(j,1); s.subs.push({text:'',done:false,active:false});
+    renderAgenda(); scheduleSave();
+  });
+}
+
 function renderCalendar(){
   $("calTitle").textContent=monthName(calendarMonth);
   const y=calendarMonth.getFullYear(),m=calendarMonth.getMonth(),start=new Date(y,m,1).getDay();
@@ -531,7 +723,9 @@ $("migrateBtnCal").onclick=async()=>{
 
   // Usa sempre o que está em memória (mais atual que o Firebase, pois inclui
   // digitações recentes ainda não sincronizadas) e só busca do Firebase se o
-  // dia nunca foi carregado nesta sessão.
+  // dia nunca foi carregado nesta sessão. Só mexe em day.commitments — os
+  // compromissos recorrentes nunca são migrados, pois já aparecem sozinhos
+  // em cada dia aplicável.
   const cd=compactDay(normalizeDay(dataCache[current]||await loadDay(current)));
   const nd=compactDay(normalizeDay(dataCache[next]||await loadDay(next)));
 
@@ -575,6 +769,85 @@ $("migrateBtnCal").onclick=async()=>{
   toast(moved?`${moved} COMPROMISSO(S) MIGRADO(S) PARA ${fmtShort(next)}.`:"NÃO HÁ COMPROMISSOS PENDENTES PARA MIGRAR.");
 };
 
+// ---- Modal "Repetir" ----
+function openRepeatModal(){
+  $('repeatText').value='';
+  $('repeatDate').value=selectedDate||todayISO();
+  updateRepeatLabels();
+  setRepeatType('monthday');
+  renderRepeatRulesList();
+  $('repeatModal').classList.remove('hidden');
+  setTimeout(()=>$('repeatText').focus(),0);
+}
+function closeRepeatModal(){ $('repeatModal').classList.add('hidden'); }
+function updateRepeatLabels(){
+  const iso=$('repeatDate').value||todayISO();
+  const d=new Date(iso+'T12:00:00');
+  $('repeatMonthdayLabel').textContent=String(d.getDate()).padStart(2,'0');
+  $('repeatWeekdayLabel').textContent=WEEKDAY_NAMES[d.getDay()];
+}
+function setRepeatType(t){
+  repeatType=t;
+  $('repeatMonthdayBtn').classList.toggle('active',t==='monthday');
+  $('repeatWeekdayBtn').classList.toggle('active',t==='weekday');
+}
+$('repeatBtnCal').onclick=openRepeatModal;
+$('repeatClose').onclick=closeRepeatModal;
+$('repeatModal').addEventListener('click',e=>{ if(e.target.id==='repeatModal') closeRepeatModal(); });
+$('repeatDate').addEventListener('change',updateRepeatLabels);
+$('repeatMonthdayBtn').onclick=()=>setRepeatType('monthday');
+$('repeatWeekdayBtn').onclick=()=>setRepeatType('weekday');
+
+$('repeatCreate').onclick=async()=>{
+  const text=$('repeatText').value.trim().toUpperCase();
+  if(!text){ toast('DIGITE O TEXTO DO COMPROMISSO.'); return; }
+  const refDateISO=$('repeatDate').value||todayISO();
+  const refDate=new Date(refDateISO+'T12:00:00');
+  const value=repeatType==='monthday'?refDate.getDate():refDate.getDay();
+  const createdAt=todayISO();
+  const endDate=addMonths(createdAt,6);
+  const key=db.ref(`${ROOT}/recurringRules`).push().key;
+  const ruleData={text,type:repeatType,value,createdAt,endDate,createdAtTs:Date.now()};
+  try{
+    await set(ref(db,`${ROOT}/recurringRules/${key}`),ruleData);
+    recurringRulesCache[key]=ruleData;
+    toast('COMPROMISSO RECORRENTE CRIADO.');
+    $('repeatText').value='';
+    renderRepeatRulesList();
+    renderAgenda();
+  }catch{
+    toast('ERRO AO CRIAR A RECORRÊNCIA.');
+  }
+};
+
+function renderRepeatRulesList(){
+  const box=$('repeatRulesList'); if(!box) return;
+  const todayIso=todayISO();
+  const items=Object.entries(recurringRulesCache||{})
+    .map(([id,rule])=>({id,...rule}))
+    .filter(rule=>rule.endDate>=todayIso)
+    .sort((a,b)=>(a.createdAtTs||0)-(b.createdAtTs||0));
+  if(!items.length){ box.innerHTML='<div class="modal-label" style="margin-top:14px">RECORRÊNCIAS ATIVAS</div><div class="empty-search">NENHUMA RECORRÊNCIA ATIVA.</div>'; return; }
+  box.innerHTML=`<div class="modal-label" style="margin-top:14px">RECORRÊNCIAS ATIVAS</div>`+items.map(r=>{
+    const desc=r.type==='monthday'?`TODO DIA ${String(r.value).padStart(2,'0')} DO MÊS`:`TODA ${WEEKDAY_NAMES[r.value]}`;
+    return `<div class="rule-item">
+      <div><strong>${escapeHTML(r.text)}</strong><small>${desc} · ATÉ ${fmtShort(r.endDate)}</small></div>
+      <button type="button" class="del-btn" data-delete-rule="${r.id}" title="APAGAR RECORRÊNCIA">×</button>
+    </div>`;
+  }).join('');
+  box.querySelectorAll('[data-delete-rule]').forEach(btn=>btn.onclick=async()=>{
+    const id=btn.dataset.deleteRule;
+    const rule=recurringRulesCache[id];
+    if(!confirm(`APAGAR A REGRA RECORRENTE "${rule?.text||''}" E TODAS AS PRÓXIMAS OCORRÊNCIAS?`))return;
+    try{
+      await set(ref(db,`${ROOT}/recurringRules/${id}`),null);
+      delete recurringRulesCache[id];
+      toast('REGRA REMOVIDA.');
+      renderRepeatRulesList(); renderAgenda();
+    }catch{ toast('ERRO AO REMOVER A REGRA.'); }
+  });
+}
+
 let searchDebounceTimer=null, searchToken=0;
 $("search").oninput=e=>{
   const el=e.target, start=el.selectionStart, end=el.selectionEnd;
@@ -588,6 +861,12 @@ $("search").oninput=e=>{
   box.classList.remove("hidden");
   searchDebounceTimer=setTimeout(()=>runSearch(q),300);
 };
+function buildResultHTML(r){
+  if(r.isRule){
+    return `<div class="result" data-result-date="${r.date}" data-result-rule="${r.ruleId}"><strong>${escapeHTML(r.text)}</strong><small>${fmtShort(r.date)} · RECORRENTE</small></div>`;
+  }
+  return `<div class="result" data-result-date="${r.date}" data-result-i="${r.i}" data-result-sub="${r.sub??""}"><strong>${escapeHTML(r.text)}</strong><small>${fmtShort(r.date)} · ${r.sub===null?"COMPROMISSO "+(r.i+1):"SUBCOMPROMISSO "+(r.i+1)+"."+(r.sub+1)}</small></div>`;
+}
 async function runSearch(q){
   const myToken=searchToken, box=$("searchResults");
   const dates=new Set(Object.keys(dataCache));for(let k=-45;k<=45;k++)dates.add(addDays(todayISO(),k));
@@ -603,13 +882,26 @@ async function runSearch(q){
     const {date,d}=entry;
     d.commitments.forEach((c,i)=>{if(c.text.includes(q))results.push({date,i,sub:null,text:c.text});c.subs.forEach((s,j)=>{if(s.text.includes(q))results.push({date,i,sub:j,text:s.text});});});
   });
-  box.innerHTML=results.length?results.slice(0,80).map(r=>`<div class="result" data-result-date="${r.date}" data-result-i="${r.i}" data-result-sub="${r.sub??""}"><strong>${escapeHTML(r.text)}</strong><small>${fmtShort(r.date)} · ${r.sub===null?"COMPROMISSO "+(r.i+1):"SUBCOMPROMISSO "+(r.i+1)+"."+(r.sub+1)}</small></div>`).join(""):`<div class="empty-search">NENHUM RESULTADO ENCONTRADO.</div>`;
+  [...dates].forEach(date=>{
+    getRulesForDate(date).forEach(rule=>{
+      if((rule.text||'').includes(q)) results.push({date,ruleId:rule.id,text:rule.text,isRule:true});
+    });
+  });
+  results.sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);
+  box.innerHTML=results.length?results.slice(0,80).map(buildResultHTML).join(""):`<div class="empty-search">NENHUM RESULTADO ENCONTRADO.</div>`;
   box.classList.remove("hidden");
 }
 $("searchResults").onclick=async e=>{
   const r=e.target.closest(".result");if(!r)return;
-  await selectDate(r.dataset.resultDate);const i=Number(r.dataset.resultI),j=r.dataset.resultSub===""?null:Number(r.dataset.resultSub),card=document.querySelector(`.commitment[data-index="${i}"]`);
-  if(card){card.classList.add("expanded");const target=j===null?card.querySelector("[data-main]"):card.querySelector(`[data-sub="${j}"]`);target?.focus();target?.scrollIntoView({behavior:"smooth",block:"center"});}
+  await selectDate(r.dataset.resultDate);
+  if(r.dataset.resultRule){
+    const card=document.querySelector(`.commitment[data-rule-id="${r.dataset.resultRule}"]`);
+    const target=card?.querySelector('[data-main]');
+    target?.focus(); target?.scrollIntoView({behavior:"smooth",block:"center"});
+  }else{
+    const i=Number(r.dataset.resultI),j=r.dataset.resultSub===""?null:Number(r.dataset.resultSub),card=document.querySelector(`.commitment[data-index="${i}"]`);
+    if(card){const target=j===null?card.querySelector("[data-main]"):card.querySelector(`[data-sub="${j}"]`);target?.focus();target?.scrollIntoView({behavior:"smooth",block:"center"});}
+  }
   $("searchResults").classList.add("hidden");$("search").value="";
 };
 document.addEventListener("click",e=>{if(!e.target.closest(".search-wrap"))$("searchResults").classList.add("hidden");});
@@ -618,7 +910,11 @@ function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show")
 async function startApp(){
   today=todayISO();selectedDate=today;calendarMonth=new Date(today+"T12:00:00");renderCalendar();
   $("dateTitle").innerHTML=`${fmtDate(today)}<small>COMPROMISSOS DO DIA SELECIONADO</small>`;
-  dataCache[today]=await loadDay(today);watchSelectedDay();renderAgenda();await loadNotes();
+  dataCache[today]=await loadDay(today);
+  watchRecurringRules();
+  watchSelectedDay();
+  renderAgenda();
+  await loadNotes();
   if(!(await get(ref(db,`${ROOT}/days/${today}`))).exists())await set(ref(db,`${ROOT}/days/${today}`),defaultDay());
 }
 initLock();
