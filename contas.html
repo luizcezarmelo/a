@@ -8,18 +8,9 @@
     <style>
         @import url(https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap);
         :root {
-            --bg-color: #f4f7f9;
-            --surface-color: #ffffff;
-            --text-color-primary: #212529;
-            --text-color-secondary: #6c757d;
-            --border-color: #e9ecef;
-            --accent-color: #007bff;
-            --nubank-color: #820ad1;
-            --c6-color: #2b2b2b;
-            --danger-color: #dc3545;
-            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
-            --border-radius: 8px
+            --bg-color: #f4f7f9; --surface-color: #ffffff; --text-color-primary: #212529; --text-color-secondary: #6c757d;
+            --border-color: #e9ecef; --accent-color: #007bff; --nubank-color: #820ad1; --c6-color: #2b2b2b; --danger-color: #dc3545;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05); --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1); --border-radius: 8px
         }
         body { font-family: Inter, sans-serif; background-color: var(--bg-color); color: var(--text-color-primary); margin: 0; padding: 2rem 1.5rem; -webkit-font-smoothing: antialiased; font-size: 14px }
         #login-overlay { position: fixed; inset: 0; background-color: rgba(0, 0, 0, .6); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; z-index: 1000; }
@@ -74,7 +65,7 @@
 
 <div class="container">
     <h1>Controle de Despesas</h1>
-    
+
     <div class="month-navigation">
         <div class="nav-group">
             <button id="prevMonthBtn"><i class="fa-solid fa-chevron-left"></i></button>
@@ -84,6 +75,7 @@
         </div>
         <div class="nav-group">
             <input type="file" id="importFile" style="display:none" accept=".json">
+            <button id="historyBtn"><i class="fa-solid fa-clock-rotate-left"></i> Desfazer</button>
             <button id="restoreBtn"><i class="fa-solid fa-upload"></i> Restaurar JSON</button>
             <button id="saveBtn"><i class="fa-solid fa-download"></i> Backup </button>
             <button id="clearAllBtn"><i class="fa-solid fa-trash-can"></i> Limpar mês</button>
@@ -151,7 +143,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getDatabase, ref, set, onValue, get, remove } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+    import { getDatabase, ref, set, get, remove } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDQOGFiqafMZh0ha6XW62P1DpIKJE8TBYc",
@@ -166,7 +158,18 @@
     const app = initializeApp(firebaseConfig);
     const database = getDatabase(app);
     let current_date = new Date();
+    current_date.setDate(1); // evita o bug dos dias 29/30/31 ao trocar de mês
     let debounceTimer;
+    let loadedKey = null, loadedStamp = null, dirty = false, baseline = null;
+    const lastBackupAt = {};
+
+    const TABLES = ["fixed", "nubank", "c6", "diversos", "aleatorios"];
+    const PROPAGATE = ["fixed", "nubank", "c6", "diversos"]; // aleatórios não passam de um mês para o outro
+    const hasParc = k => k === "nubank" || k === "c6" || k === "diversos";
+    const colsOf = k => hasParc(k) ? 3 : 2;
+    const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    const toArr = v => Array.isArray(v) ? v : Object.values(v || {});
+    const ym = s => { const [a, b] = s.split("_"); return (+a) * 12 + (+b); };
 
     const ui = {
         overlay: document.getElementById("login-overlay"),
@@ -232,9 +235,10 @@
     }
 
     function setupEvents() {
-        document.getElementById("prevMonthBtn").onclick = () => { current_date.setMonth(current_date.getMonth() - 1); refresh(); };
-        document.getElementById("nextMonthBtn").onclick = () => { current_date.setMonth(current_date.getMonth() + 1); refresh(); };
-        document.getElementById("todayBtn").onclick = () => { current_date = new Date(); refresh(); };
+        document.getElementById("prevMonthBtn").onclick = async () => { current_date.setMonth(current_date.getMonth() - 1); await refresh(); };
+        document.getElementById("nextMonthBtn").onclick = async () => { current_date.setMonth(current_date.getMonth() + 1); await refresh(); };
+        document.getElementById("todayBtn").onclick = async () => { current_date = new Date(); current_date.setDate(1); await refresh(); };
+        document.getElementById("historyBtn").onclick = openHistory;
         document.getElementById("clearAllBtn").onclick = clearMonth;
         document.getElementById("saveBtn").onclick = exportBackup;
         document.getElementById("restoreBtn").onclick = () => ui.importFile.click();
@@ -242,15 +246,28 @@
 
         Object.keys(ui.tbodies).forEach(k => {
             const tb = ui.tbodies[k];
-            tb.addEventListener("input", e => { if(e.target.tagName === "TD") { ensureEmptyRow(tb); debouncedSave(); } });
+            tb.addEventListener("input", e => { if (e.target.tagName === "TD") { ensureEmptyRow(tb); debouncedSave(); } });
+            tb.addEventListener("focusin", e => { if (e.target.tagName === "TD") e.target.dataset.orig = e.target.textContent; });
             tb.addEventListener("focusout", e => {
-                if(e.target.cellIndex === 1) formatCurrency(e.target);
-                compactAndSave();
+                if (e.target.cellIndex === 1) formatCurrency(e.target);
+                if (e.target.dataset.orig !== e.target.textContent) compactAndSave(); // só clicar e sair não salva
             });
         });
+
+        // salva na hora ao bloquear o celular / trocar de aba
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "hidden" && dirty) { clearTimeout(debounceTimer); save(); }
+        });
+        window.addEventListener("beforeunload", e => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
     }
 
-    function refresh() { updateMonthDisplay(); loadData(); }
+    async function refresh() {
+        clearTimeout(debounceTimer);
+        await save(); // grava o mês atual ANTES de trocar
+        loadedKey = null;
+        updateMonthDisplay();
+        await loadData();
+    }
 
     function updateMonthDisplay() {
         const m = current_date.toLocaleString("pt-BR", { month: "long" });
@@ -261,50 +278,50 @@
         return `${date.getFullYear()}_${(date.getMonth() + 1).toString().padStart(2, '0')}`;
     }
 
-    function isCleared(val) {
-        return val && val.__cleared === true;
-    }
+    function isCleared(val) { return val && val.__cleared === true; }
 
     async function findLastRealData(fromDate) {
         const searchDate = new Date(fromDate);
         for (let i = 0; i < 12; i++) {
             searchDate.setMonth(searchDate.getMonth() - 1);
             const snap = await get(ref(database, "expenses/" + getMonthKey(searchDate)));
-            if (snap.exists() && !isCleared(snap.val())) {
-                return snap.val();
-            }
+            if (snap.exists() && !isCleared(snap.val())) return snap.val();
         }
         return null;
+    }
+
+    function afterLoad(key, data) {
+        renderTables(data);
+        loadedKey = key;
+        loadedStamp = data.__updatedAt || null;
+        dirty = false;
+        baseline = collectData(); // estado "de referência" para detectar o que mudou
     }
 
     async function loadData() {
         const key = getMonthKey(current_date);
         const snap = await get(ref(database, "expenses/" + key));
-
         if (snap.exists() && !isCleared(snap.val())) {
-            // Mês existe com dados reais: renderiza normalmente
-            renderTables(snap.val());
+            afterLoad(key, snap.val());
         } else {
-            // Mês não existe OU foi limpo: remove marcador (se houver) e copia do anterior
-            if (snap.exists() && isCleared(snap.val())) {
-                await remove(ref(database, "expenses/" + key));
-            }
+            if (snap.exists() && isCleared(snap.val())) await remove(ref(database, "expenses/" + key));
             const prevData = await findLastRealData(current_date);
             const newData = prevData ? processNewMonth(prevData) : {};
+            newData.__updatedAt = Date.now();
             await set(ref(database, "expenses/" + key), newData);
-            renderTables(newData);
+            afterLoad(key, newData);
         }
     }
 
     function processNewMonth(old) {
         const d = { fixed: [], nubank: [], c6: [], diversos: [], aleatorios: [] };
-        if(old.fixed) d.fixed = old.fixed.map(r => [r[0], r[1], false]);
+        if (old.fixed) d.fixed = toArr(old.fixed).map(r => [r[0], r[1], false, r[3] || newId()]);
         ["nubank", "c6", "diversos"].forEach(k => {
-            if(old[k]) {
-                old[k].forEach(r => {
+            if (old[k]) {
+                toArr(old[k]).forEach(r => {
                     const m = r[2]?.match(/(\d+)\/(\d+)/);
-                    if(m && parseInt(m[1]) < parseInt(m[2])) {
-                        d[k].push([r[0], r[1], `${parseInt(m[1])+1}/${m[2]}`, false]);
+                    if (m && parseInt(m[1]) < parseInt(m[2])) {
+                        d[k].push([r[0], r[1], `${parseInt(m[1]) + 1}/${m[2]}`, false, r[4] || newId()]);
                     }
                 });
             }
@@ -316,7 +333,7 @@
         Object.keys(ui.tbodies).forEach(k => {
             const tb = ui.tbodies[k];
             tb.innerHTML = "";
-            (data[k] || []).forEach(rowData => addRow(tb, rowData));
+            toArr(data[k]).forEach(rowData => addRow(tb, rowData));
             ensureEmptyRow(tb);
         });
         updateTotals();
@@ -325,7 +342,8 @@
     function addRow(tbody, data = []) {
         const tr = tbody.insertRow();
         const cols = (tbody.id === "fixedTbody" || tbody.id === "aleatoriosTbody") ? 2 : 3;
-        for(let i=0; i<cols; i++) {
+        tr.dataset.id = data[cols + 1] || newId(); // identidade da linha (para acompanhar nos outros meses)
+        for (let i = 0; i < cols; i++) {
             const td = tr.insertCell();
             td.contentEditable = true;
             td.textContent = data[i] || "";
@@ -362,7 +380,7 @@
         const tbody = tr.parentNode;
         const rows = Array.from(tbody.rows);
         const idx = rows.indexOf(tr);
-        if (idx === rows.length - 1) return; // não move a linha vazia (placeholder de nova entrada)
+        if (idx === rows.length - 1) return;
         if (dir === "up" && idx > 0) {
             tbody.insertBefore(tr, rows[idx - 1]);
             debouncedSave();
@@ -374,7 +392,7 @@
 
     function ensureEmptyRow(tb) {
         const last = tb.rows[tb.rows.length - 1];
-        if(!last || Array.from(last.cells).filter(c => !c.dataset.role).some(c => c.textContent.trim() !== "")) addRow(tb);
+        if (!last || Array.from(last.cells).filter(c => !c.dataset.role).some(c => c.textContent.trim() !== "")) addRow(tb);
     }
 
     function compactAndSave() {
@@ -383,34 +401,144 @@
             Array.from(tb.rows).forEach((r, idx) => {
                 const textCells = Array.from(r.cells).filter(c => !c.dataset.role);
                 const isEmpty = textCells.every(c => c.textContent.trim() === "");
-                if(isEmpty && idx < tb.rows.length - 1) r.remove();
+                if (isEmpty && idx < tb.rows.length - 1) r.remove();
             });
         });
         debouncedSave();
     }
 
     function debouncedSave() {
+        dirty = true;
         clearTimeout(debounceTimer);
         showStatus("Processando...");
         debounceTimer = setTimeout(save, 800);
     }
 
-    async function save() {
-        const key = getMonthKey(current_date);
+    // lê a tela: cada linha = [textos..., ok, id]
+    function collectData() {
         const data = {};
-        Object.keys(ui.tbodies).forEach(k => {
-            data[k] = Array.from(ui.tbodies[k].rows)
-                .map(tr => {
-                    const cells = Array.from(tr.cells);
-                    const r = cells.filter(c => !c.dataset.role).map(c => c.textContent.trim());
-                    const checkboxCell = cells.find(c => c.dataset.role === "checkbox");
-                    r.push(checkboxCell.querySelector("input").checked);
-                    return r;
-                }).filter(r => r.slice(0,-1).some(t => t !== ""));
+        TABLES.forEach(k => {
+            data[k] = Array.from(ui.tbodies[k].rows).map(tr => {
+                const cells = Array.from(tr.cells);
+                const r = cells.filter(c => !c.dataset.role).map(c => c.textContent.trim());
+                r.push(cells.find(c => c.dataset.role === "checkbox").querySelector("input").checked);
+                r.push(tr.dataset.id);
+                return r;
+            }).filter(r => r.slice(0, -2).some(t => t !== ""));
         });
-        await set(ref(database, "expenses/" + key), data);
-        updateTotals();
-        showStatus("Dados Salvos!");
+        return data;
+    }
+
+    // cópia de segurança do que estava no banco (máx. 1 a cada 5 min por mês, guarda as 40 últimas)
+    async function backupState(key, state, force) {
+        const now = Date.now();
+        if (!force && lastBackupAt[key] && now - lastBackupAt[key] < 5 * 60 * 1000) return;
+        lastBackupAt[key] = now;
+        await set(ref(database, `history/${key}/${now}`), state);
+        const snap = await get(ref(database, `history/${key}`));
+        const ids = Object.keys(snap.val() || {}).sort();
+        for (const id of ids.slice(0, -40)) await remove(ref(database, `history/${key}/${id}`));
+    }
+
+    // leva para os meses seguintes (já existentes): nome/valor alterados e linhas novas. Nunca mexe em linhas ticadas.
+    async function propagate(key, data, base) {
+        const all = (await get(ref(database, "expenses"))).val() || {};
+        const later = Object.keys(all).filter(m => m > key && !isCleared(all[m])).sort();
+        for (const m of later) {
+            const mo = all[m];
+            const orig = JSON.parse(JSON.stringify(mo));
+            const offset = ym(m) - ym(key);
+            let changed = false;
+            for (const k of PROPAGATE) {
+                const cols = colsOf(k), IDX = cols + 1;
+                const rows = toArr(mo[k]).slice();
+                const oldRows = base[k] || [];
+                for (const n of data[k] || []) {
+                    const o = oldRows.find(r => r[IDX] === n[IDX]);
+                    if (o) {
+                        if (o[0] === n[0] && o[1] === n[1]) continue; // nada mudou nesta linha
+                        let i = rows.findIndex(r => r[IDX] === n[IDX]);
+                        if (i < 0) i = rows.findIndex(r => !r[cols] && r[0] === o[0]); // fallback: pelo nome antigo
+                        if (i >= 0 && !rows[i][cols]) {
+                            const r = rows[i].slice();
+                            r[0] = n[0]; r[1] = n[1]; r[IDX] = n[IDX];
+                            rows[i] = r; changed = true;
+                        }
+                    } else {
+                        if (rows.some(r => r[IDX] === n[IDX])) continue; // já existe lá
+                        let row;
+                        if (hasParc(k)) {
+                            const p = (n[2] || "").match(/(\d+)\/(\d+)/);
+                            if (!p) continue; // sem parcela, não passa de mês (regra atual)
+                            const cur = parseInt(p[1]) + offset;
+                            if (cur > parseInt(p[2])) continue; // parcelamento já terminou nesse mês
+                            row = [n[0], n[1], `${cur}/${p[2]}`, false, n[IDX]];
+                        } else {
+                            row = [n[0], n[1], false, n[IDX]];
+                        }
+                        rows.push(row); changed = true;
+                    }
+                }
+                mo[k] = rows;
+            }
+            if (changed) {
+                await backupState(m, orig, true);
+                mo.__updatedAt = Date.now();
+                await set(ref(database, "expenses/" + m), mo);
+            }
+        }
+    }
+
+    async function save() {
+        if (!loadedKey || !dirty) return;
+        const key = loadedKey;
+        dirty = false;
+        try {
+            const dbRef = ref(database, "expenses/" + key);
+            const current = (await get(dbRef)).val();
+
+            if (current && !isCleared(current) && (current.__updatedAt || null) !== loadedStamp) {
+                const ok = confirm("Este mês foi alterado em outro dispositivo depois que esta tela foi aberta.\n\nOK = sobrescrever com o que está nesta tela\nCancelar = descartar esta tela e recarregar os dados do banco");
+                if (!ok) { await loadData(); showStatus("Dados recarregados"); return; }
+            }
+            if (current && !isCleared(current)) await backupState(key, current);
+
+            const data = collectData();
+            data.__updatedAt = Date.now();
+            await set(dbRef, data);
+            loadedStamp = data.__updatedAt;
+
+            await propagate(key, data, baseline || data);
+            baseline = data;
+
+            updateTotals();
+            showStatus("Dados Salvos!");
+        } catch (err) {
+            dirty = true;
+            console.error(err);
+            showStatus("ERRO AO SALVAR! Verifique a conexão");
+            alert("Não foi possível salvar. Suas alterações NÃO foram gravadas.");
+        }
+    }
+
+    async function openHistory() {
+        const key = loadedKey;
+        if (!key) return;
+        const snap = await get(ref(database, `history/${key}`));
+        const all = snap.val() || {};
+        const ids = Object.keys(all).sort().reverse().slice(0, 15);
+        if (!ids.length) { alert("Ainda não há cópias deste mês."); return; }
+        const lista = ids.map((id, i) => `${i + 1} - ${new Date(+id).toLocaleString("pt-BR")}`).join("\n");
+        const n = parseInt(prompt(`Restaurar qual versão deste mês?\n\n${lista}\n\nDigite o número:`));
+        if (!ids[n - 1]) return;
+        if (!confirm("Restaurar esta versão? A versão atual também será guardada.")) return;
+        const cur = (await get(ref(database, "expenses/" + key))).val();
+        if (cur && !isCleared(cur)) await backupState(key, cur, true);
+        const chosen = all[ids[n - 1]];
+        chosen.__updatedAt = Date.now();
+        await set(ref(database, "expenses/" + key), chosen);
+        await loadData();
+        showStatus("Versão restaurada!");
     }
 
     function updateTotals() {
@@ -424,10 +552,10 @@
             Array.from(ui.tbodies[k].rows).forEach(tr => {
                 const v = parseVal(tr.cells[1].textContent);
                 sub += v;
-                if(k !== "fixed" && k !== "aleatorios") {
+                if (k !== "fixed" && k !== "aleatorios") {
                     const p = tr.cells[2].textContent;
                     const m = p.match(/(\d+)\/(\d+)/);
-                    if(m) {
+                    if (m) {
                         const rest = parseInt(m[2]) - parseInt(m[1]);
                         const dFinal = new Date(current_date);
                         dFinal.setMonth(dFinal.getMonth() + rest);
@@ -446,10 +574,8 @@
                 }
             });
             const el = document.getElementById(k + "Total");
-            if(el) el.textContent = sub.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-            if(k !== "aleatorios") {
-                geral += sub;
-            }
+            if (el) el.textContent = sub.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+            if (k !== "aleatorios") geral += sub;
         });
 
         parcList.sort((a, b) => a.finalDate - b.finalDate);
@@ -487,12 +613,18 @@
     }
 
     async function clearMonth() {
-        if(!confirm("Deseja apagar todos os registros deste mês?")) return;
-        const key = getMonthKey(current_date);
-        await set(ref(database, "expenses/" + key), { __cleared: true });
-        Object.keys(ui.tbodies).forEach(k => { ui.tbodies[k].innerHTML = ""; ensureEmptyRow(ui.tbodies[k]); });
-        updateTotals();
-        showStatus("Mês limpo!");
+        if (!confirm("Deseja apagar todos os registros deste mês?")) return;
+        const key = loadedKey || getMonthKey(current_date);
+        try {
+            const cur = (await get(ref(database, "expenses/" + key))).val();
+            if (cur && !isCleared(cur)) await backupState(key, cur, true);
+            await set(ref(database, "expenses/" + key), { __cleared: true, __updatedAt: Date.now() });
+            loadedStamp = null; dirty = false;
+            Object.keys(ui.tbodies).forEach(k => { ui.tbodies[k].innerHTML = ""; ensureEmptyRow(ui.tbodies[k]); });
+            baseline = collectData();
+            updateTotals();
+            showStatus("Mês limpo!");
+        } catch (err) { console.error(err); alert("Não foi possível limpar o mês."); }
     }
 
     function exportBackup() {
@@ -507,17 +639,17 @@
 
     function importBackup(e) {
         const file = e.target.files[0];
-        if(!file) return;
+        if (!file) return;
         const reader = new FileReader();
         reader.onload = async (ev) => {
             try {
                 const data = JSON.parse(ev.target.result);
-                if(confirm("ATENÇÃO: Isso apagará todos os dados atuais e restaurará os dados do arquivo. Confirmar?")) {
+                if (confirm("ATENÇÃO: Isso apagará todos os dados atuais e restaurará os dados do arquivo. Confirmar?")) {
                     await set(ref(database, "expenses"), data);
-                    refresh();
+                    await refresh();
                     showStatus("Restauração Concluída!");
                 }
-            } catch(err) { alert("Arquivo JSON inválido."); }
+            } catch (err) { alert("Arquivo JSON inválido."); }
         };
         reader.readAsText(file);
     }
@@ -525,7 +657,7 @@
     function parseVal(v) { return parseFloat(String(v).replace(/[R$\s.]/g, "").replace(",", ".")) || 0; }
     function formatCurrency(td) {
         const v = parseVal(td.textContent);
-        if(v > 0) td.textContent = v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        if (v > 0) td.textContent = v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
     function showStatus(t) { ui.status.textContent = t; ui.status.classList.add("show"); setTimeout(() => ui.status.classList.remove("show"), 2000); }
 </script>
