@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a6ed1">
+<title>Controle de Gastos</title>
+
+<style>
+:root{
+  --fiori-blue:#0a6ed1;
+  --fiori-blue-dark:#0854a0;
+  --fiori-bg:#f5f6f7;
+  --fiori-card:#fff;
+  --fiori-border:#d9d9d9;
+  --fiori-text:#1d2d3e;
+  --fiori-muted:#667685;
+  --success:#107e3e;
+  --success-bg:#eaf7ee;
+  --danger:#bb0000;
+  --danger-bg:#fdecec;
+  --warning:#e9730c;
+  --warning-bg:#fff3e8;
+  --shadow:0 1px 4px rgba(0,0,0,.12);
+  --radius:8px;
+  --nubank:#820ad1;
+  --c6:#202124;
+  --mp:#009ee3;
+  --random:#6a6d70;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:"72","72full",Arial,sans-serif;background:var(--fiori-bg);color:var(--fiori-text)}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+button:disabled{opacity:.55;cursor:not-allowed}
+.hidden{display:none!important}
+
+.shell{
+  position:sticky;top:0;z-index:50;
+  min-height:56px;background:#fff;border-bottom:1px solid #c9c9c9;
+  display:flex;align-items:center;gap:12px;padding:8px 12px;
+  box-shadow:0 1px 4px rgba(0,0,0,.08)
+}
+.shell-brand{display:flex;align-items:center;gap:10px;min-width:0}
+.logo{width:34px;height:34px;border-radius:7px;background:var(--fiori-blue);color:#fff;display:grid;place-items:center;font-weight:800}
+.shell-title{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.shell-actions{margin-left:auto;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.icon-btn,.btn{
+  min-height:38px;border:1px solid #b8b8b8;background:#fff;color:var(--fiori-text);
+  border-radius:6px;padding:7px 12px
+}
+.btn.primary{background:var(--fiori-blue);border-color:var(--fiori-blue);color:#fff}
+.btn.primary:hover{background:var(--fiori-blue-dark)}
+.btn.danger{color:var(--danger);border-color:#d9a4a4}
+.btn.success{color:var(--success);border-color:#9bc9ab}
+.icon-btn{width:38px;padding:0;display:grid;place-items:center}
+
+.container{width:min(1500px,100%);margin:auto;padding:14px}
+.toolbar{
+  display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px
+}
+.month-control{
+  display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--fiori-border);
+  border-radius:7px;padding:4px
+}
+.month-control input{border:0;background:transparent;text-align:center;font-weight:700;min-height:32px}
+.month-control button{border:0;background:transparent;padding:7px 10px;border-radius:5px}
+.month-control button:hover{background:#edf4fc}
+.spacer{flex:1}
+
+.card{
+  background:var(--fiori-card);border:1px solid var(--fiori-border);
+  border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden
+}
+.card-head{
+  min-height:48px;padding:11px 14px;border-bottom:1px solid #e5e5e5;
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap
+}
+.card-head h2,.card-head h3{font-size:1rem;margin:0}
+.card-body{padding:14px}
+
+.kpis{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:14px}
+.kpi{padding:14px;min-height:106px}
+.kpi-label{font-size:.82rem;color:var(--fiori-muted);margin-bottom:8px}
+.kpi-value{font-size:1.55rem;font-weight:700;overflow-wrap:anywhere}
+.kpi-sub{font-size:.78rem;color:var(--fiori-muted);margin-top:7px}
+.kpi.total{border-left:4px solid var(--fiori-blue)}
+.kpi.paid{border-left:4px solid var(--success)}
+.kpi.pending{border-left:4px solid var(--warning)}
+.kpi.ending{border-left:4px solid #9b59b6}
+
+.grid-main{display:grid;grid-template-columns:1fr;gap:14px}
+.form-grid{display:grid;grid-template-columns:1fr;gap:10px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:.78rem;color:var(--fiori-muted);font-weight:600}
+.field input,.field select,.field textarea{
+  width:100%;min-height:40px;border:1px solid #89919a;border-radius:5px;
+  background:#fff;padding:8px 10px;color:var(--fiori-text);outline:none
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--fiori-blue);box-shadow:0 0 0 2px rgba(10,110,209,.12)}
+.field textarea{min-height:76px;resize:vertical}
+.form-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+
+.checkbox-row{display:flex;align-items:center;gap:8px;min-height:40px}
+.checkbox-row input{width:18px;height:18px}
+
+.filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.filters select{min-height:36px;border:1px solid #89919a;border-radius:5px;padding:6px 9px;background:#fff}
+
+.progress-wrap{margin-top:10px}
+.progress-track{height:13px;background:#e6e8eb;border-radius:99px;overflow:hidden}
+.progress-bar{height:100%;width:0;background:var(--fiori-blue);transition:width .25s ease}
+.progress-bar.over{background:var(--danger)}
+.progress-meta{display:flex;justify-content:space-between;gap:8px;margin-top:6px;font-size:.78rem;color:var(--fiori-muted)}
+
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;min-width:920px}
+th,td{padding:10px 9px;border-bottom:1px solid #e5e5e5;text-align:left;vertical-align:middle}
+th{font-size:.76rem;color:#52616f;background:#f8f9fa;position:sticky;top:0;z-index:2}
+td{font-size:.88rem}
+tbody tr:hover{background:#f7fbff}
+tbody tr.paid-row{background:var(--success-bg);color:#4c6657}
+tbody tr.paid-row .description{text-decoration:line-through}
+tbody tr.ending-row{box-shadow:inset 4px 0 0 #9b59b6}
+.empty{padding:30px 15px;text-align:center;color:var(--fiori-muted)}
+
+.origin-tag{
+  display:inline-flex;align-items:center;gap:5px;border-radius:99px;padding:4px 8px;
+  font-size:.72rem;font-weight:700;white-space:nowrap
+}
+.origin-nubank{color:#6500a5;background:#f2e5fa;border:1px solid #c99de8}
+.origin-c6{color:#fff;background:#202124;border:1px solid #202124}
+.origin-mp{color:#006c9f;background:#e1f5fc;border:1px solid #8ad6ef}
+.origin-random{color:#4e5357;background:#eceeef;border:1px solid #c5c9cc}
+
+.status-toggle{display:flex;align-items:center;gap:7px}
+.switch{position:relative;width:42px;height:24px;display:inline-block}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;inset:0;background:#a8afb5;border-radius:20px;transition:.2s}
+.slider:before{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 2px #777}
+.switch input:checked+.slider{background:var(--success)}
+.switch input:checked+.slider:before{transform:translateX(18px)}
+
+.actions{display:flex;gap:5px;flex-wrap:wrap}
+.small-btn{border:1px solid #b7bdc2;background:#fff;border-radius:5px;padding:6px 8px;font-size:.78rem}
+.small-btn:hover{background:#f0f4f7}
+.small-btn.delete{color:var(--danger)}
+
+.quick-list{display:flex;flex-direction:column;gap:8px}
+.quick-item{
+  border:1px solid var(--fiori-border);border-left:4px solid var(--warning);
+  border-radius:6px;padding:10px;display:grid;grid-template-columns:1fr auto;gap:8px;
+  background:#fff
+}
+.quick-item.done{border-left-color:var(--success);background:var(--success-bg)}
+.quick-text{min-width:0}
+.quick-desc{font-weight:600;overflow-wrap:anywhere}
+.quick-value{font-size:.86rem;color:var(--fiori-muted);margin-top:4px}
+.quick-actions{display:flex;gap:5px;align-items:center}
+.quick-item.done .quick-desc{text-decoration:line-through;color:#5e7164}
+
+.sync{
+  position:fixed;left:12px;bottom:12px;z-index:300;max-width:min(520px,calc(100% - 24px));
+  border:1px solid #e3b2b2;background:#fff3f3;color:#8f0000;padding:11px 13px;
+  border-radius:7px;box-shadow:0 2px 10px rgba(0,0,0,.18);display:flex;gap:10px;align-items:flex-start
+}
+.sync button{margin-left:auto;border:0;background:transparent;color:inherit;font-size:1.1rem}
+.sync.ok{background:#eef9f2;border-color:#a9d6b8;color:#25643c}
+
+.toast{
+  position:fixed;right:12px;bottom:12px;z-index:90;background:#1d2d3e;color:#fff;
+  padding:10px 14px;border-radius:6px;box-shadow:0 3px 14px rgba(0,0,0,.25);
+  max-width:min(420px,calc(100% - 24px))
+}
+
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(24,35,46,.62);z-index:200;
+  display:grid;place-items:center;padding:14px
+}
+.modal{
+  width:min(500px,100%);background:#fff;border-radius:10px;box-shadow:0 10px 45px rgba(0,0,0,.35);
+  overflow:hidden
+}
+.modal-head{padding:17px;border-bottom:1px solid #ddd}
+.modal-head h2{margin:0;font-size:1.1rem}
+.modal-body{padding:17px}
+.pin-input{
+  width:100%;font-size:2rem;letter-spacing:.55em;text-align:center;
+  padding:10px;border:1px solid #89919a;border-radius:6px
+}
+.pin-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}
+.pin-note{font-size:.8rem;color:var(--fiori-muted);margin-top:10px;line-height:1.4}
+.lock-state{text-align:center;padding:30px 10px}
+.lock-icon{font-size:2.3rem;color:var(--fiori-blue);margin-bottom:8px}
+
+.note{font-size:.78rem;color:var(--fiori-muted);line-height:1.45}
+.last-sync{font-size:.76rem;color:var(--fiori-muted);margin-left:auto}
+.danger-text{color:var(--danger)}
+.success-text{color:var(--success)}
+
+@media (min-width:640px){
+  .container{padding:18px}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .form-grid{grid-template-columns:repeat(2,1fr)}
+  .span-2{grid-column:span 2}
+}
+@media (min-width:960px){
+  .kpis{grid-template-columns:repeat(4,1fr)}
+  .grid-main{grid-template-columns:minmax(0,1.65fr) minmax(320px,.75fr)}
+  .form-grid{grid-template-columns:repeat(4,1fr)}
+  .span-2{grid-column:span 2}
+  .span-4{grid-column:span 4}
+}
+@media (max-width:639px){
+  .shell{align-items:flex-start}
+  .shell-actions{justify-content:flex-end}
+  .shell-actions .btn{padding:7px 9px}
+  .container{padding:10px}
+  .toolbar{align-items:stretch}
+  .month-control{width:100%;justify-content:space-between}
+  .month-control input{flex:1}
+  .toolbar>.btn{flex:1}
+  .last-sync{width:100%;margin:0}
+}
+
+.top-total{text-align:center;padding:18px;margin-bottom:14px}
+.top-total .lbl{color:var(--fiori-muted);font-size:.95rem}
+.top-total .val{font-size:2rem;font-weight:800;margin-top:4px}
+.top-total .sub{font-size:.8rem;color:var(--fiori-muted);margin-top:6px}
+.blocks{display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:14px;align-items:start}
+@media(min-width:760px){.blocks{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1200px){.blocks{grid-template-columns:repeat(4,1fr)}}
+.notes-wrap{max-width:460px;margin-bottom:14px}
+.blk{border-top:4px solid transparent}
+.blk.b-fixas{border-top-color:var(--fiori-blue)}
+.blk.b-nubank,.blk.b-notes{border-top-color:#820ad1}
+.blk.b-c6{border-top-color:#202124}
+.blk.b-diversos{border-top-color:#6a6d70}
+.blk-head{display:flex;align-items:center;gap:8px;padding:12px 14px}
+.blk-title{font-weight:700;font-size:1.02rem;flex:1}
+.blk table,.venc table{min-width:0}
+.blk th,.blk td{padding:8px 7px;font-size:.85rem}
+.blk th,.venc th{position:static}
+.blk .num,.blk th.num{text-align:right;white-space:nowrap}
+.blk td.ed{cursor:pointer}
+.blk td.ed:hover{color:var(--fiori-blue)}
+.blk tr.r-ok td{background:var(--success-bg)}
+.blk input[type=checkbox]{width:17px;height:17px}
+.mv{white-space:nowrap}
+.mv button{border:1px solid #c5cacf;background:#fff;border-radius:4px;width:26px;height:26px;font-size:.65rem;padding:0}
+.mv button:disabled{opacity:.35;cursor:default}
+.blk-foot{display:flex;justify-content:space-between;gap:8px;padding:10px 14px;background:#f5f6f7;font-weight:700;font-size:.9rem}
+.blk-foot small{font-weight:400;color:var(--fiori-muted)}
+.venc table{min-width:640px}
+.venc tr.gt td{background:#eef6ff;color:#0a6ed1;font-weight:700}
+.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:480px){.trio{grid-template-columns:1fr}}
+</style>
+</head>
+
+<body>
+<header class="shell">
+  <div class="shell-brand">
+    <div class="logo">G</div>
+    <div class="shell-title">Controle de Gastos Mensais</div>
+  </div>
+  <div class="shell-actions">
+    <button class="btn" id="backupBtn" type="button">BCK</button>
+    <button class="btn" id="exportBtn" type="button">Exportar</button>
+    <button class="btn" id="lockBtn" type="button">Bloquear</button>
+  </div>
+</header>
+
+<main class="container hidden" id="app">
+  <div class="toolbar">
+    <div class="month-control">
+      <button id="prevMonth" type="button" aria-label="Mês anterior">‹</button>
+      <input id="monthPicker" type="month">
+      <button id="nextMonth" type="button" aria-label="Próximo mês">›</button>
+    </div>
+    <button class="btn" id="todayBtn" type="button">Mês atual</button>
+    <div class="spacer"></div>
+    <div class="last-sync" id="syncText">Última sincronização: —</div>
+  </div>
+
+  <section class="card top-total">
+    <div class="lbl">Total do Mês</div>
+    <div class="val" id="topTotal">R$ 0,00</div>
+    <div class="sub" id="topSub"></div>
+  </section>
+
+  <section class="blocks" id="blocks"></section>
+
+  <section class="card venc" style="margin-bottom:14px">
+    <div class="card-head"><h2>Vencimento das parcelas</h2></div>
+    <div class="table-wrap" id="vencWrap"></div>
+  </section>
+
+  <section class="notes-wrap" id="notesWrap"></section>
+</main>
+
+<div class="sync hidden" id="syncError">
+  <strong>Sincronização:</strong>
+  <span id="syncErrorText">Não foi possível salvar.</span>
+  <button type="button" id="closeSyncError" aria-label="Fechar">×</button>
+</div>
+
+<div class="toast hidden" id="toast"></div>
+
+<div class="modal-backdrop" id="pinModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="pinTitle">Acesso protegido</h2>
+    </div>
+    <div class="modal-body">
+      <div class="lock-state">
+        <div class="lock-icon">▣</div>
+        <div id="pinMessage">Digite seu PIN de 4 dígitos.</div>
+      </div>
+
+      <form id="pinForm">
+        <input class="pin-input" id="pinInput" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off" aria-label="PIN de 4 dígitos">
+        <div class="pin-actions">
+          <button class="btn primary" type="submit" id="pinSubmit">Entrar</button>
+          <button class="btn" type="button" id="resetPinBtn">Redefinir PIN</button>
+        </div>
+      </form>
+      <div class="pin-note" id="pinNote"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop hidden" id="editModal">
+  <div class="modal">
+    <div class="modal-head"><h2 id="editTitle">Novo item</h2></div>
+    <div class="modal-body">
+      <form id="editForm">
+        <div class="field">
+          <label for="fDesc">Descrição</label>
+          <input id="fDesc" maxlength="180" autocomplete="off">
+        </div>
+        <div class="field" style="margin-top:10px">
+          <label for="fAmount" id="fAmountLabel">Valor</label>
+          <input id="fAmount" type="number" step="0.01" inputmode="decimal" placeholder="0,00">
+        </div>
+        <div class="trio" id="fCardFields" style="margin-top:10px">
+          <div class="field">
+            <label for="fOrigin">Cartão</label>
+            <select id="fOrigin">
+              <option value="Nubank">Nubank</option>
+              <option value="C6">C6</option>
+              <option value="Diversos">Diversos</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="fCur">Parcela atual</label>
+            <input id="fCur" type="number" min="1" max="120" step="1" value="1" inputmode="numeric">
+          </div>
+          <div class="field">
+            <label for="fTotal">Total de parcelas</label>
+            <input id="fTotal" type="number" min="1" max="120" step="1" value="1" inputmode="numeric">
+          </div>
+        </div>
+        <p class="note" id="fHint" style="margin-top:10px"></p>
+        <div class="form-actions">
+          <button class="btn primary" type="submit">Salvar</button>
+          <button class="btn danger hidden" id="fDelete" type="button">Excluir</button>
+          <button class="btn" id="fCancel" type="button">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+import {
+  getDatabase, ref, get, set, update, remove, push, onValue, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+
+/*
+  IMPORTANTE:
+  A configuração enviada originalmente contém:
+    authDomain: "://firebaseapp.com"
+    databaseURL: "https://firebasedatabase.app"
+
+  Esses dois valores não identificam uma instância Firebase válida.
+  Abaixo foi usada a forma convencional correspondente ao projectId informado.
+  Se o seu console Firebase mostrar outra URL do Realtime Database,
+  altere SOMENTE firebaseConfig.databaseURL para a URL exibida em:
+  Firebase Console > Realtime Database > Dados.
+*/
+const firebaseConfig = {
+  apiKey: "AIzaSyBiikcagIm1p7wJG6DsHijkvdy1fpDBn8Y",
+  authDomain: "bd-teste-c931c.firebaseapp.com",
+  databaseURL: "https://bd-teste-c931c-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "bd-teste-c931c",
+  storageBucket: "bd-teste-c931c.firebasestorage.app",
+  messagingSenderId: "270308100761",
+  appId: "1:270308100761:web:ae34fde6d5ae86b67b0608"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const $ = id => document.getElementById(id);
+const money = n => new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(Number(n)||0);
+const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+const state = {
+  authenticated:false,
+  pinExists:false,
+  currentMonth:"",
+  expenses:{},
+  fixed:{},
+  quick:{},
+  limits:{},
+  pendingSave:false,
+  backupDone:false,
+  saveTimer:null,
+  unsubs:[],
+  financialLoaded:false,
+  notes:{},
+  editing:null
+};
+
+function monthOf(date){
+  return String(date || "").slice(0,7);
+}
+function addMonths(month, count){
+  const [y,m] = month.split("-").map(Number);
+  const d = new Date(y, m-1+count, 1);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+}
+function monthLabel(month){
+  if(!month) return "";
+  const [y,m] = month.split("-").map(Number);
+  return new Intl.DateTimeFormat("pt-BR",{month:"long",year:"numeric"}).format(new Date(y,m-1,1));
+}
+function today(){
+  return new Date().toISOString().slice(0,10);
+}
+function uuid(){
+  return crypto.randomUUID ? crypto.randomUUID() : "id-"+Date.now()+"-"+Math.random().toString(16).slice(2);
+}
+function originClass(origin){
+  return origin==="Nubank"?"origin-nubank":origin==="C6"?"origin-c6":origin==="Mercado Pago"?"origin-mp":"origin-random";
+}
+function originTag(origin){
+  return `<span class="origin-tag ${originClass(origin)}">${esc(origin)}</span>`;
+}
+function showToast(message){
+  $("toast").textContent=message;
+  $("toast").classList.remove("hidden");
+  clearTimeout(showToast.timer);
+  showToast.timer=setTimeout(()=>$("toast").classList.add("hidden"),3200);
+}
+function setSyncError(message){
+  $("syncErrorText").textContent=message;
+  $("syncError").classList.remove("hidden");
+}
+function clearSyncError(){
+  $("syncError").classList.add("hidden");
+}
+$("closeSyncError").onclick=clearSyncError;
+
+function setSyncTime(){
+  $("syncText").textContent="Última sincronização com o banco de dados: "+new Date().toLocaleTimeString("pt-BR");
+}
+
+async function safeGet(path){
+  const snap=await get(ref(db,path));
+  return snap.exists()?snap.val():null;
+}
+async function safeSet(path,value){
+  await set(ref(db,path),value);
+  setSyncTime();
+}
+async function safeUpdate(path,value){
+  await update(ref(db,path),value);
+  setSyncTime();
+}
+async function safeRemove(path){
+  await remove(ref(db,path));
+  setSyncTime();
+}
+
+/*
+  Backup:
+  O backup é um snapshot do estado atual das árvores de dados relevantes.
+  Nunca é colocado no navegador.
+*/
+async function createBackup(reason="manual"){
+  const snapshot = {
+    createdAt:Date.now(),
+    reason,
+    expenses:state.expenses || {},
+    fixed:state.fixed || {},
+    notes:state.notes || {}
+  };
+  const key=push(ref(db,"backups")).key;
+  await safeSet("backups/"+key,snapshot);
+  state.backupDone=true;
+  showToast("Backup criado com sucesso.");
+}
+
+async function ensureImmediateBackup(reason){
+  if(state.backupDone) return;
+  try{
+    await createBackup(reason);
+  }catch(err){
+    setSyncError("Falha ao criar backup automático. Seus dados ainda não foram considerados sincronizados.");
+    throw err;
+  }
+}
+
+function markDirty(reason="alteração"){
+  state.pendingSave=true;
+  ensureImmediateBackup(reason).catch(()=>{});
+  clearTimeout(state.saveTimer);
+  state.saveTimer=setTimeout(autoSave,3000);
+}
+
+async function autoSave(){
+  if(!state.pendingSave || !state.authenticated) return;
+  try{
+    /*
+      O estado já é gravado imediatamente nas operações críticas.
+      Este ponto serve como checkpoint resiliente dos dados carregados.
+    */
+    await safeUpdate("meta",{
+      lastAutoSave:Date.now(),
+      currentMonth:state.currentMonth
+    });
+    state.pendingSave=false;
+    clearSyncError();
+  }catch(err){
+    setSyncError("Erro de sincronização automática. Verifique a conexão com a internet e tente novamente.");
+  }
+}
+
+function normalizeExpense(id,x){
+  return {
+    id,
+    description:x.description || "",
+    amount:Number(x.amount)||0,
+    origin:x.origin || "Aleatórios",
+    purchaseDate:x.purchaseDate || today(),
+    installments:Math.max(1,Number(x.installments)||1),
+    note:x.note || "",
+    fixedId:x.fixedId || null,
+    createdAt:Number(x.createdAt)||0,
+    deleted:!!x.deleted,
+    /*
+      paid é um mapa por número de parcela:
+      paid["1"]=true, paid["2"]=false...
+    */
+    parcelValue:x.parcelValue!=null?Number(x.parcelValue):null,
+    order:typeof x.order==="number"?x.order:null,
+    paid:x.paid || {}
+  };
+}
+
+function baseExpenses(){
+  return Object.entries(state.expenses||{})
+    .map(([id,x])=>normalizeExpense(id,x))
+    .filter(x=>!x.deleted && !x.fixedId);
+}
+
+function fixedStartMonth(f){
+  return f.startMonth || monthOf(f.purchaseDate) || state.currentMonth;
+}
+
+function installmentsForMonth(exp, month){
+  const start=monthOf(exp.purchaseDate);
+  const diff=(Number(month.slice(0,4))-Number(start.slice(0,4)))*12+
+             (Number(month.slice(5,7))-Number(start.slice(5,7)));
+  if(diff<0 || diff>=exp.installments) return null;
+  const n=diff+1;
+  const amount=exp.parcelValue!=null?exp.parcelValue:exp.amount/exp.installments;
+  return {
+    expenseId:exp.id,
+    kind:"exp",order:exp.order,createdAt:exp.createdAt,
+    description:exp.description,
+    amount,
+    origin:exp.origin,
+    purchaseDate:exp.purchaseDate,
+    installment:n,
+    installments:exp.installments,
+    note:exp.note,
+    fixedId:exp.fixedId,
+    paid:!!exp.paid?.[n]
+  };
+}
+
+function fixedAmount(f,month){
+  let amt=Number(f.amount)||0, best="";
+  for(const [m,v] of Object.entries(f.valores||{})){
+    if(m<=month && m>=best){ best=m; amt=Number(v)||0; }
+  }
+  return amt;
+}
+
+function fixedVirtualExpenses(month){
+  /*
+    Despesas fixas são representadas como lançamentos virtuais.
+    Se o usuário marcar uma parcela fixa como paga, o estado é salvo em
+    fixed[id].paid[YYYY-MM] para não misturar meses.
+  */
+  return Object.entries(state.fixed||{}).map(([id,f])=>{
+    if(f.deleted) return null;
+    const start=fixedStartMonth(f);
+    if(month<start) return null;
+    if(f.endMonth && month>f.endMonth) return null;
+    if(f.skip && f.skip[month]) return null;
+    const day=Number(String(f.purchaseDate||"").slice(8,10))||1;
+    const lastDay=new Date(Number(month.slice(0,4)),Number(month.slice(5,7)),0).getDate();
+    return {
+      expenseId:"fixed:"+id,
+      description:f.description,
+      amount:fixedAmount(f,month),
+      origin:f.origin||"Aleatórios",
+      purchaseDate:month+"-"+String(Math.min(day,lastDay)).padStart(2,"0"),
+      installment:1,
+      installments:1,
+      note:f.note||"Despesa fixa",
+      fixedId:id,
+      kind:"fixed",order:f.order,createdAt:f.createdAt,
+      paid:!!f.paid?.[month]
+    };
+  }).filter(Boolean);
+}
+
+function monthEntries(month=state.currentMonth){
+  const normal=baseExpenses().map(x=>installmentsForMonth(x,month)).filter(Boolean);
+  const fixed=fixedVirtualExpenses(month);
+  return [...normal,...fixed];
+}
+
+const BLOCKS=[
+  {id:"fixas",title:"Fixas",parc:false},
+  {id:"nubank",title:"Nubank",parc:true,tag:"NUBANK"},
+  {id:"c6",title:"C6 Bank",parc:true,tag:"C6"},
+  {id:"diversos",title:"Diversos",parc:true,tag:"DIVERSOS"}
+];
+const num=n=>new Intl.NumberFormat("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(n)||0);
+const round2=v=>Math.round(v*100)/100;
+const sum=list=>list.reduce((s,e)=>s+e.amount,0);
+const ord=e=>typeof e.order==="number"?e.order:(e.createdAt||0);
+const cmpOrder=(a,b)=>ord(a)-ord(b)||String(a.description).localeCompare(String(b.description));
+
+function blockOf(e){
+  if(e.kind==="fixed") return "fixas";
+  return e.origin==="Nubank"?"nubank":e.origin==="C6"?"c6":"diversos";
+}
+function mLabel(m){
+  const [y,mm]=m.split("-").map(Number);
+  const name=new Intl.DateTimeFormat("pt-BR",{month:"long"}).format(new Date(y,mm-1,1));
+  return name.charAt(0).toUpperCase()+name.slice(1)+"/"+y;
+}
+
+function monthBlocks(month){
+  const by={fixas:[],nubank:[],c6:[],diversos:[]};
+  monthEntries(month).forEach(e=>by[blockOf(e)].push(e));
+  Object.values(by).forEach(l=>l.sort(cmpOrder));
+  return by;
+}
+function noteEntries(month){
+  return Object.entries((state.notes||{})[month]||{}).map(([id,x])=>({
+    kind:"note",expenseId:"note:"+id,noteId:id,
+    description:x.description||"",amount:Number(x.amount)||0,paid:!!x.done,
+    order:typeof x.order==="number"?x.order:null,createdAt:Number(x.createdAt)||0
+  })).sort(cmpOrder);
+}
+function findEntry(key){
+  const m=state.currentMonth;
+  return [...monthEntries(m),...noteEntries(m)].find(e=>e.expenseId===key);
+}
+
+function vencGroups(){
+  const cur=state.currentMonth, map={};
+  baseExpenses().forEach(x=>{
+    if(x.installments<=1) return;
+    const e=installmentsForMonth(x,cur);
+    if(!e) return;
+    const end=addMonths(monthOf(x.purchaseDate),x.installments-1);
+    (map[end]=map[end]||[]).push({
+      description:x.description,b:blockOf({kind:"exp",origin:x.origin}),
+      amount:e.amount,n:e.installment,N:x.installments,order:ord(x)
+    });
+  });
+  const idx=id=>BLOCKS.findIndex(k=>k.id===id);
+  return Object.keys(map).sort().map(m=>{
+    const items=map[m].sort((a,c)=>idx(a.b)-idx(c.b)||a.order-c.order||a.description.localeCompare(c.description));
+    return {month:m,items,total:sum(items)};
+  });
+}
+
+function blockHTML(b,list){
+  const total=sum(list), falta=sum(list.filter(e=>!e.paid));
+  const rows=list.length?list.map((e,i)=>{
+    const k=esc(e.expenseId);
+    return `<tr class="${e.paid?"r-ok":""}">
+      <td class="ed" data-edit="${k}">${esc(e.description)}</td>
+      <td class="ed num" data-edit="${k}">${b.note&&!e.amount?"":num(e.amount)}</td>
+      ${b.parc?`<td>${e.installments>1?e.installment+"/"+e.installments:""}</td>`:""}
+      <td><input type="checkbox" data-ok="${k}" ${e.paid?"checked":""} aria-label="OK"></td>
+      <td class="mv"><button type="button" data-mv="${k}" data-b="${b.id}" data-dir="-1" ${i===0?"disabled":""} aria-label="Subir">▲</button><button type="button" data-mv="${k}" data-b="${b.id}" data-dir="1" ${i===list.length-1?"disabled":""} aria-label="Descer">▼</button></td>
+    </tr>`;
+  }).join(""):`<tr><td colspan="${b.parc?5:4}" class="empty" style="padding:18px 8px">Nada por aqui.</td></tr>`;
+  return `<div class="card blk b-${b.id}">
+    <div class="blk-head"><span class="blk-title">${esc(b.title)}</span><button class="small-btn" type="button" data-add="${b.id}">+ Adicionar</button></div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Descrição</th><th class="num">Valor</th>${b.parc?"<th>Parc.</th>":""}<th>OK</th><th>Mover</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+    <div class="blk-foot"><span>Total${b.note?"":` <small>· falta ${money(falta)}</small>`}</span><span>${money(total)}</span></div>
+  </div>`;
+}
+
+function vencHTML(){
+  const groups=vencGroups();
+  if(!groups.length) return `<div class="empty">Nenhuma parcela em andamento.</div>`;
+  const rows=groups.map(g=>g.items.map(i=>`<tr><td>${esc(i.description)}</td><td>${BLOCKS.find(k=>k.id===i.b).tag}</td><td>${num(i.amount)}</td><td>${i.n}/${i.N}</td><td>${mLabel(g.month)}</td></tr>`).join("")
+    +`<tr class="gt"><td colspan="4" style="text-align:right">Total encerrando em ${mLabel(g.month)}</td><td>${money(g.total)}</td></tr>`).join("");
+  return `<table><thead><tr><th>Descrição</th><th>Banco/Cartão</th><th>Valor</th><th>Parcela</th><th>Mês final</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function render(){
+  if(!state.authenticated) return;
+  $("app").classList.remove("hidden");
+  const month=state.currentMonth;
+  $("monthPicker").value=month;
+  $("syncText").textContent=state.lastSyncText || "Última sincronização: —";
+  const by=monthBlocks(month);
+  const all=[].concat(...BLOCKS.map(b=>by[b.id]));
+  const total=sum(all), paid=sum(all.filter(e=>e.paid));
+  $("topTotal").textContent=money(total);
+  $("topSub").textContent=`Pago ${money(paid)} · Falta pagar ${money(total-paid)}`;
+  $("blocks").innerHTML=BLOCKS.map(b=>blockHTML(b,by[b.id])).join("");
+  $("notesWrap").innerHTML=blockHTML({id:"notes",title:"Aleatórios",parc:false,note:true},noteEntries(month));
+  $("vencWrap").innerHTML=vencHTML();
+}
+
+async function togglePaid(key,value){
+  const e=findEntry(key);
+  if(!e) return;
+  const month=state.currentMonth;
+  try{
+    await ensureImmediateBackup("alteração de status de pagamento");
+    if(e.kind==="fixed"){
+      await safeUpdate("config/despesas_fixas/"+e.fixedId+"/paid",{[month]:value});
+      const f=state.fixed[e.fixedId];
+      f.paid=f.paid||{};
+      f.paid[month]=value;
+    }else if(e.kind==="note"){
+      await safeUpdate("aleatorios/"+month+"/"+e.noteId,{done:value});
+      state.notes[month][e.noteId].done=value;
+    }else{
+      await safeUpdate("despesas_cartao/"+e.expenseId+"/paid",{[e.installment]:value});
+      const x=state.expenses[e.expenseId];
+      x.paid=x.paid||{};
+      x.paid[e.installment]=value;
+    }
+    state.pendingSave=false;
+    render();
+    clearSyncError();
+  }catch(err){
+    setSyncError("Falha ao atualizar o pagamento no Firebase.");
+    render();
+  }
+}
+
+function orderPath(e){
+  if(e.kind==="fixed") return "config/despesas_fixas/"+e.fixedId+"/order";
+  if(e.kind==="note") return "aleatorios/"+state.currentMonth+"/"+e.noteId+"/order";
+  return "despesas_cartao/"+e.expenseId+"/order";
+}
+function setLocalOrder(e,k){
+  if(e.kind==="fixed") state.fixed[e.fixedId].order=k;
+  else if(e.kind==="note") state.notes[state.currentMonth][e.noteId].order=k;
+  else state.expenses[e.expenseId].order=k;
+}
+
+async function moveItem(key,block,dir){
+  const month=state.currentMonth;
+  const list=block==="notes"?noteEntries(month):monthBlocks(month)[block];
+  const i=list.findIndex(e=>e.expenseId===key), j=i+dir;
+  if(i<0 || j<0 || j>=list.length) return;
+  [list[i],list[j]]=[list[j],list[i]];
+  const upd={};
+  list.forEach((e,k)=>{ upd[orderPath(e)]=k; });
+  try{
+    await ensureImmediateBackup("reordenação de itens");
+    await update(ref(db),upd);
+    setSyncTime();
+    list.forEach((e,k)=>setLocalOrder(e,k));
+    state.pendingSave=false;
+    render();
+  }catch(err){
+    setSyncError("Falha ao salvar a nova ordem no Firebase.");
+  }
+}
+
+function openEdit(ctx){
+  const month=state.currentMonth;
+  ctx.kind=ctx.mode==="edit"?ctx.entry.kind:(ctx.block==="fixas"?"fixed":ctx.block==="notes"?"note":"exp");
+  state.editing=ctx;
+  const e=ctx.entry;
+  const names={fixed:"despesa fixa",note:"anotação",exp:"lançamento"};
+  $("editTitle").textContent=(ctx.mode==="edit"?"Editar ":"Novo ")+names[ctx.kind];
+  $("fDesc").value=e?e.description:"";
+  $("fAmount").value=e&&(e.amount||ctx.kind!=="note")?String(round2(e.amount)):"";
+  $("fAmountLabel").textContent=ctx.kind==="exp"?"Valor da parcela":(ctx.kind==="note"?"Valor (opcional)":"Valor");
+  $("fCardFields").classList.toggle("hidden",ctx.kind!=="exp");
+  const origin=e?blockOf(e):ctx.block;
+  $("fOrigin").value=origin==="nubank"?"Nubank":origin==="c6"?"C6":"Diversos";
+  $("fCur").value=e&&ctx.kind==="exp"?e.installment:1;
+  $("fTotal").value=e&&ctx.kind==="exp"?e.installments:1;
+  $("fDelete").classList.toggle("hidden",ctx.mode!=="edit");
+  let hint="";
+  if(ctx.kind==="fixed") hint=ctx.mode==="edit"
+    ?"O novo valor vale de "+mLabel(month)+" em diante; os meses anteriores não mudam. Excluir também tira a despesa de "+mLabel(month)+" em diante."
+    :"A despesa fixa começa em "+mLabel(month)+" e se repete todos os meses.";
+  if(ctx.kind==="exp") hint="Informe o valor de cada parcela e em qual parcela você está em "+mLabel(month)+". Compra à vista: 1 de 1.";
+  if(ctx.kind==="note") hint="Aleatórios valem só para "+mLabel(month)+" e não passam para outros meses.";
+  $("fHint").textContent=hint;
+  $("editModal").classList.remove("hidden");
+  $("fDesc").focus();
+}
+function closeEdit(){
+  $("editModal").classList.add("hidden");
+  state.editing=null;
+}
+
+async function saveEdit(ev){
+  ev.preventDefault();
+  const c=state.editing;
+  if(!c) return;
+  const month=state.currentMonth;
+  const description=$("fDesc").value.trim();
+  const raw=$("fAmount").value;
+  let amount=raw===""?0:Number(raw);
+  if(!description){ showToast("Informe a descrição."); return; }
+  if(!Number.isFinite(amount)){ showToast("Valor inválido."); return; }
+  if(c.kind!=="note" && amount===0){ showToast("Informe o valor."); return; }
+  amount=round2(amount);
+  try{
+    await ensureImmediateBackup("alteração de item");
+    if(c.kind==="exp"){
+      const N=Math.max(1,Math.min(120,parseInt($("fTotal").value,10)||1));
+      const n=Math.max(1,Math.min(N,parseInt($("fCur").value,10)||1));
+      const start=addMonths(month,-(n-1));
+      const base={description,parcelValue:amount,amount:round2(amount*N),origin:$("fOrigin").value,installments:N};
+      if(c.mode==="add"){
+        const id=uuid();
+        const item={...base,purchaseDate:start+"-01",note:"",createdAt:Date.now(),order:Date.now(),fixedId:null,paid:{}};
+        await safeSet("despesas_cartao/"+id,item);
+        state.expenses[id]=item;
+      }else{
+        const id=c.entry.expenseId;
+        const old=state.expenses[id];
+        const patch={...base,purchaseDate:n===c.entry.installment?old.purchaseDate:start+"-01"};
+        await safeUpdate("despesas_cartao/"+id,patch);
+        Object.assign(old,patch);
+      }
+    }else if(c.kind==="fixed"){
+      if(c.mode==="add"){
+        const id=uuid();
+        const item={description,amount,origin:"Fixas",purchaseDate:month+"-01",startMonth:month,note:"",createdAt:Date.now(),order:Date.now()};
+        await safeSet("config/despesas_fixas/"+id,item);
+        state.fixed[id]={...item,paid:{}};
+      }else{
+        const id=c.entry.fixedId;
+        const f=state.fixed[id];
+        await safeUpdate("config/despesas_fixas/"+id,{description});
+        f.description=description;
+        if(amount!==round2(c.entry.amount)){
+          await safeUpdate("config/despesas_fixas/"+id+"/valores",{[month]:amount});
+          f.valores=f.valores||{};
+          f.valores[month]=amount;
+        }
+      }
+    }else{
+      state.notes[month]=state.notes[month]||{};
+      if(c.mode==="add"){
+        const id=uuid();
+        const item={description,amount,done:false,createdAt:Date.now(),order:Date.now()};
+        await safeSet("aleatorios/"+month+"/"+id,item);
+        state.notes[month][id]=item;
+      }else{
+        const id=c.entry.noteId;
+        await safeUpdate("aleatorios/"+month+"/"+id,{description,amount});
+        Object.assign(state.notes[month][id],{description,amount});
+      }
+    }
+    state.pendingSave=false;
+    closeEdit();
+    render();
+    showToast("Salvo.");
+    clearSyncError();
+  }catch(err){
+    setSyncError("Não foi possível salvar no Firebase.");
+  }
+}
+
+async function deleteEdit(){
+  const c=state.editing;
+  if(!c || c.mode!=="edit") return;
+  const e=c.entry;
+  const month=state.currentMonth;
+  const f=e.kind==="fixed"?state.fixed[e.fixedId]:null;
+  const last=addMonths(month,-1);
+  const removeAll=f?last<fixedStartMonth(f):false;
+  let msg;
+  if(e.kind==="exp") msg='Excluir "'+e.description+'"? A compra inteira (todas as parcelas) será removida.';
+  else if(e.kind==="fixed") msg=removeAll
+    ?'Excluir "'+e.description+'"? Ela deixará de existir em todos os meses.'
+    :'Excluir "'+e.description+'" de '+mLabel(month)+' em diante? Os meses anteriores continuam com ela.';
+  else msg='Excluir "'+e.description+'"?';
+  if(!confirm(msg)) return;
+  try{
+    await ensureImmediateBackup("exclusão de item");
+    if(e.kind==="exp"){
+      await safeRemove("despesas_cartao/"+e.expenseId);
+      delete state.expenses[e.expenseId];
+    }else if(e.kind==="fixed"){
+      const patch=removeAll?{deleted:true}:{endMonth:last};
+      await safeUpdate("config/despesas_fixas/"+e.fixedId,patch);
+      Object.assign(f,patch);
+    }else{
+      await safeRemove("aleatorios/"+month+"/"+e.noteId);
+      if(state.notes[month]) delete state.notes[month][e.noteId];
+    }
+    state.pendingSave=false;
+    closeEdit();
+    render();
+    showToast("Excluído.");
+  }catch(err){
+    setSyncError("Falha ao excluir no Firebase.");
+  }
+}
+
+async function loadFinancialData(){
+  if(!state.authenticated || state.financialLoaded) return;
+  try{
+    const [expenses,fixed,quick,limits,meta]=await Promise.all([
+      safeGet("despesas_cartao"),
+      safeGet("config/despesas_fixas"),
+      safeGet("gastos_avulsos"),
+      safeGet("config/limites"),
+      safeGet("meta")
+    ]);
+    state.expenses=expenses||{};
+    state.fixed=fixed||{};
+    state.quick=quick||{};
+    state.limits=limits||{};
+    state.lastSyncText=meta?.lastAutoSave ? "Última sincronização com o banco de dados: "+new Date().toLocaleTimeString("pt-BR") : "Última sincronização: agora";
+    state.financialLoaded=true;
+    setSyncTime();
+    render();
+  }catch(err){
+    setSyncError("Não foi possível carregar os dados financeiros. O aplicativo permanece bloqueado para evitar trabalhar com dados incompletos.");
+    throw err;
+  }
+}
+
+function subscribeRealtime(){
+  state.unsubs.forEach(fn=>fn());
+  state.unsubs=[];
+  if(!state.authenticated) return;
+
+  const paths=["despesas_cartao","config/despesas_fixas","aleatorios"];
+  for(const path of paths){
+    const fn=onValue(ref(db,path),snap=>{
+      const value=snap.exists()?snap.val():{};
+      if(path==="despesas_cartao") state.expenses=value||{};
+      if(path==="config/despesas_fixas") state.fixed=value||{};
+      if(path==="aleatorios") state.notes=value||{};
+      setSyncTime();
+      if(state.authenticated) render();
+      clearSyncError();
+    },err=>{
+      setSyncError("Perda de comunicação com o Firebase. Os dados locais da sessão não substituem o banco; aguarde a reconexão.");
+    });
+    state.unsubs.push(fn);
+  }
+}
+
+async function checkPinFirstAccess(){
+  try{
+    const pin=await safeGet("config/pin");
+    state.pinExists=typeof pin==="string" && /^\d{4}$/.test(pin);
+    $("pinInput").value="";
+    $("pinInput").focus();
+    if(!state.pinExists){
+      $("pinTitle").textContent="Criar PIN de acesso";
+      $("pinMessage").textContent="Primeiro acesso: crie um PIN de 4 dígitos.";
+      $("pinSubmit").textContent="Criar PIN";
+      $("pinNote").textContent="O PIN será armazenado diretamente em /config/pin no Firebase.";
+    }else{
+      $("pinTitle").textContent="Acesso protegido";
+      $("pinMessage").textContent="Digite seu PIN de 4 dígitos.";
+      $("pinSubmit").textContent="Entrar";
+      $("pinNote").textContent="";
+    }
+  }catch(err){
+    console.error("Erro ao consultar PIN:",err);
+    const detail=err?.message ? " Detalhe: "+err.message : "";
+    $("pinNote").textContent="Não foi possível acessar o Firebase."+detail;
+    setSyncError("Falha ao consultar o PIN no Firebase. Confira a URL do Realtime Database e as regras de leitura.");
+  }
+}
+
+async function submitPin(event){
+  event.preventDefault();
+
+  const entered=$("pinInput").value.trim();
+  const note=$("pinNote");
+  const submit=$("pinSubmit");
+
+  if(!/^\d{4}$/.test(entered)){
+    note.textContent="Digite exatamente 4 dígitos.";
+    $("pinInput").focus();
+    return;
+  }
+
+  submit.disabled=true;
+  submit.textContent="Validando...";
+  note.textContent="Conectando ao Firebase...";
+
+  try{
+    const current=await safeGet("config/pin");
+
+    if(current===null){
+      await safeSet("config/pin",entered);
+      state.pinExists=true;
+      note.textContent="PIN criado. Carregando seus dados...";
+    }else if(String(current)!==entered){
+      note.textContent="PIN incorreto.";
+      $("pinInput").value="";
+      $("pinInput").focus();
+      return;
+    }else{
+      note.textContent="PIN correto. Carregando seus dados...";
+    }
+
+    await unlock();
+    note.textContent="";
+  }catch(err){
+    console.error("Erro no acesso:",err);
+    const detail=err?.message ? " Detalhe: "+err.message : "";
+    note.textContent="Não foi possível acessar o Firebase."+detail;
+    setSyncError("Não foi possível validar o PIN ou carregar os dados. Confira a URL do Realtime Database e as regras de acesso.");
+  }finally{
+    submit.disabled=false;
+    submit.textContent=state.pinExists?"Entrar":"Criar PIN";
+  }
+}
+
+async function resetPin(){
+  const first=prompt("Para redefinir, digite o PIN atual de 4 dígitos:");
+  if(first===null) return;
+  try{
+    const current=await safeGet("config/pin");
+    if(String(current)!==String(first)){
+      alert("PIN atual incorreto.");
+      return;
+    }
+    const next=prompt("Digite o novo PIN de 4 dígitos:");
+    if(!/^\d{4}$/.test(next||"")){
+      alert("Novo PIN inválido.");
+      return;
+    }
+    if(!confirm("Confirmar alteração do PIN?")) return;
+    await safeSet("config/pin",next);
+    $("pinNote").textContent="PIN redefinido. Digite o novo PIN para entrar.";
+    $("pinInput").value="";
+    showToast("PIN atualizado no Firebase.");
+  }catch(err){
+    setSyncError("Não foi possível redefinir o PIN.");
+  }
+}
+
+async function unlock(){
+  state.currentMonth=monthOf(today());
+
+  // Só libera a aplicação depois que o Firebase confirmou o carregamento.
+  // Isso evita uma tela aparentemente vazia quando há erro de conexão/regras.
+  await loadFinancialData();
+
+  state.authenticated=true;
+  $("pinModal").classList.add("hidden");
+  subscribeRealtime();
+  render();
+}
+
+function lock(){
+  state.authenticated=false;
+  state.financialLoaded=false;
+  state.backupDone=false;
+  state.unsubs.forEach(fn=>fn());
+  state.unsubs=[];
+  $("app").classList.add("hidden");
+  $("pinModal").classList.remove("hidden");
+  checkPinFirstAccess();
+}
+
+function exportCSV(){
+  const rows=[["Mês","Descrição","Origem","Data de compra","Parcela","Total de parcelas","Valor da parcela","Status","Observação"]];
+  const months=new Set([state.currentMonth]);
+
+  baseExpenses().forEach(e=>{
+    for(let i=0;i<e.installments;i++) months.add(addMonths(monthOf(e.purchaseDate),i));
+  });
+  Object.values(state.fixed||{}).filter(f=>!f.deleted).forEach(f=>{
+    for(let i=0;i<24;i++) months.add(addMonths(fixedStartMonth(f),i));
+  });
+
+  [...months].sort().forEach(month=>{
+    monthEntries(month).forEach(e=>{
+      rows.push([
+        month,e.description,e.origin,e.purchaseDate,
+        e.installment,e.installments,
+        e.amount.toFixed(2).replace(".",","),
+        e.paid?"Pago":"Pendente",e.note||""
+      ]);
+    });
+  });
+
+  const csv="\uFEFF"+rows.map(row=>row.map(v=>{
+    const s=String(v??"");
+    return `"${s.replace(/"/g,'""')}"`;
+  }).join(";")).join("\r\n");
+
+  const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download=`controle-gastos-${today()}.csv`;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+async function manualBackup(){
+  try{
+    await createBackup("manual");
+  }catch(err){
+    setSyncError("Não foi possível criar o backup manual.");
+  }
+}
+
+$("pinForm").addEventListener("submit",submitPin);
+$("resetPinBtn").addEventListener("click",resetPin);
+$("backupBtn").addEventListener("click",manualBackup);
+$("exportBtn").addEventListener("click",exportCSV);
+$("lockBtn").addEventListener("click",lock);
+
+$("editForm").addEventListener("submit",saveEdit);
+$("fDelete").addEventListener("click",deleteEdit);
+$("fCancel").addEventListener("click",closeEdit);
+
+$("app").addEventListener("click",ev=>{
+  const t=ev.target.closest("[data-add],[data-edit],[data-mv]");
+  if(!t) return;
+  if(t.dataset.add){
+    openEdit({mode:"add",block:t.dataset.add});
+  }else if(t.dataset.edit){
+    const e=findEntry(t.dataset.edit);
+    if(e) openEdit({mode:"edit",entry:e});
+  }else if(t.dataset.mv){
+    moveItem(t.dataset.mv,t.dataset.b,Number(t.dataset.dir));
+  }
+});
+$("app").addEventListener("change",ev=>{
+  const t=ev.target;
+  if(t.dataset && t.dataset.ok) togglePaid(t.dataset.ok,t.checked);
+});
+
+$("monthPicker").addEventListener("change",()=>{
+  state.currentMonth=$("monthPicker").value || monthOf(today());
+  render();
+});
+$("prevMonth").addEventListener("click",()=>{
+  state.currentMonth=addMonths(state.currentMonth,-1);
+  render();
+});
+$("nextMonth").addEventListener("click",()=>{
+  state.currentMonth=addMonths(state.currentMonth,1);
+  render();
+});
+$("todayBtn").addEventListener("click",()=>{
+  state.currentMonth=monthOf(today());
+  render();
+});
+
+state.currentMonth=monthOf(today());
+checkPinFirstAccess();
+
+window.addEventListener("online",()=>{
+  clearSyncError();
+  showToast("Conexão restabelecida.");
+  if(state.pendingSave) autoSave();
+});
+window.addEventListener("offline",()=>{
+  setSyncError("Sem conexão com a internet. Alterações não são consideradas sincronizadas até o Firebase confirmar a gravação.");
+});
+
+window.addEventListener("unhandledrejection",event=>{
+  console.error("Promise rejeitada:",event.reason);
+  const msg=event.reason?.message || "Erro inesperado na aplicação.";
+  $("pinNote").textContent="Erro: "+msg;
+  setSyncError("Erro inesperado. Verifique o console do navegador para detalhes.");
+});
+
+window.addEventListener("error",event=>{
+  console.error("Erro JavaScript:",event.error || event.message);
+  if($("pinModal") && !$("pinModal").classList.contains("hidden")){
+    $("pinNote").textContent="Erro ao iniciar a aplicação: "+event.message;
+  }
+});
+</script>
+</body>
+</html>
