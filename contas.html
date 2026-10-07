@@ -246,6 +246,7 @@ tbody tr.ending-row{box-shadow:inset 4px 0 0 #9b59b6}
 .blk td.ed:hover{color:var(--fiori-blue)}
 .blk tr.r-ok td{background:var(--success-bg)}
 .blk tr.pago-row td{background:#eef6ff;font-weight:700;border-top:2px solid #c9dff5}
+.blk tr.pago-row.r-ok td{background:var(--success-bg)}
 .blk input[type=checkbox]{width:17px;height:17px}
 .mv{white-space:nowrap}
 .mv button{border:1px solid #c5cacf;background:#fff;border-radius:4px;width:26px;height:26px;font-size:.65rem;padding:0}
@@ -365,7 +366,6 @@ tbody tr.ending-row{box-shadow:inset 4px 0 0 #9b59b6}
         <p class="note" id="fHint" style="margin-top:10px"></p>
         <div class="form-actions">
           <button class="btn primary" type="submit">Salvar</button>
-          <button class="btn hidden" id="fDefault" type="button">Usar total</button>
           <button class="btn danger hidden" id="fDelete" type="button">Excluir</button>
           <button class="btn" id="fCancel" type="button">Cancelar</button>
         </div>
@@ -680,17 +680,17 @@ function capFirst(s){
 }
 
 /*
-  Pago dos cartões: por padrão é o total do cartão no mês.
-  Se o usuário digitar um valor, ele fica salvo em
-  pagamentos_cartao/YYYY-MM/<cartao> e passa a valer no lugar do total.
+  Pago dos cartões: cada cartão tem uma caixa "Pago" por mês.
+  Marcada, o total do cartão naquele mês entra no "Pago" do topo.
+  Fica salva em cartao_pago/YYYY-MM/<cartao> = true.
+  As caixas OK dos itens dos cartões são só conferência e não entram na conta.
 */
-function cardPago(month,id,list){
-  const v=state.cardPaid && state.cardPaid[month] ? state.cardPaid[month][id] : undefined;
-  return typeof v==="number" ? v : round2(sum(list));
+function cardIsPaid(month,id){
+  return !!(state.cardPaid && state.cardPaid[month] && state.cardPaid[month][id]===true);
 }
 function blockPaid(b,list,month){
   if(b.id==="fixas") return round2(sum(list.filter(e=>e.paid)));
-  return cardPago(month,b.id,list);
+  return cardIsPaid(month,b.id) ? round2(sum(list)) : 0;
 }
 
 function blockOf(e){
@@ -760,16 +760,18 @@ function blockHTML(b,list,month){
   let foot;
   if(isNote){
     foot=`<span>Total</span><span>${money(total)}</span>`;
-  }else{
-    const pago=blockPaid(b,list,month);
-    const falta=Math.max(0,round2(total-pago));
-    if(b.parc){
-      pagoRow=`<tr class="pago-row">
-      <td class="ed" data-pago="${b.id}">Pago</td>
-      <td class="ed num" data-pago="${b.id}">${num(pago)}</td>
-      <td></td><td></td><td></td>
+  }else if(b.parc){
+    const isPaid=cardIsPaid(month,b.id);
+    pagoRow=`<tr class="pago-row ${isPaid?"r-ok":""}">
+      <td>Pago</td>
+      <td></td>
+      <td></td>
+      <td><input type="checkbox" data-pago="${b.id}" ${isPaid?"checked":""} aria-label="Pago"></td>
+      <td></td>
     </tr>`;
-    }
+    foot=`<span>Total</span><span>${money(total)}</span>`;
+  }else{
+    const falta=Math.max(0,round2(total-blockPaid(b,list,month)));
     foot=`<span>Total <small>· falta ${money(falta)}</small></span><span>${money(total)}</span>`;
   }
 
@@ -881,29 +883,11 @@ async function moveItem(key,block,dir){
 
 function openEdit(ctx){
   const month=state.currentMonth;
-  ctx.kind=ctx.mode==="pago"?"pago":(ctx.mode==="edit"?ctx.entry.kind:(ctx.block==="fixas"?"fixed":ctx.block==="notes"?"note":"exp"));
+  ctx.kind=ctx.mode==="edit"?ctx.entry.kind:(ctx.block==="fixas"?"fixed":ctx.block==="notes"?"note":"exp");
   state.editing=ctx;
-
-  if(ctx.kind==="pago"){
-    const b=BLOCKS.find(k=>k.id===ctx.block);
-    const list=monthBlocks(month)[ctx.block];
-    $("editTitle").textContent="Pago — "+b.title;
-    $("fDescField").classList.add("hidden");
-    $("fAmountLabel").textContent="Valor pago em "+mLabel(month);
-    $("fAmount").value=num(cardPago(month,ctx.block,list));
-    $("fCardFields").classList.add("hidden");
-    $("fDelete").classList.add("hidden");
-    $("fDefault").classList.remove("hidden");
-    $("fHint").textContent="Por padrão o Pago é o total do cartão. Digite outro valor para este mês ou use o botão \"Usar total\" para voltar ao padrão.";
-    $("editModal").classList.remove("hidden");
-    $("fAmount").focus();
-    return;
-  }
 
   const e=ctx.entry;
   const names={fixed:"despesa fixa",note:"anotação",exp:"lançamento"};
-  $("fDescField").classList.remove("hidden");
-  $("fDefault").classList.add("hidden");
   $("editTitle").textContent=(ctx.mode==="edit"?"Editar ":"Novo ")+names[ctx.kind];
   $("fDesc").value=e?e.description:"";
   $("fAmount").value=e&&(e.amount||ctx.kind!=="note")?num(round2(e.amount)):"";
@@ -929,46 +913,22 @@ function closeEdit(){
   state.editing=null;
 }
 
-async function savePago(c){
+async function togglePago(block,value){
   const month=state.currentMonth;
-  const raw=$("fAmount").value.trim();
-  if(raw===""){ showToast("Informe o valor ou use \"Usar total\"."); return; }
-  const v=parseMoney(raw);
-  if(!Number.isFinite(v)){ showToast("Valor inválido."); return; }
-  const value=round2(v);
   try{
-    await ensureImmediateBackup("alteração do valor pago");
-    await safeSet("pagamentos_cartao/"+month+"/"+c.block,value);
+    await ensureImmediateBackup("alteração do pago do cartão");
+    if(value) await safeSet("cartao_pago/"+month+"/"+block,true);
+    else await safeRemove("cartao_pago/"+month+"/"+block);
     state.cardPaid=state.cardPaid||{};
     state.cardPaid[month]=state.cardPaid[month]||{};
-    state.cardPaid[month][c.block]=value;
+    if(value) state.cardPaid[month][block]=true;
+    else delete state.cardPaid[month][block];
     state.pendingSave=false;
-    closeEdit();
     render();
-    showToast("Salvo.");
     clearSyncError();
   }catch(err){
-    setSyncError("Não foi possível salvar o valor pago no Firebase.");
-  }
-}
-
-async function resetPago(){
-  const c=state.editing;
-  if(!c || c.kind!=="pago") return;
-  const month=state.currentMonth;
-  try{
-    await ensureImmediateBackup("restauração do valor pago");
-    await safeRemove("pagamentos_cartao/"+month+"/"+c.block);
-    if(state.cardPaid && state.cardPaid[month]){
-      delete state.cardPaid[month][c.block];
-    }
-    state.pendingSave=false;
-    closeEdit();
+    setSyncError("Falha ao atualizar o pago do cartão no Firebase.");
     render();
-    showToast("Pago voltou ao total do cartão.");
-    clearSyncError();
-  }catch(err){
-    setSyncError("Não foi possível restaurar o valor pago no Firebase.");
   }
 }
 
@@ -976,7 +936,6 @@ async function saveEdit(ev){
   ev.preventDefault();
   const c=state.editing;
   if(!c) return;
-  if(c.kind==="pago"){ await savePago(c); return; }
   const month=state.currentMonth;
   const description=capFirst($("fDesc").value.trim());
   const raw=$("fAmount").value.trim();
@@ -1090,7 +1049,7 @@ async function loadFinancialData(){
       safeGet("gastos_avulsos"),
       safeGet("config/limites"),
       safeGet("meta"),
-      safeGet("pagamentos_cartao")
+      safeGet("cartao_pago")
     ]);
     state.expenses=expenses||{};
     state.fixed=fixed||{};
@@ -1112,14 +1071,14 @@ function subscribeRealtime(){
   state.unsubs=[];
   if(!state.authenticated) return;
 
-  const paths=["despesas_cartao","config/despesas_fixas","aleatorios","pagamentos_cartao"];
+  const paths=["despesas_cartao","config/despesas_fixas","aleatorios","cartao_pago"];
   for(const path of paths){
     const fn=onValue(ref(db,path),snap=>{
       const value=snap.exists()?snap.val():{};
       if(path==="despesas_cartao") state.expenses=value||{};
       if(path==="config/despesas_fixas") state.fixed=value||{};
       if(path==="aleatorios") state.notes=value||{};
-      if(path==="pagamentos_cartao") state.cardPaid=value||{};
+      if(path==="cartao_pago") state.cardPaid=value||{};
       setSyncTime();
       if(state.authenticated) render();
       clearSyncError();
@@ -1301,7 +1260,6 @@ $("lockBtn").addEventListener("click",lock);
 
 $("editForm").addEventListener("submit",saveEdit);
 $("fDelete").addEventListener("click",deleteEdit);
-$("fDefault").addEventListener("click",resetPago);
 $("fCancel").addEventListener("click",closeEdit);
 
 /* Máscara de valor: 1234 vira 12,34 */
@@ -1321,15 +1279,13 @@ $("fDesc").addEventListener("input",ev=>{
 });
 
 $("app").addEventListener("click",ev=>{
-  const t=ev.target.closest("[data-add],[data-edit],[data-mv],[data-pago]");
+  const t=ev.target.closest("[data-add],[data-edit],[data-mv]");
   if(!t) return;
   if(t.dataset.add){
     openEdit({mode:"add",block:t.dataset.add});
   }else if(t.dataset.edit){
     const e=findEntry(t.dataset.edit);
     if(e) openEdit({mode:"edit",entry:e});
-  }else if(t.dataset.pago){
-    openEdit({mode:"pago",block:t.dataset.pago});
   }else if(t.dataset.mv){
     moveItem(t.dataset.mv,t.dataset.b,Number(t.dataset.dir));
   }
@@ -1337,6 +1293,7 @@ $("app").addEventListener("click",ev=>{
 $("app").addEventListener("change",ev=>{
   const t=ev.target;
   if(t.dataset && t.dataset.ok) togglePaid(t.dataset.ok,t.checked);
+  else if(t.dataset && t.dataset.pago) togglePago(t.dataset.pago,t.checked);
 });
 
 $("monthPicker").addEventListener("change",()=>{
