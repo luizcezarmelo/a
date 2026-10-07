@@ -245,6 +245,7 @@ tbody tr.ending-row{box-shadow:inset 4px 0 0 #9b59b6}
 .blk td.ed{cursor:pointer}
 .blk td.ed:hover{color:var(--fiori-blue)}
 .blk tr.r-ok td{background:var(--success-bg)}
+.blk tr.pago-row td{background:#eef6ff;font-weight:700;border-top:2px solid #c9dff5}
 .blk input[type=checkbox]{width:17px;height:17px}
 .mv{white-space:nowrap}
 .mv button{border:1px solid #c5cacf;background:#fff;border-radius:4px;width:26px;height:26px;font-size:.65rem;padding:0}
@@ -335,13 +336,13 @@ tbody tr.ending-row{box-shadow:inset 4px 0 0 #9b59b6}
     <div class="modal-head"><h2 id="editTitle">Novo item</h2></div>
     <div class="modal-body">
       <form id="editForm">
-        <div class="field">
+        <div class="field" id="fDescField">
           <label for="fDesc">Descrição</label>
-          <input id="fDesc" maxlength="180" autocomplete="off">
+          <input id="fDesc" maxlength="180" autocomplete="off" autocapitalize="sentences">
         </div>
         <div class="field" style="margin-top:10px">
           <label for="fAmount" id="fAmountLabel">Valor</label>
-          <input id="fAmount" type="number" step="0.01" inputmode="decimal" placeholder="0,00">
+          <input id="fAmount" type="text" inputmode="numeric" autocomplete="off" placeholder="0,00">
         </div>
         <div class="trio" id="fCardFields" style="margin-top:10px">
           <div class="field">
@@ -364,6 +365,7 @@ tbody tr.ending-row{box-shadow:inset 4px 0 0 #9b59b6}
         <p class="note" id="fHint" style="margin-top:10px"></p>
         <div class="form-actions">
           <button class="btn primary" type="submit">Salvar</button>
+          <button class="btn hidden" id="fDefault" type="button">Usar total</button>
           <button class="btn danger hidden" id="fDelete" type="button">Excluir</button>
           <button class="btn" id="fCancel" type="button">Cancelar</button>
         </div>
@@ -415,6 +417,7 @@ const state = {
   fixed:{},
   quick:{},
   limits:{},
+  cardPaid:{},
   pendingSave:false,
   backupDone:false,
   saveTimer:null,
@@ -496,7 +499,8 @@ async function createBackup(reason="manual"){
     reason,
     expenses:state.expenses || {},
     fixed:state.fixed || {},
-    notes:state.notes || {}
+    notes:state.notes || {},
+    cardPaid:state.cardPaid || {}
   };
   const key=push(ref(db,"backups")).key;
   await safeSet("backups/"+key,snapshot);
@@ -649,6 +653,46 @@ const sum=list=>list.reduce((s,e)=>s+e.amount,0);
 const ord=e=>typeof e.order==="number"?e.order:(e.createdAt||0);
 const cmpOrder=(a,b)=>ord(a)-ord(b)||String(a.description).localeCompare(String(b.description));
 
+/*
+  Máscara de valor em centavos: digitar 1234 vira 12,34.
+  Ao apagar, quando só restam zeros o campo fica vazio.
+*/
+function maskMoney(raw,isDelete){
+  let d=String(raw||"").replace(/\D/g,"");
+  if(!d) return "";
+  d=d.slice(0,12);
+  const n=d.replace(/^0+/,"");
+  if(!n) return isDelete?"":"0,00";
+  const p=n.padStart(3,"0");
+  const int=p.slice(0,-2).replace(/\B(?=(\d{3})+(?!\d))/g,".");
+  return int+","+p.slice(-2);
+}
+function parseMoney(s){
+  const t=String(s||"").replace(/\./g,"").replace(",",".");
+  return t===""?NaN:Number(t);
+}
+/* Somente a primeira letra do texto fica maiúscula; o resto permanece como digitado. */
+function capFirst(s){
+  s=String(s||"");
+  const i=s.search(/\S/);
+  if(i<0) return s;
+  return s.slice(0,i)+s.charAt(i).toLocaleUpperCase("pt-BR")+s.slice(i+1);
+}
+
+/*
+  Pago dos cartões: por padrão é o total do cartão no mês.
+  Se o usuário digitar um valor, ele fica salvo em
+  pagamentos_cartao/YYYY-MM/<cartao> e passa a valer no lugar do total.
+*/
+function cardPago(month,id,list){
+  const v=state.cardPaid && state.cardPaid[month] ? state.cardPaid[month][id] : undefined;
+  return typeof v==="number" ? v : round2(sum(list));
+}
+function blockPaid(b,list,month){
+  if(b.id==="fixas") return round2(sum(list.filter(e=>e.paid)));
+  return cardPago(month,b.id,list);
+}
+
 function blockOf(e){
   if(e.kind==="fixed") return "fixas";
   return e.origin==="Nubank"?"nubank":e.origin==="C6"?"c6":"diversos";
@@ -668,7 +712,7 @@ function monthBlocks(month){
 function noteEntries(month){
   return Object.entries((state.notes||{})[month]||{}).map(([id,x])=>({
     kind:"note",expenseId:"note:"+id,noteId:id,
-    description:x.description||"",amount:Number(x.amount)||0,paid:!!x.done,
+    description:x.description||"",amount:Number(x.amount)||0,paid:false,
     order:typeof x.order==="number"?x.order:null,createdAt:Number(x.createdAt)||0
   })).sort(cmpOrder);
 }
@@ -696,25 +740,46 @@ function vencGroups(){
   });
 }
 
-function blockHTML(b,list){
-  const total=sum(list), falta=sum(list.filter(e=>!e.paid));
+function blockHTML(b,list,month){
+  const total=round2(sum(list));
+  const isNote=!!b.note;
+  const cols=isNote?3:(b.parc?5:4);
   const rows=list.length?list.map((e,i)=>{
     const k=esc(e.expenseId);
-    return `<tr class="${e.paid?"r-ok":""}">
+    const okCell=isNote?"":`<td><input type="checkbox" data-ok="${k}" ${e.paid?"checked":""} aria-label="OK"></td>`;
+    return `<tr class="${(!isNote&&e.paid)?"r-ok":""}">
       <td class="ed" data-edit="${k}">${esc(e.description)}</td>
-      <td class="ed num" data-edit="${k}">${b.note&&!e.amount?"":num(e.amount)}</td>
+      <td class="ed num" data-edit="${k}">${isNote&&!e.amount?"":num(e.amount)}</td>
       ${b.parc?`<td>${e.installments>1?e.installment+"/"+e.installments:""}</td>`:""}
-      <td><input type="checkbox" data-ok="${k}" ${e.paid?"checked":""} aria-label="OK"></td>
+      ${okCell}
       <td class="mv"><button type="button" data-mv="${k}" data-b="${b.id}" data-dir="-1" ${i===0?"disabled":""} aria-label="Subir">▲</button><button type="button" data-mv="${k}" data-b="${b.id}" data-dir="1" ${i===list.length-1?"disabled":""} aria-label="Descer">▼</button></td>
     </tr>`;
-  }).join(""):`<tr><td colspan="${b.parc?5:4}" class="empty" style="padding:18px 8px">Nada por aqui.</td></tr>`;
+  }).join(""):`<tr><td colspan="${cols}" class="empty" style="padding:18px 8px">Nada por aqui.</td></tr>`;
+
+  let pagoRow="";
+  let foot;
+  if(isNote){
+    foot=`<span>Total</span><span>${money(total)}</span>`;
+  }else{
+    const pago=blockPaid(b,list,month);
+    const falta=Math.max(0,round2(total-pago));
+    if(b.parc){
+      pagoRow=`<tr class="pago-row">
+      <td class="ed" data-pago="${b.id}">Pago</td>
+      <td class="ed num" data-pago="${b.id}">${num(pago)}</td>
+      <td></td><td></td><td></td>
+    </tr>`;
+    }
+    foot=`<span>Total <small>· falta ${money(falta)}</small></span><span>${money(total)}</span>`;
+  }
+
   return `<div class="card blk b-${b.id}">
     <div class="blk-head"><span class="blk-title">${esc(b.title)}</span><button class="small-btn" type="button" data-add="${b.id}">+ Adicionar</button></div>
     <div class="table-wrap"><table>
-      <thead><tr><th>Descrição</th><th class="num">Valor</th>${b.parc?"<th>Parc.</th>":""}<th>OK</th><th>Mover</th></tr></thead>
-      <tbody>${rows}</tbody>
+      <thead><tr><th>Descrição</th><th class="num">Valor</th>${b.parc?"<th>Parc.</th>":""}${isNote?"":"<th>OK</th>"}<th>Mover</th></tr></thead>
+      <tbody>${rows}${pagoRow}</tbody>
     </table></div>
-    <div class="blk-foot"><span>Total${b.note?"":` <small>· falta ${money(falta)}</small>`}</span><span>${money(total)}</span></div>
+    <div class="blk-foot">${foot}</div>
   </div>`;
 }
 
@@ -734,14 +799,27 @@ function render(){
   $("syncText").textContent=state.lastSyncText || "Última sincronização: —";
   const by=monthBlocks(month);
   const all=[].concat(...BLOCKS.map(b=>by[b.id]));
-  const total=sum(all), paid=sum(all.filter(e=>e.paid));
+  const total=round2(sum(all));
+  let paid=0, falta=0;
+  BLOCKS.forEach(b=>{
+    const l=by[b.id];
+    const p=blockPaid(b,l,month);
+    paid+=p;
+    falta+=Math.max(0,round2(sum(l))-p);
+  });
+  paid=round2(paid);
+  falta=round2(falta);
   $("topTotal").textContent=money(total);
-  $("topSub").textContent=`Pago ${money(paid)} · Falta pagar ${money(total-paid)}`;
-  $("blocks").innerHTML=BLOCKS.map(b=>blockHTML(b,by[b.id])).join("");
-  $("notesWrap").innerHTML=blockHTML({id:"notes",title:"Aleatórios",parc:false,note:true},noteEntries(month));
+  $("topSub").textContent=`Pago ${money(paid)} · Falta pagar ${money(falta)}`;
+  $("blocks").innerHTML=BLOCKS.map(b=>blockHTML(b,by[b.id],month)).join("");
+  $("notesWrap").innerHTML=blockHTML({id:"notes",title:"Aleatórios",parc:false,note:true},noteEntries(month),month);
   $("vencWrap").innerHTML=vencHTML();
 }
 
+/*
+  A caixa OK é salva no Firebase (ticada ou não) em todos os blocos.
+  Nas despesas fixas ela conta como pago; nos cartões serve só para conferência da fatura.
+*/
 async function togglePaid(key,value){
   const e=findEntry(key);
   if(!e) return;
@@ -753,14 +831,13 @@ async function togglePaid(key,value){
       const f=state.fixed[e.fixedId];
       f.paid=f.paid||{};
       f.paid[month]=value;
-    }else if(e.kind==="note"){
-      await safeUpdate("aleatorios/"+month+"/"+e.noteId,{done:value});
-      state.notes[month][e.noteId].done=value;
-    }else{
+    }else if(e.kind==="exp"){
       await safeUpdate("despesas_cartao/"+e.expenseId+"/paid",{[e.installment]:value});
       const x=state.expenses[e.expenseId];
       x.paid=x.paid||{};
       x.paid[e.installment]=value;
+    }else{
+      return;
     }
     state.pendingSave=false;
     render();
@@ -804,13 +881,32 @@ async function moveItem(key,block,dir){
 
 function openEdit(ctx){
   const month=state.currentMonth;
-  ctx.kind=ctx.mode==="edit"?ctx.entry.kind:(ctx.block==="fixas"?"fixed":ctx.block==="notes"?"note":"exp");
+  ctx.kind=ctx.mode==="pago"?"pago":(ctx.mode==="edit"?ctx.entry.kind:(ctx.block==="fixas"?"fixed":ctx.block==="notes"?"note":"exp"));
   state.editing=ctx;
+
+  if(ctx.kind==="pago"){
+    const b=BLOCKS.find(k=>k.id===ctx.block);
+    const list=monthBlocks(month)[ctx.block];
+    $("editTitle").textContent="Pago — "+b.title;
+    $("fDescField").classList.add("hidden");
+    $("fAmountLabel").textContent="Valor pago em "+mLabel(month);
+    $("fAmount").value=num(cardPago(month,ctx.block,list));
+    $("fCardFields").classList.add("hidden");
+    $("fDelete").classList.add("hidden");
+    $("fDefault").classList.remove("hidden");
+    $("fHint").textContent="Por padrão o Pago é o total do cartão. Digite outro valor para este mês ou use o botão \"Usar total\" para voltar ao padrão.";
+    $("editModal").classList.remove("hidden");
+    $("fAmount").focus();
+    return;
+  }
+
   const e=ctx.entry;
   const names={fixed:"despesa fixa",note:"anotação",exp:"lançamento"};
+  $("fDescField").classList.remove("hidden");
+  $("fDefault").classList.add("hidden");
   $("editTitle").textContent=(ctx.mode==="edit"?"Editar ":"Novo ")+names[ctx.kind];
   $("fDesc").value=e?e.description:"";
-  $("fAmount").value=e&&(e.amount||ctx.kind!=="note")?String(round2(e.amount)):"";
+  $("fAmount").value=e&&(e.amount||ctx.kind!=="note")?num(round2(e.amount)):"";
   $("fAmountLabel").textContent=ctx.kind==="exp"?"Valor da parcela":(ctx.kind==="note"?"Valor (opcional)":"Valor");
   $("fCardFields").classList.toggle("hidden",ctx.kind!=="exp");
   const origin=e?blockOf(e):ctx.block;
@@ -833,14 +929,58 @@ function closeEdit(){
   state.editing=null;
 }
 
+async function savePago(c){
+  const month=state.currentMonth;
+  const raw=$("fAmount").value.trim();
+  if(raw===""){ showToast("Informe o valor ou use \"Usar total\"."); return; }
+  const v=parseMoney(raw);
+  if(!Number.isFinite(v)){ showToast("Valor inválido."); return; }
+  const value=round2(v);
+  try{
+    await ensureImmediateBackup("alteração do valor pago");
+    await safeSet("pagamentos_cartao/"+month+"/"+c.block,value);
+    state.cardPaid=state.cardPaid||{};
+    state.cardPaid[month]=state.cardPaid[month]||{};
+    state.cardPaid[month][c.block]=value;
+    state.pendingSave=false;
+    closeEdit();
+    render();
+    showToast("Salvo.");
+    clearSyncError();
+  }catch(err){
+    setSyncError("Não foi possível salvar o valor pago no Firebase.");
+  }
+}
+
+async function resetPago(){
+  const c=state.editing;
+  if(!c || c.kind!=="pago") return;
+  const month=state.currentMonth;
+  try{
+    await ensureImmediateBackup("restauração do valor pago");
+    await safeRemove("pagamentos_cartao/"+month+"/"+c.block);
+    if(state.cardPaid && state.cardPaid[month]){
+      delete state.cardPaid[month][c.block];
+    }
+    state.pendingSave=false;
+    closeEdit();
+    render();
+    showToast("Pago voltou ao total do cartão.");
+    clearSyncError();
+  }catch(err){
+    setSyncError("Não foi possível restaurar o valor pago no Firebase.");
+  }
+}
+
 async function saveEdit(ev){
   ev.preventDefault();
   const c=state.editing;
   if(!c) return;
+  if(c.kind==="pago"){ await savePago(c); return; }
   const month=state.currentMonth;
-  const description=$("fDesc").value.trim();
-  const raw=$("fAmount").value;
-  let amount=raw===""?0:Number(raw);
+  const description=capFirst($("fDesc").value.trim());
+  const raw=$("fAmount").value.trim();
+  let amount=raw===""?0:parseMoney(raw);
   if(!description){ showToast("Informe a descrição."); return; }
   if(!Number.isFinite(amount)){ showToast("Valor inválido."); return; }
   if(c.kind!=="note" && amount===0){ showToast("Informe o valor."); return; }
@@ -885,7 +1025,7 @@ async function saveEdit(ev){
       state.notes[month]=state.notes[month]||{};
       if(c.mode==="add"){
         const id=uuid();
-        const item={description,amount,done:false,createdAt:Date.now(),order:Date.now()};
+        const item={description,amount,createdAt:Date.now(),order:Date.now()};
         await safeSet("aleatorios/"+month+"/"+id,item);
         state.notes[month][id]=item;
       }else{
@@ -944,17 +1084,19 @@ async function deleteEdit(){
 async function loadFinancialData(){
   if(!state.authenticated || state.financialLoaded) return;
   try{
-    const [expenses,fixed,quick,limits,meta]=await Promise.all([
+    const [expenses,fixed,quick,limits,meta,cardPaid]=await Promise.all([
       safeGet("despesas_cartao"),
       safeGet("config/despesas_fixas"),
       safeGet("gastos_avulsos"),
       safeGet("config/limites"),
-      safeGet("meta")
+      safeGet("meta"),
+      safeGet("pagamentos_cartao")
     ]);
     state.expenses=expenses||{};
     state.fixed=fixed||{};
     state.quick=quick||{};
     state.limits=limits||{};
+    state.cardPaid=cardPaid||{};
     state.lastSyncText=meta?.lastAutoSave ? "Última sincronização com o banco de dados: "+new Date().toLocaleTimeString("pt-BR") : "Última sincronização: agora";
     state.financialLoaded=true;
     setSyncTime();
@@ -970,13 +1112,14 @@ function subscribeRealtime(){
   state.unsubs=[];
   if(!state.authenticated) return;
 
-  const paths=["despesas_cartao","config/despesas_fixas","aleatorios"];
+  const paths=["despesas_cartao","config/despesas_fixas","aleatorios","pagamentos_cartao"];
   for(const path of paths){
     const fn=onValue(ref(db,path),snap=>{
       const value=snap.exists()?snap.val():{};
       if(path==="despesas_cartao") state.expenses=value||{};
       if(path==="config/despesas_fixas") state.fixed=value||{};
       if(path==="aleatorios") state.notes=value||{};
+      if(path==="pagamentos_cartao") state.cardPaid=value||{};
       setSyncTime();
       if(state.authenticated) render();
       clearSyncError();
@@ -1158,16 +1301,35 @@ $("lockBtn").addEventListener("click",lock);
 
 $("editForm").addEventListener("submit",saveEdit);
 $("fDelete").addEventListener("click",deleteEdit);
+$("fDefault").addEventListener("click",resetPago);
 $("fCancel").addEventListener("click",closeEdit);
 
+/* Máscara de valor: 1234 vira 12,34 */
+$("fAmount").addEventListener("input",ev=>{
+  const el=ev.target;
+  el.value=maskMoney(el.value,String(ev.inputType||"").startsWith("delete"));
+});
+/* Primeira letra da descrição em maiúscula */
+$("fDesc").addEventListener("input",ev=>{
+  const el=ev.target;
+  const v=el.value, c=capFirst(v);
+  if(v!==c){
+    const s=el.selectionStart, e=el.selectionEnd;
+    el.value=c;
+    try{ el.setSelectionRange(s,e); }catch(_){}
+  }
+});
+
 $("app").addEventListener("click",ev=>{
-  const t=ev.target.closest("[data-add],[data-edit],[data-mv]");
+  const t=ev.target.closest("[data-add],[data-edit],[data-mv],[data-pago]");
   if(!t) return;
   if(t.dataset.add){
     openEdit({mode:"add",block:t.dataset.add});
   }else if(t.dataset.edit){
     const e=findEntry(t.dataset.edit);
     if(e) openEdit({mode:"edit",entry:e});
+  }else if(t.dataset.pago){
+    openEdit({mode:"pago",block:t.dataset.pago});
   }else if(t.dataset.mv){
     moveItem(t.dataset.mv,t.dataset.b,Number(t.dataset.dir));
   }
