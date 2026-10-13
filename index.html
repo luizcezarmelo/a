@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:,">
 <title>Agenda Diária</title>
 <style>
 :root{
@@ -82,7 +83,7 @@ button,input,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!im
 .rule-item small{color:var(--muted);font-size:10.5px}
 .rule-item .del-btn{height:30px;width:30px;border:1px solid var(--line);border-radius:8px}
 @media(max-width:980px){.layout{grid-template-columns:1fr}.calendar-card{position:static}.bottom-grid{grid-template-columns:1fr}.topbar-inner{align-items:flex-start;flex-direction:column}.actions{justify-content:flex-start}}
-@media(max-width:620px){.layout{padding:12px}.search-wrap{padding:0 12px 12px}.commitment-head{grid-template-columns:28px 28px minmax(0,1fr) 30px}.subs{padding-left:58px}.date-title{font-size:20px}.move-btn{width:24px;height:28px}.check-btn,.del-btn,.star-btn{height:28px}}
+@media(max-width:620px){.layout{padding:12px}.search-wrap{padding:0 12px 12px}.commitment-head{grid-template-columns:24px 26px 28px minmax(0,1fr) auto;gap:4px;padding:6px}.subs{padding-left:58px}.date-title{font-size:20px}.move-btn{width:24px;height:28px}.check-btn,.del-btn,.star-btn{height:28px}.star-btn,.del-btn{width:26px}}
 </style>
 </head>
 <body>
@@ -92,10 +93,10 @@ button,input,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!im
     <h1 id="lockTitle">AGENDA DIÁRIA</h1>
     <p id="lockText">CRIE UMA SENHA DE 4 NÚMEROS PARA PROTEGER SUA AGENDA.</p>
     <div class="pin" id="pinBox">
-      <input inputmode="password" maxlength="1" autocomplete="off">
-      <input inputmode="password" maxlength="1" autocomplete="off">
-      <input inputmode="password" maxlength="1" autocomplete="off">
-      <input inputmode="password" maxlength="1" autocomplete="off">
+      <input type="text" inputmode="numeric" autocomplete="off">
+      <input type="text" inputmode="numeric" autocomplete="off">
+      <input type="text" inputmode="numeric" autocomplete="off">
+      <input type="text" inputmode="numeric" autocomplete="off">
     </div>
     <div class="pin-error" id="pinError"></div>
     <button class="primary-btn" id="pinAction">CRIAR SENHA</button>
@@ -197,16 +198,20 @@ const toLocalISO = d => { const y=d.getFullYear(), m=String(d.getMonth()+1).padS
 const todayISO = () => toLocalISO(new Date());
 const addDays = (iso,n) => { const d=new Date(iso+"T12:00:00"); d.setDate(d.getDate()+n); return toLocalISO(d); };
 // Usado só pelo botão Migrar: pula sábado e domingo (0=domingo, 6=sábado).
-// O calendário, a busca e o restante do app continuam usando addDays normalmente.
 const nextWorkDay = iso => {
   let d=addDays(iso,1);
   while([0,6].includes(new Date(d+"T12:00:00").getDay())) d=addDays(d,1);
   return d;
 };
-// Usado só pelas regras de recorrência: soma meses de calendário a uma data ISO.
+// Soma meses de calendário a uma data ISO. Se o dia não existir no mês de
+// destino (ex.: 31/ago + 6 meses), usa o último dia do mês em vez de estourar.
 function addMonths(iso,months){
   const d=new Date(iso+"T12:00:00");
+  const day=d.getDate();
+  d.setDate(1);
   d.setMonth(d.getMonth()+months);
+  const last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
+  d.setDate(Math.min(day,last));
   return toLocalISO(d);
 }
 const escapeHTML = (s="") => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -218,12 +223,20 @@ let selectedDate=todayISO(), calendarMonth=new Date(selectedDate+"T12:00:00"), t
 let dataCache={}, unsubscribeSelected=null, savingTimer=null, pinMode="create", pinHash=null;
 let recurringRulesCache={}; // { [ruleId]: {text,type,value,createdAt,endDate,createdAtTs} }
 let repeatType="monthday";
+let rulesUnsub=null;
 
 async function sha256(text){
   const hash=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(text));
   return [...new Uint8Array(hash)].map(b=>b.toString(16).padStart(2,"0")).join("");
 }
-function clearPin(){document.querySelectorAll("#pinBox input").forEach(i=>i.value="");document.querySelector("#pinBox input").focus();}
+
+// PIN: os campos mostram sempre "•"; os dígitos reais ficam neste array.
+const pinDigits=["","","",""];
+function clearPin(){
+  pinDigits.fill("");
+  document.querySelectorAll("#pinBox input").forEach(i=>i.value="");
+  document.querySelector("#pinBox input").focus();
+}
 async function initLock(){
   pinHash=localStorage.getItem("agenda_pin_hash");
   pinMode=pinHash?"login":"create";
@@ -237,7 +250,7 @@ async function submitPin(){
     $("pinError").textContent="SEU NAVEGADOR/CONEXÃO NÃO PERMITE CRIPTOGRAFIA SEGURA (ACESSE VIA HTTPS).";
     return;
   }
-  const pin=[...document.querySelectorAll("#pinBox input")].map(i=>i.value).join("");
+  const pin=pinDigits.join("");
   if(!/^\d{4}$/.test(pin)){ $("pinError").textContent="DIGITE EXATAMENTE 4 NÚMEROS."; return; }
   const hash=await sha256(pin);
   if(pinMode==="create"){
@@ -246,16 +259,24 @@ async function submitPin(){
     $("pinError").textContent="SENHA INCORRETA."; clearPin(); return;
   }
   $("pinError").textContent=""; $("lockScreen").classList.add("hidden"); $("app").classList.remove("hidden");
+  pinDigits.fill(""); document.querySelectorAll("#pinBox input").forEach(i=>i.value="");
   await startApp();
 }
 document.querySelectorAll("#pinBox input").forEach((input,index,all)=>{
-  input.addEventListener("input",()=>{input.value=input.value.replace(/\D/g,"").slice(0,1);if(input.value&&index<all.length-1)all[index+1].focus();});
-  input.addEventListener("keydown",e=>{if(e.key==="Backspace"&&!input.value&&index>0)all[index-1].focus();if(e.key==="Enter")submitPin();});
+  input.addEventListener("input",()=>{
+    const digit=input.value.replace(/\D/g,"").slice(-1);
+    pinDigits[index]=digit;
+    input.value=digit?"•":"";
+    if(digit&&index<all.length-1)all[index+1].focus();
+  });
+  input.addEventListener("keydown",e=>{
+    if(e.key==="Backspace"&&!input.value&&index>0){ pinDigits[index-1]=""; all[index-1].value=""; all[index-1].focus(); e.preventDefault(); }
+    if(e.key==="Enter")submitPin();
+  });
 });
 $("pinAction").addEventListener("click",submitPin);
 
-// Normaliza um array bruto de 10 subcompromissos (usado tanto pelos
-// compromissos manuais/migrados quanto pelo status diário de recorrências).
+// Normaliza um array bruto de 10 subcompromissos.
 function normalizeSubs(rawSubs){
   const subs=Array.from({length:10},()=>({text:"",done:false,active:false}));
   if(Array.isArray(rawSubs)) for(let j=0;j<10;j++){
@@ -270,11 +291,9 @@ function defaultDay(){
     recurringStatus:{}
   };
 }
-// Cada dia agora guarda: commitments (20 quadros manuais/migrados, igual antes)
-// + recurringStatus (feito/estrela/subs por dia de cada regra recorrente que
-// aparecer naquele dia). O TEXTO da recorrência nunca fica salvo no dia — ele
-// vem sempre ao vivo de recurringRulesCache, então editar a regra muda em
-// todas as datas de uma vez.
+// Cada dia guarda: commitments (20 quadros manuais/migrados) + recurringStatus
+// (feito/estrela/subs por dia de cada regra recorrente). O TEXTO da recorrência
+// vem sempre ao vivo de recurringRulesCache.
 function normalizeDay(raw){
   const base=defaultDay();
   if(raw&&Array.isArray(raw.commitments)) for(let i=0;i<20;i++){
@@ -308,10 +327,7 @@ function compactDay(day){
   return day;
 }
 
-// Reordena os compromissos de um dia colocando os que têm estrela (highlight)
-// primeiro, mantendo a ordem relativa dentro de cada grupo (estrela / sem estrela).
-// Não mexe em subcompromissos nem em nenhuma outra propriedade. Não se aplica
-// a compromissos recorrentes: a posição deles é sempre fixa (ordem de criação).
+// Coloca os compromissos com estrela primeiro, mantendo a ordem relativa.
 function sortByStar(day){
   day.commitments = day.commitments
     .map((c,idx)=>({c,idx}))
@@ -339,9 +355,11 @@ function getRulesForDate(dateISO){
     .sort((a,b)=>(a.createdAtTs||0)-(b.createdAtTs||0));
 }
 function watchRecurringRules(){
-  onValue(ref(db,`${ROOT}/recurringRules`),snap=>{
+  if(rulesUnsub){ rulesUnsub(); rulesUnsub=null; } // evita listeners duplicados ao desbloquear de novo
+  rulesUnsub=onValue(ref(db,`${ROOT}/recurringRules`),snap=>{
     recurringRulesCache=snap.exists()?snap.val():{};
-    renderAgenda();
+    const typing=document.activeElement?.matches?.('.main-input,.sub-input');
+    if(!typing)renderAgenda();
     renderRepeatRulesList();
   },()=>{ toast("ERRO AO SINCRONIZAR REGRAS RECORRENTES."); });
 }
@@ -363,15 +381,14 @@ function saveSelectedDay(){
   const data=normalizeDay(dataCache[selectedDate]); dataCache[selectedDate]=data; $("saveStatus").textContent="SALVANDO...";
   set(ref(db,`${ROOT}/days/${selectedDate}`),data).then(()=>$("saveStatus").textContent="SALVO / SINCRONIZADO").catch(()=>$("saveStatus").textContent="ERRO AO SALVAR");
 }
-function scheduleSave(){clearTimeout(savingTimer);$("saveStatus").textContent="ALTERAÇÕES PENDENTES...";savingTimer=setTimeout(saveSelectedDay,350);}
+function scheduleSave(){clearTimeout(savingTimer);$("saveStatus").textContent="ALTERAÇÕES PENDENTES...";savingTimer=setTimeout(()=>{savingTimer=null;saveSelectedDay();},350);}
 
-// As anotações gerais agora ficam num único registro fixo no banco
-// (agenda_diaria/generalNotes), sem nenhuma data envolvida — por isso
-// valem para todos os dias e não "somem" ao virar o dia.
+// Anotações gerais: registro fixo (agenda_diaria/generalNotes), vale para todos os dias.
 async function loadNotes(){
   const snap=await get(ref(db,`${ROOT}/generalNotes`));
   $("notes").value=snap.exists()?(snap.val()||""):"";
 }
+let notesTimer=null;
 function saveNotes(){
   set(ref(db,`${ROOT}/generalNotes`),$("notes").value||"").catch(()=>toast("ERRO AO SALVAR ANOTAÇÕES."));
 }
@@ -379,7 +396,8 @@ $("notes").addEventListener("input",()=>{
   const el=$("notes"), start=el.selectionStart, end=el.selectionEnd;
   el.value=el.value.toUpperCase();
   el.setSelectionRange(start,end);
-  saveNotes();
+  clearTimeout(notesTimer);
+  notesTimer=setTimeout(saveNotes,400);
 });
 
 function moveCommitment(index,direction){
@@ -393,8 +411,6 @@ function moveCommitment(index,direction){
   scheduleSave();
 }
 
-// Foca o campo principal do próximo card na tela (seja ele recorrente ou
-// manual), usado pelo Enter no fim de um compromisso/subcompromisso.
 function focusNextMain(currentCard){
   const cards=[...document.querySelectorAll('#agendaList .commitment')];
   const next=cards[cards.indexOf(currentCard)+1];
@@ -419,7 +435,7 @@ function renderCommitmentCard(o){
   const subHTML=buildSubsHTML(o.subs,o.displayNumber);
   const idAttr=o.isRule?`data-rule-id="${o.ruleId}"`:`data-index="${o.index}"`;
   const classes=`commitment ${o.done?'done':''} ${o.highlight?'highlight':''} ${o.isRule?'recurring':''}`;
-  const deleteTitle=o.isRule?'APAGAR REGRA RECORRENTE (TODAS AS PRÓXIMAS OCORRÊNCIAS)':'APAGAR COMPROMISSO';
+  const deleteTitle=o.isRule?'APAGAR REGRA RECORRENTE (DESTA DATA EM DIANTE)':'APAGAR COMPROMISSO';
   const moveButtons=o.isRule?'':`
       <button type="button" class="move-btn" title="MOVER PARA CIMA" aria-label="MOVER COMPROMISSO PARA CIMA" data-action="move-up" ${!o.canMoveUp?'disabled':''}>↑</button>
       <button type="button" class="move-btn" title="MOVER PARA BAIXO" aria-label="MOVER COMPROMISSO PARA BAIXO" data-action="move-down" ${!o.canMoveDown?'disabled':''}>↓</button>`;
@@ -444,8 +460,6 @@ function renderAgenda(){
   const data=dataCache[selectedDate]||defaultDay();
   dataCache[selectedDate]=data;
 
-  // Compacta os subcompromissos e os compromissos manuais/migrados (nenhum
-  // vazio pode ficar entre os preenchidos). Não mexe nas regras recorrentes.
   compactDay(data);
 
   // Guarda o foco/cursor para que o autosave do Firebase não interrompa a digitação.
@@ -596,9 +610,16 @@ function bindManualCardEvents(card,i){
   });
 }
 
+// Encerra uma regra recorrente na véspera da data indicada (mantém o histórico anterior).
+async function endRuleBefore(ruleId,dateISO){
+  const end=addDays(dateISO,-1);
+  await set(ref(db,`${ROOT}/recurringRules/${ruleId}/endDate`),end);
+  if(recurringRulesCache[ruleId]) recurringRulesCache[ruleId].endDate=end;
+}
+
 function bindRuleCardEvents(card,ruleId){
   const rule=recurringRulesCache[ruleId];
-  if(!rule)return; // regra pode ter sido apagada bem na hora de renderizar
+  if(!rule)return;
 
   const getStatus=()=>{
     const data=dataCache[selectedDate]||defaultDay();
@@ -619,11 +640,10 @@ function bindRuleCardEvents(card,ruleId){
 
   card.querySelector('[data-action=delete]').onclick=async(e)=>{
     e.preventDefault(); e.stopPropagation();
-    if(!confirm(`APAGAR A REGRA RECORRENTE "${rule.text||'(SEM TEXTO)'}" E TODAS AS PRÓXIMAS OCORRÊNCIAS? ESSA AÇÃO NÃO PODE SER DESFEITA.`))return;
+    if(!confirm(`APAGAR A REGRA RECORRENTE "${rule.text||'(SEM TEXTO)'}" DESTA DATA EM DIANTE? AS OCORRÊNCIAS ANTERIORES SÃO MANTIDAS.`))return;
     try{
-      await set(ref(db,`${ROOT}/recurringRules/${ruleId}`),null);
-      delete recurringRulesCache[ruleId];
-      toast('REGRA RECORRENTE REMOVIDA.');
+      await endRuleBefore(ruleId,selectedDate);
+      toast('REGRA RECORRENTE ENCERRADA.');
       renderAgenda(); renderRepeatRulesList();
     }catch{ toast('ERRO AO REMOVER A REGRA.'); }
   };
@@ -705,40 +725,45 @@ function renderCalendar(){
   $("days").querySelectorAll("[data-date]").forEach(b=>b.onclick=()=>selectDate(b.dataset.date));
 }
 async function selectDate(date){
+  // Grava na hora qualquer edição pendente do dia atual antes de trocar de dia.
+  if(savingTimer){ clearTimeout(savingTimer); savingTimer=null; saveSelectedDay(); }
   selectedDate=date;calendarMonth=new Date(date+"T12:00:00");$("dateTitle").innerHTML=`${fmtDate(date)}<small>COMPROMISSOS DO DIA SELECIONADO</small>`;
-  renderCalendar();if(!dataCache[date])dataCache[date]=await loadDay(date);watchSelectedDay();renderAgenda();
+  renderCalendar();if(!dataCache[date])dataCache[date]=await loadDay(date);
+  if(selectedDate!==date)return; // o usuário já clicou em outro dia durante o carregamento
+  watchSelectedDay();renderAgenda();
 }
 $("calPrev").onclick=()=>{calendarMonth.setMonth(calendarMonth.getMonth()-1);renderCalendar();};
 $("calNext").onclick=()=>{calendarMonth.setMonth(calendarMonth.getMonth()+1);renderCalendar();};
 $("todayBtnCal").onclick=()=>selectDate(todayISO());
-$("lockBtnCal").onclick=()=>{ $("app").classList.add("hidden"); $("lockScreen").classList.remove("hidden"); pinMode="login"; $("lockTitle").textContent="AGENDA BLOQUEADA"; $("lockText").textContent="DIGITE SUA SENHA DE 4 NÚMEROS."; $("pinAction").textContent="ENTRAR"; $("pinError").textContent=""; clearPin(); };
+$("lockBtnCal").onclick=()=>{
+  if(savingTimer){ clearTimeout(savingTimer); savingTimer=null; saveSelectedDay(); }
+  $("app").classList.add("hidden"); $("lockScreen").classList.remove("hidden"); pinMode="login"; $("lockTitle").textContent="AGENDA BLOQUEADA"; $("lockText").textContent="DIGITE SUA SENHA DE 4 NÚMEROS."; $("pinAction").textContent="ENTRAR"; $("pinError").textContent=""; clearPin();
+};
 
 $("migrateBtnCal").onclick=async()=>{
-  // Cancela qualquer salvamento pendente do dia atualmente selecionado — vamos
-  // gravar a versão final explicitamente ao fim desta função.
-  clearTimeout(savingTimer);
+  clearTimeout(savingTimer); savingTimer=null;
 
   const current=selectedDate;
   const next=nextWorkDay(current);
 
-  // Usa sempre o que está em memória (mais atual que o Firebase, pois inclui
-  // digitações recentes ainda não sincronizadas) e só busca do Firebase se o
-  // dia nunca foi carregado nesta sessão. Só mexe em day.commitments — os
-  // compromissos recorrentes nunca são migrados, pois já aparecem sozinhos
-  // em cada dia aplicável.
+  // Dia atual: usa o que está em memória. Dia de destino: sempre busca a versão
+  // mais recente no Firebase, para não sobrescrever edições feitas em outro aparelho.
   const cd=compactDay(normalizeDay(dataCache[current]||await loadDay(current)));
-  const nd=compactDay(normalizeDay(dataCache[next]||await loadDay(next)));
+  const nd=compactDay(normalizeDay(await loadDay(next)));
+
+  // O dia de destino só exibe 20 menos o número de recorrências dele.
+  const maxNext=Math.max(0,20-getRulesForDate(next).length);
 
   let moved=0;
   for(let i=0;i<20;i++){
     const c=cd.commitments[i];
-    if(c.done || !c.text) continue; // só migra compromissos com texto que ainda não foram concluídos
+    if(c.done || !c.text) continue;
 
-    // Tenta manter o mesmo índice no dia seguinte; se ocupado, procura o primeiro slot livre.
-    let targetIndex = (!nd.commitments[i].text && !nd.commitments[i].done) ? i : nd.commitments.findIndex(x=>!x.text&&!x.done);
-    if(targetIndex===-1) continue; // sem espaço no dia seguinte — o item permanece pendente, nada é perdido
+    let targetIndex = (i<maxNext && !nd.commitments[i].text && !nd.commitments[i].done)
+      ? i
+      : nd.commitments.findIndex((x,k)=>k<maxNext && !x.text && !x.done);
+    if(targetIndex===-1) continue; // sem espaço visível no dia seguinte — o item permanece pendente
 
-    // Copia o compromisso inteiro (texto + todos os subcompromissos, taxados ou não) para o dia seguinte.
     nd.commitments[targetIndex]={
       text:c.text,
       done:false,
@@ -749,9 +774,6 @@ $("migrateBtnCal").onclick=async()=>{
     moved++;
   }
 
-  // Reaplica a ordenação por estrela no dia de destino: compromissos migrados
-  // com estrela entram já posicionados no topo (abaixo das estrelas que já
-  // existirem lá), em vez de ficarem apenas no primeiro slot vazio.
   if(moved) sortByStar(nd);
 
   dataCache[current]=cd;
@@ -838,11 +860,10 @@ function renderRepeatRulesList(){
   box.querySelectorAll('[data-delete-rule]').forEach(btn=>btn.onclick=async()=>{
     const id=btn.dataset.deleteRule;
     const rule=recurringRulesCache[id];
-    if(!confirm(`APAGAR A REGRA RECORRENTE "${rule?.text||''}" E TODAS AS PRÓXIMAS OCORRÊNCIAS?`))return;
+    if(!confirm(`APAGAR A REGRA RECORRENTE "${rule?.text||''}" A PARTIR DE HOJE? AS OCORRÊNCIAS ANTERIORES SÃO MANTIDAS.`))return;
     try{
-      await set(ref(db,`${ROOT}/recurringRules/${id}`),null);
-      delete recurringRulesCache[id];
-      toast('REGRA REMOVIDA.');
+      await endRuleBefore(id,todayISO());
+      toast('REGRA ENCERRADA.');
       renderRepeatRulesList(); renderAgenda();
     }catch{ toast('ERRO AO REMOVER A REGRA.'); }
   });
@@ -855,7 +876,7 @@ $("search").oninput=e=>{
   el.setSelectionRange(start,end);
   const q=el.value.trim(),box=$("searchResults");
   clearTimeout(searchDebounceTimer);
-  searchToken++; // qualquer busca em andamento vira obsoleta a partir daqui
+  searchToken++;
   if(q.length<4){box.classList.add("hidden");box.innerHTML="";return;}
   box.innerHTML=`<div class="empty-search">PESQUISANDO...</div>`;
   box.classList.remove("hidden");
@@ -875,7 +896,7 @@ async function runSearch(q){
     if(!d){try{d=await loadDay(date);dataCache[date]=d;}catch{return null;}}
     return {date,d};
   }));
-  if(myToken!==searchToken)return; // usuário já digitou outra coisa; descarta este resultado desatualizado
+  if(myToken!==searchToken)return;
   const results=[];
   entries.forEach(entry=>{
     if(!entry)return;
