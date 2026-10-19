@@ -255,6 +255,7 @@ tbody tr.ending-row{box-shadow:inset 4px 0 0 #9b59b6}
 .blk-foot small{font-weight:400;color:var(--fiori-muted)}
 .venc table{min-width:640px}
 .venc tr.gt td{background:#eef6ff;color:#0a6ed1;font-weight:700}
+.venc tr.quit td{background:#0a6ed1;color:#fff;font-weight:700;font-size:.95rem}
 .trio{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 @media(max-width:480px){.trio{grid-template-columns:1fr}}
 </style>
@@ -267,14 +268,10 @@ tbody tr.ending-row{box-shadow:inset 4px 0 0 #9b59b6}
     <div class="shell-title">Controle de Gastos Mensais</div>
   </div>
   <div class="shell-actions">
-    <button class="btn" id="backupBtn" type="button">BCK</button>
-    <button class="btn" id="downloadBckBtn" type="button">Baixar BCK</button>
-    <button class="btn" id="restoreBckBtn" type="button">Restaurar BCK</button>
+    <button class="btn" id="downloadBckBtn" type="button">BCK</button>
+    <button class="btn" id="restoreBckBtn" type="button">Restaurar</button>
     <input type="file" id="restoreFile" accept=".json,application/json" class="hidden">
-    <button class="btn" id="exportBtn" type="button">Exportar</button>
-    <button class="btn" id="importBtn" type="button">Importar</button>
-    <input type="file" id="importFile" accept=".csv,text/csv" class="hidden">
-    <button class="btn" id="lockBtn" type="button">Bloquear</button>
+    <button class="btn danger" id="clearBtn" type="button">Limpar tela</button>
   </div>
 </header>
 
@@ -356,7 +353,7 @@ tbody tr.ending-row{box-shadow:inset 4px 0 0 #9b59b6}
             <select id="fOrigin">
               <option value="Nubank">Nubank</option>
               <option value="C6">C6</option>
-              <option value="Diversos">Diversos</option>
+              <option value="Diversos">Minhas coisas</option>
             </select>
           </div>
           <div class="field">
@@ -455,7 +452,7 @@ function originClass(origin){
   return origin==="Nubank"?"origin-nubank":origin==="C6"?"origin-c6":origin==="Mercado Pago"?"origin-mp":"origin-random";
 }
 function originTag(origin){
-  return `<span class="origin-tag ${originClass(origin)}">${esc(origin)}</span>`;
+  return `<span class="origin-tag ${originClass(origin)}">${esc(origin==="Diversos"?"Minhas coisas":origin)}</span>`;
 }
 function showToast(message){
   $("toast").textContent=message;
@@ -494,8 +491,8 @@ async function safeRemove(path){
 }
 
 /*
-  Backup:
-  O backup é um snapshot do estado atual das árvores de dados relevantes.
+  Backup automático interno:
+  snapshot do estado atual das árvores de dados relevantes, guardado no próprio banco.
   Nunca é colocado no navegador.
 */
 async function createBackup(reason="manual"){
@@ -646,11 +643,12 @@ function monthEntries(month=state.currentMonth){
   return [...normal,...fixed];
 }
 
+/* O id "diversos" continua na lógica e no banco; só o título exibido é "Minhas coisas". */
 const BLOCKS=[
   {id:"fixas",title:"Fixas",parc:false},
   {id:"nubank",title:"Nubank",parc:true,tag:"NUBANK"},
   {id:"c6",title:"C6 Bank",parc:true,tag:"C6"},
-  {id:"diversos",title:"Diversos",parc:true,tag:"DIVERSOS"}
+  {id:"diversos",title:"Minhas coisas",parc:true,tag:"MINHAS COISAS"}
 ];
 const num=n=>new Intl.NumberFormat("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(n)||0);
 const round2=v=>Math.round(v*100)/100;
@@ -685,17 +683,11 @@ function capFirst(s){
 }
 
 /*
-  Pago dos cartões: cada cartão tem uma caixa "Pago" por mês.
-  Marcada, o total do cartão naquele mês entra no "Pago" do topo.
-  Fica salva em cartao_pago/YYYY-MM/<cartao> = true.
-  As caixas OK dos itens dos cartões são só conferência e não entram na conta.
+  Linha "Pago" dos cartões: lembrete pessoal.
+  Fica salva em cartao_pago/YYYY-MM/<cartao> = true, mas NÃO entra em nenhuma conta.
 */
 function cardIsPaid(month,id){
   return !!(state.cardPaid && state.cardPaid[month] && state.cardPaid[month][id]===true);
-}
-function blockPaid(b,list,month){
-  if(b.id==="fixas") return round2(sum(list.filter(e=>e.paid)));
-  return cardIsPaid(month,b.id) ? round2(sum(list)) : 0;
 }
 
 function blockOf(e){
@@ -745,6 +737,27 @@ function vencGroups(){
   });
 }
 
+/*
+  Quanto seria preciso ter em mãos para quitar todas as dívidas de cartão:
+  soma das parcelas restantes de todas as compras (parceladas e à vista),
+  da parcela do mês exibido até a última. Parcelas marcadas OK entram na soma.
+  Fixas e Aleatórios não entram.
+*/
+function totalToSettle(){
+  const cur=state.currentMonth;
+  let total=0;
+  baseExpenses().forEach(x=>{
+    const s=monthOf(x.purchaseDate);
+    const diff=(Number(cur.slice(0,4))-Number(s.slice(0,4)))*12+
+               (Number(cur.slice(5,7))-Number(s.slice(5,7)));
+    const remaining=x.installments-Math.max(diff,0);
+    if(remaining<=0) return;
+    const value=x.parcelValue!=null?x.parcelValue:x.amount/x.installments;
+    total+=remaining*value;
+  });
+  return round2(total);
+}
+
 function blockHTML(b,list,month){
   const total=round2(sum(list));
   const isNote=!!b.note;
@@ -776,7 +789,8 @@ function blockHTML(b,list,month){
     </tr>`;
     foot=`<span>Total</span><span>${money(total)}</span>`;
   }else{
-    const falta=Math.max(0,round2(total-blockPaid(b,list,month)));
+    const pagoFixas=round2(sum(list.filter(e=>e.paid)));
+    const falta=Math.max(0,round2(total-pagoFixas));
     foot=`<span>Total <small>· falta ${money(falta)}</small></span><span>${money(total)}</span>`;
   }
 
@@ -792,10 +806,12 @@ function blockHTML(b,list,month){
 
 function vencHTML(){
   const groups=vencGroups();
-  if(!groups.length) return `<div class="empty">Nenhuma parcela em andamento.</div>`;
-  const rows=groups.map(g=>g.items.map(i=>`<tr><td>${esc(i.description)}</td><td>${BLOCKS.find(k=>k.id===i.b).tag}</td><td>${num(i.amount)}</td><td>${i.n}/${i.N}</td><td>${mLabel(g.month)}</td></tr>`).join("")
-    +`<tr class="gt"><td colspan="4" style="text-align:right">Total encerrando em ${mLabel(g.month)}</td><td>${money(g.total)}</td></tr>`).join("");
-  return `<table><thead><tr><th>Descrição</th><th>Banco/Cartão</th><th>Valor</th><th>Parcela</th><th>Mês final</th></tr></thead><tbody>${rows}</tbody></table>`;
+  const rows=groups.length
+    ? groups.map(g=>g.items.map(i=>`<tr><td>${esc(i.description)}</td><td>${BLOCKS.find(k=>k.id===i.b).tag}</td><td>${num(i.amount)}</td><td>${i.n}/${i.N}</td><td>${mLabel(g.month)}</td></tr>`).join("")
+        +`<tr class="gt"><td colspan="4" style="text-align:right">Total encerrando em ${mLabel(g.month)}</td><td>${money(g.total)}</td></tr>`).join("")
+    : `<tr><td colspan="5" class="empty" style="padding:18px 8px">Nenhuma parcela em andamento.</td></tr>`;
+  const quit=`<tr class="quit"><td colspan="4" style="text-align:right">Total necessário para quitar todas as dívidas</td><td>${money(totalToSettle())}</td></tr>`;
+  return `<table><thead><tr><th>Descrição</th><th>Banco/Cartão</th><th>Valor</th><th>Parcela</th><th>Mês final</th></tr></thead><tbody>${rows}${quit}</tbody></table>`;
 }
 
 function render(){
@@ -807,15 +823,9 @@ function render(){
   const by=monthBlocks(month);
   const all=[].concat(...BLOCKS.map(b=>by[b.id]));
   const total=round2(sum(all));
-  let paid=0, falta=0;
-  BLOCKS.forEach(b=>{
-    const l=by[b.id];
-    const p=blockPaid(b,l,month);
-    paid+=p;
-    falta+=Math.max(0,round2(sum(l))-p);
-  });
-  paid=round2(paid);
-  falta=round2(falta);
+  /* Pago = soma de tudo que está marcado com OK (Fixas, Nubank, C6 e Minhas coisas). */
+  const paid=round2(sum(all.filter(e=>e.paid)));
+  const falta=Math.max(0,round2(total-paid));
   $("topTotal").textContent=money(total);
   $("topSub").textContent=`Pago ${money(paid)} · Falta pagar ${money(falta)}`;
   $("blocks").innerHTML=BLOCKS.map(b=>blockHTML(b,by[b.id],month)).join("");
@@ -825,7 +835,7 @@ function render(){
 
 /*
   A caixa OK é salva no Firebase (ticada ou não) em todos os blocos.
-  Nas despesas fixas ela conta como pago; nos cartões serve só para conferência da fatura.
+  Ela alimenta o "Pago" e o "Falta pagar" do topo; é um controle pessoal.
 */
 async function togglePaid(key,value){
   const e=findEntry(key);
@@ -918,6 +928,7 @@ function closeEdit(){
   state.editing=null;
 }
 
+/* Lembrete pessoal "Pago" do cartão: só salva no banco, não entra em nenhuma conta. */
 async function togglePago(block,value){
   const month=state.currentMonth;
   try{
@@ -1202,209 +1213,8 @@ async function unlock(){
   render();
 }
 
-function lock(){
-  state.authenticated=false;
-  state.financialLoaded=false;
-  state.backupDone=false;
-  state.unsubs.forEach(fn=>fn());
-  state.unsubs=[];
-  $("app").classList.add("hidden");
-  $("pinModal").classList.remove("hidden");
-  checkPinFirstAccess();
-}
-
-function exportCSV(){
-  const rows=[["Mês","Descrição","Origem","Data de compra","Parcela","Total de parcelas","Valor da parcela","Status","Observação"]];
-  const months=new Set([state.currentMonth]);
-
-  baseExpenses().forEach(e=>{
-    for(let i=0;i<e.installments;i++) months.add(addMonths(monthOf(e.purchaseDate),i));
-  });
-  Object.values(state.fixed||{}).filter(f=>!f.deleted).forEach(f=>{
-    for(let i=0;i<24;i++) months.add(addMonths(fixedStartMonth(f),i));
-  });
-
-  [...months].sort().forEach(month=>{
-    monthEntries(month).forEach(e=>{
-      rows.push([
-        month,e.description,e.origin,e.purchaseDate,
-        e.installment,e.installments,
-        e.amount.toFixed(2).replace(".",","),
-        e.paid?"Pago":"Pendente",e.note||""
-      ]);
-    });
-  });
-
-  const csv="\uFEFF"+rows.map(row=>row.map(v=>{
-    const s=String(v??"");
-    return `"${s.replace(/"/g,'""')}"`;
-  }).join(";")).join("\r\n");
-
-  const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;
-  a.download=`controle-gastos-${today()}.csv`;
-  a.click();
-  setTimeout(()=>URL.revokeObjectURL(url),1000);
-}
-
 /*
-  Importação do CSV gerado pelo botão Exportar.
-  O CSV tem uma linha por mês, então as linhas são reagrupadas:
-  - compras de cartão: uma compra por descrição + cartão + data de compra + total de parcelas;
-  - despesas fixas: uma despesa por descrição (início = primeiro mês, valores que mudam viram "valores").
-  Itens que já existem no banco são ignorados. Aleatórios não vão no CSV, então não são importados.
-*/
-function parseCSV(text){
-  text=text.replace(/^\uFEFF/,"");
-  const first=text.split(/\r?\n/,1)[0];
-  const delim=(first.match(/;/g)||[]).length>=(first.match(/,/g)||[]).length?";":",";
-  const rows=[];
-  let row=[],cur="",q=false;
-  for(let i=0;i<text.length;i++){
-    const c=text[i];
-    if(q){
-      if(c==='"'){ if(text[i+1]==='"'){ cur+='"'; i++; } else q=false; }
-      else cur+=c;
-    }else if(c==='"') q=true;
-    else if(c===delim){ row.push(cur); cur=""; }
-    else if(c==="\n"||c==="\r"){
-      if(c==="\r"&&text[i+1]==="\n") i++;
-      row.push(cur); cur=""; rows.push(row); row=[];
-    }else cur+=c;
-  }
-  if(cur!==""||row.length){ row.push(cur); rows.push(row); }
-  return rows.filter(r=>r.some(v=>String(v).trim()!==""));
-}
-const normTxt=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
-function parseCsvMoney(s){
-  s=String(s||"").trim();
-  if(s.includes(",")) s=s.replace(/\./g,"").replace(",",".");
-  const n=Number(s);
-  return Number.isFinite(n)?n:NaN;
-}
-function cardOriginOf(o){
-  const n=normTxt(o);
-  return n==="nubank"?"Nubank":n==="c6"?"C6":"Diversos";
-}
-
-async function importCSV(file){
-  if(!state.authenticated){ showToast("Desbloqueie o app com o PIN primeiro."); return; }
-  let rows;
-  try{ rows=parseCSV(await file.text()); }
-  catch(err){ showToast("Não foi possível ler o arquivo."); return; }
-  if(rows.length<2){ showToast("CSV vazio ou inválido."); return; }
-
-  const head=rows[0].map(normTxt);
-  const col=n=>head.indexOf(n);
-  const ix={month:col("mes"),desc:col("descricao"),origin:col("origem"),date:col("data de compra"),
-            n:col("parcela"),N:col("total de parcelas"),val:col("valor da parcela"),
-            status:col("status"),note:col("observacao")};
-  if(ix.month<0||ix.desc<0||ix.val<0){
-    alert("Não reconheci as colunas do CSV. Use o arquivo gerado pelo botão Exportar.");
-    return;
-  }
-  const g=(r,i)=>i>=0?String(r[i]??"").trim():"";
-
-  const fixed={}, cards={};
-  const seen={};
-  const occ=(month,k)=>{ const s=month+"#"+k; seen[s]=(seen[s]||0)+1; return seen[s]-1; };
-  rows.slice(1).forEach(r=>{
-    const month=g(r,ix.month), desc=g(r,ix.desc), val=parseCsvMoney(g(r,ix.val));
-    if(!/^\d{4}-\d{2}$/.test(month)||!desc||!Number.isFinite(val)) return;
-    const origin=g(r,ix.origin), note=g(r,ix.note);
-    const paid=normTxt(g(r,ix.status))==="pago";
-    const rawDate=g(r,ix.date);
-    const date=/^\d{4}-\d{2}-\d{2}$/.test(rawDate)?rawDate:month+"-01";
-    const n=Math.max(1,parseInt(g(r,ix.n),10)||1);
-    const N=Math.max(1,parseInt(g(r,ix.N),10)||1);
-    if(origin==="Fixas"||note==="Despesa fixa"){
-      const base=normTxt(desc);
-      const idx=occ(month,"F|"+base);
-      const k=base+"#"+idx;
-      const f=fixed[k]=fixed[k]||{description:desc,base,idx,months:{},day:date.slice(8,10)||"01"};
-      f.months[month]={val,paid};
-    }else{
-      const o=cardOriginOf(origin);
-      const base=[normTxt(desc),o,date,N,round2(val).toFixed(2)].join("|");
-      const idx=occ(month,"C|"+base);
-      const k=base+"#"+idx;
-      const c=cards[k]=cards[k]||{description:desc,origin:o,date,N,val,paid:{},base,idx};
-      if(paid) c.paid[n]=true;
-    }
-  });
-
-  const haveCards={};
-  baseExpenses().forEach(x=>{
-    const v=x.parcelValue!=null?x.parcelValue:x.amount/x.installments;
-    const b=[normTxt(x.description),cardOriginOf(x.origin),x.purchaseDate,x.installments,round2(v).toFixed(2)].join("|");
-    haveCards[b]=(haveCards[b]||0)+1;
-  });
-
-  const upd={}, newCards={}, newFixed={};
-  const base=Date.now();
-  let i=0, nCards=0, nFixed=0, skipped=0;
-
-  Object.values(cards).forEach(c=>{
-    if(c.idx<(haveCards[c.base]||0)){ skipped++; return; }
-    const id=uuid();
-    const item={description:c.description,parcelValue:round2(c.val),amount:round2(c.val*c.N),origin:c.origin,
-                installments:c.N,purchaseDate:c.date,note:"",createdAt:base+i,order:base+i,fixedId:null};
-    if(Object.keys(c.paid).length) item.paid=c.paid;
-    i++; nCards++;
-    upd["despesas_cartao/"+id]=item;
-    newCards[id]=item;
-  });
-
-  Object.values(fixed).forEach(f=>{
-    const ms=Object.keys(f.months).sort();
-    const start=ms[0], last=ms[ms.length-1];
-    const covering=Object.values(state.fixed||{}).filter(x=>!x.deleted && normTxt(x.description)===f.base && fixedStartMonth(x)<=start && (!x.endMonth || x.endMonth>=last)).length;
-    if(f.idx<covering){ skipped++; return; }
-    const amt=round2(f.months[start].val);
-    const valores={}, paid={};
-    let prev=amt;
-    ms.forEach(m=>{
-      const v=round2(f.months[m].val);
-      if(m!==start && v!==prev){ valores[m]=v; prev=v; }
-      if(f.months[m].paid) paid[m]=true;
-    });
-    const id=uuid();
-    const item={description:f.description,amount:amt,origin:"Fixas",purchaseDate:start+"-"+f.day,
-                startMonth:start,note:"",createdAt:base+i,order:base+i};
-    if(Object.keys(valores).length) item.valores=valores;
-    if(Object.keys(paid).length) item.paid=paid;
-    if(last<addMonths(start,23)) item.endMonth=last;
-    i++; nFixed++;
-    upd["config/despesas_fixas/"+id]=item;
-    newFixed[id]=item;
-  });
-
-  if(!nCards && !nFixed){
-    showToast(skipped?"Tudo isso já existe no sistema.":"Nenhum lançamento encontrado no CSV.");
-    return;
-  }
-  if(!confirm("Importar "+nCards+" compra(s) de cartão e "+nFixed+" despesa(s) fixa(s)?"+(skipped?"\n"+skipped+" item(ns) já existente(s) serão ignorados.":""))) return;
-
-  try{
-    await ensureImmediateBackup("importação de CSV");
-    await update(ref(db),upd);
-    setSyncTime();
-    Object.assign(state.expenses,newCards);
-    Object.assign(state.fixed,newFixed);
-    state.pendingSave=false;
-    render();
-    clearSyncError();
-    showToast("Importação concluída.");
-  }catch(err){
-    setSyncError("Falha ao importar o CSV para o Firebase.");
-  }
-}
-
-/*
-  Backup em arquivo (JSON): cópia exata dos dados, lida direto do banco.
-  Diferente do CSV (que é um relatório), este arquivo guarda tudo como está salvo:
+  BCK: arquivo JSON com cópia exata dos dados, lida direto do banco:
   compras de cartão, despesas fixas, aleatórios, "pago" dos cartões e limites.
   O PIN não entra no arquivo.
 */
@@ -1436,9 +1246,9 @@ async function restoreBackupFile(file){
   if(!state.authenticated){ showToast("Desbloqueie o app com o PIN primeiro."); return; }
   let payload;
   try{ payload=JSON.parse(await file.text()); }
-  catch(err){ alert("Arquivo inválido. Use um arquivo gerado por Baixar BCK."); return; }
+  catch(err){ alert("Arquivo inválido. Use um arquivo gerado pelo botão BCK."); return; }
   if(!payload || payload.app!=="controle-gastos-mensais" || !payload.data){
-    alert("Este arquivo não é um backup deste sistema. Use um arquivo gerado por Baixar BCK.");
+    alert("Este arquivo não é um backup deste sistema. Use um arquivo gerado pelo botão BCK.");
     return;
   }
   const d=payload.data;
@@ -1463,17 +1273,110 @@ async function restoreBackupFile(file){
   }
 }
 
-async function manualBackup(){
+/*
+  Limpar tela: apaga da tela e do banco os dados lançados no mês exibido.
+  Os meses anteriores não são alterados. Parcelamentos que começaram antes
+  continuam existindo (ex.: sapato 1/2 em setembro reaparece como 2/2 no mês
+  seguinte); só as marcações OK/Pago deste mês são zeradas.
+  É a mesma lógica de abrir um mês novo, forçando a limpeza.
+*/
+async function clearScreen(){
+  if(!state.authenticated){ showToast("Desbloqueie o app com o PIN primeiro."); return; }
+  const month=state.currentMonth;
+  const upd={};
+  let nCards=0, nFixed=0, nNotes=0, nMarks=0;
+
+  /* Compras de cartão */
+  Object.entries(state.expenses||{}).forEach(([id,raw])=>{
+    const x=normalizeExpense(id,raw);
+    if(x.deleted || x.fixedId) return;
+    if(monthOf(x.purchaseDate)===month){
+      upd["despesas_cartao/"+id]=null;
+      nCards++;
+      return;
+    }
+    const e=installmentsForMonth(x,month);
+    if(e && raw.paid && raw.paid[e.installment]!=null){
+      upd["despesas_cartao/"+id+"/paid/"+e.installment]=null;
+      nMarks++;
+    }
+  });
+
+  /* Despesas fixas */
+  Object.entries(state.fixed||{}).forEach(([id,f])=>{
+    if(f.deleted) return;
+    const start=fixedStartMonth(f);
+    if(start===month){
+      upd["config/despesas_fixas/"+id]=null;
+      nFixed++;
+      return;
+    }
+    if(start>month) return;
+    if(f.endMonth && month>f.endMonth) return;
+    let touched=false;
+    if(f.paid && f.paid[month]!=null){
+      upd["config/despesas_fixas/"+id+"/paid/"+month]=null;
+      touched=true;
+    }
+    if(f.valores && f.valores[month]!=null){
+      upd["config/despesas_fixas/"+id+"/valores/"+month]=null;
+      touched=true;
+    }
+    if(touched) nMarks++;
+  });
+
+  /* Aleatórios e "Pago" dos cartões do mês */
+  const noteMonth=(state.notes||{})[month];
+  if(noteMonth && Object.keys(noteMonth).length){
+    upd["aleatorios/"+month]=null;
+    nNotes=Object.keys(noteMonth).length;
+  }
+  const cardMonth=(state.cardPaid||{})[month];
+  if(cardMonth && Object.keys(cardMonth).length){
+    upd["cartao_pago/"+month]=null;
+    nMarks++;
+  }
+
+  if(!Object.keys(upd).length){
+    showToast("Não há nada para limpar em "+mLabel(month)+".");
+    return;
+  }
+
+  const msg="Limpar a tela de "+mLabel(month)+"?\n\n"+
+    "Serão apagados da tela e do banco:\n"+
+    nCards+" compra(s) de cartão lançada(s) neste mês\n"+
+    nFixed+" despesa(s) fixa(s) lançada(s) neste mês\n"+
+    nNotes+" aleatório(s)\n"+
+    "e as marcações OK/Pago deste mês.\n\n"+
+    "Meses anteriores não são alterados e parcelamentos de meses anteriores continuam.\n"+
+    "Uma cópia dos dados atuais será guardada no banco antes.";
+  if(!confirm(msg)) return;
+
   try{
-    await createBackup("manual");
+    await createBackup("antes de limpar tela de "+month);
+    await update(ref(db),upd);
+    setSyncTime();
+    const [ex,fx,no,cp]=await Promise.all([
+      safeGet("despesas_cartao"),
+      safeGet("config/despesas_fixas"),
+      safeGet("aleatorios"),
+      safeGet("cartao_pago")
+    ]);
+    state.expenses=ex||{};
+    state.fixed=fx||{};
+    state.notes=no||{};
+    state.cardPaid=cp||{};
+    state.pendingSave=false;
+    render();
+    clearSyncError();
+    showToast("Tela de "+mLabel(month)+" limpa.");
   }catch(err){
-    setSyncError("Não foi possível criar o backup manual.");
+    setSyncError("Falha ao limpar a tela no Firebase.");
   }
 }
 
 $("pinForm").addEventListener("submit",submitPin);
 $("resetPinBtn").addEventListener("click",resetPin);
-$("backupBtn").addEventListener("click",manualBackup);
 $("downloadBckBtn").addEventListener("click",downloadBackupFile);
 $("restoreBckBtn").addEventListener("click",()=>{
   if(!state.authenticated){ showToast("Desbloqueie o app com o PIN primeiro."); return; }
@@ -1484,17 +1387,7 @@ $("restoreFile").addEventListener("change",ev=>{
   const f=ev.target.files && ev.target.files[0];
   if(f) restoreBackupFile(f);
 });
-$("exportBtn").addEventListener("click",exportCSV);
-$("importBtn").addEventListener("click",()=>{
-  if(!state.authenticated){ showToast("Desbloqueie o app com o PIN primeiro."); return; }
-  $("importFile").value="";
-  $("importFile").click();
-});
-$("importFile").addEventListener("change",ev=>{
-  const f=ev.target.files && ev.target.files[0];
-  if(f) importCSV(f);
-});
-$("lockBtn").addEventListener("click",lock);
+$("clearBtn").addEventListener("click",clearScreen);
 
 $("editForm").addEventListener("submit",saveEdit);
 $("fDelete").addEventListener("click",deleteEdit);
