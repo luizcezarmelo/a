@@ -268,7 +268,12 @@ tbody tr.ending-row{box-shadow:inset 4px 0 0 #9b59b6}
   </div>
   <div class="shell-actions">
     <button class="btn" id="backupBtn" type="button">BCK</button>
+    <button class="btn" id="downloadBckBtn" type="button">Baixar BCK</button>
+    <button class="btn" id="restoreBckBtn" type="button">Restaurar BCK</button>
+    <input type="file" id="restoreFile" accept=".json,application/json" class="hidden">
     <button class="btn" id="exportBtn" type="button">Exportar</button>
+    <button class="btn" id="importBtn" type="button">Importar</button>
+    <input type="file" id="importFile" accept=".csv,text/csv" class="hidden">
     <button class="btn" id="lockBtn" type="button">Bloquear</button>
   </div>
 </header>
@@ -1244,6 +1249,220 @@ function exportCSV(){
   setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 
+/*
+  Importação do CSV gerado pelo botão Exportar.
+  O CSV tem uma linha por mês, então as linhas são reagrupadas:
+  - compras de cartão: uma compra por descrição + cartão + data de compra + total de parcelas;
+  - despesas fixas: uma despesa por descrição (início = primeiro mês, valores que mudam viram "valores").
+  Itens que já existem no banco são ignorados. Aleatórios não vão no CSV, então não são importados.
+*/
+function parseCSV(text){
+  text=text.replace(/^\uFEFF/,"");
+  const first=text.split(/\r?\n/,1)[0];
+  const delim=(first.match(/;/g)||[]).length>=(first.match(/,/g)||[]).length?";":",";
+  const rows=[];
+  let row=[],cur="",q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){
+      if(c==='"'){ if(text[i+1]==='"'){ cur+='"'; i++; } else q=false; }
+      else cur+=c;
+    }else if(c==='"') q=true;
+    else if(c===delim){ row.push(cur); cur=""; }
+    else if(c==="\n"||c==="\r"){
+      if(c==="\r"&&text[i+1]==="\n") i++;
+      row.push(cur); cur=""; rows.push(row); row=[];
+    }else cur+=c;
+  }
+  if(cur!==""||row.length){ row.push(cur); rows.push(row); }
+  return rows.filter(r=>r.some(v=>String(v).trim()!==""));
+}
+const normTxt=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
+function parseCsvMoney(s){
+  s=String(s||"").trim();
+  if(s.includes(",")) s=s.replace(/\./g,"").replace(",",".");
+  const n=Number(s);
+  return Number.isFinite(n)?n:NaN;
+}
+function cardOriginOf(o){
+  const n=normTxt(o);
+  return n==="nubank"?"Nubank":n==="c6"?"C6":"Diversos";
+}
+
+async function importCSV(file){
+  if(!state.authenticated){ showToast("Desbloqueie o app com o PIN primeiro."); return; }
+  let rows;
+  try{ rows=parseCSV(await file.text()); }
+  catch(err){ showToast("Não foi possível ler o arquivo."); return; }
+  if(rows.length<2){ showToast("CSV vazio ou inválido."); return; }
+
+  const head=rows[0].map(normTxt);
+  const col=n=>head.indexOf(n);
+  const ix={month:col("mes"),desc:col("descricao"),origin:col("origem"),date:col("data de compra"),
+            n:col("parcela"),N:col("total de parcelas"),val:col("valor da parcela"),
+            status:col("status"),note:col("observacao")};
+  if(ix.month<0||ix.desc<0||ix.val<0){
+    alert("Não reconheci as colunas do CSV. Use o arquivo gerado pelo botão Exportar.");
+    return;
+  }
+  const g=(r,i)=>i>=0?String(r[i]??"").trim():"";
+
+  const fixed={}, cards={};
+  const seen={};
+  const occ=(month,k)=>{ const s=month+"#"+k; seen[s]=(seen[s]||0)+1; return seen[s]-1; };
+  rows.slice(1).forEach(r=>{
+    const month=g(r,ix.month), desc=g(r,ix.desc), val=parseCsvMoney(g(r,ix.val));
+    if(!/^\d{4}-\d{2}$/.test(month)||!desc||!Number.isFinite(val)) return;
+    const origin=g(r,ix.origin), note=g(r,ix.note);
+    const paid=normTxt(g(r,ix.status))==="pago";
+    const rawDate=g(r,ix.date);
+    const date=/^\d{4}-\d{2}-\d{2}$/.test(rawDate)?rawDate:month+"-01";
+    const n=Math.max(1,parseInt(g(r,ix.n),10)||1);
+    const N=Math.max(1,parseInt(g(r,ix.N),10)||1);
+    if(origin==="Fixas"||note==="Despesa fixa"){
+      const base=normTxt(desc);
+      const idx=occ(month,"F|"+base);
+      const k=base+"#"+idx;
+      const f=fixed[k]=fixed[k]||{description:desc,base,idx,months:{},day:date.slice(8,10)||"01"};
+      f.months[month]={val,paid};
+    }else{
+      const o=cardOriginOf(origin);
+      const base=[normTxt(desc),o,date,N,round2(val).toFixed(2)].join("|");
+      const idx=occ(month,"C|"+base);
+      const k=base+"#"+idx;
+      const c=cards[k]=cards[k]||{description:desc,origin:o,date,N,val,paid:{},base,idx};
+      if(paid) c.paid[n]=true;
+    }
+  });
+
+  const haveCards={};
+  baseExpenses().forEach(x=>{
+    const v=x.parcelValue!=null?x.parcelValue:x.amount/x.installments;
+    const b=[normTxt(x.description),cardOriginOf(x.origin),x.purchaseDate,x.installments,round2(v).toFixed(2)].join("|");
+    haveCards[b]=(haveCards[b]||0)+1;
+  });
+
+  const upd={}, newCards={}, newFixed={};
+  const base=Date.now();
+  let i=0, nCards=0, nFixed=0, skipped=0;
+
+  Object.values(cards).forEach(c=>{
+    if(c.idx<(haveCards[c.base]||0)){ skipped++; return; }
+    const id=uuid();
+    const item={description:c.description,parcelValue:round2(c.val),amount:round2(c.val*c.N),origin:c.origin,
+                installments:c.N,purchaseDate:c.date,note:"",createdAt:base+i,order:base+i,fixedId:null};
+    if(Object.keys(c.paid).length) item.paid=c.paid;
+    i++; nCards++;
+    upd["despesas_cartao/"+id]=item;
+    newCards[id]=item;
+  });
+
+  Object.values(fixed).forEach(f=>{
+    const ms=Object.keys(f.months).sort();
+    const start=ms[0], last=ms[ms.length-1];
+    const covering=Object.values(state.fixed||{}).filter(x=>!x.deleted && normTxt(x.description)===f.base && fixedStartMonth(x)<=start && (!x.endMonth || x.endMonth>=last)).length;
+    if(f.idx<covering){ skipped++; return; }
+    const amt=round2(f.months[start].val);
+    const valores={}, paid={};
+    let prev=amt;
+    ms.forEach(m=>{
+      const v=round2(f.months[m].val);
+      if(m!==start && v!==prev){ valores[m]=v; prev=v; }
+      if(f.months[m].paid) paid[m]=true;
+    });
+    const id=uuid();
+    const item={description:f.description,amount:amt,origin:"Fixas",purchaseDate:start+"-"+f.day,
+                startMonth:start,note:"",createdAt:base+i,order:base+i};
+    if(Object.keys(valores).length) item.valores=valores;
+    if(Object.keys(paid).length) item.paid=paid;
+    if(last<addMonths(start,23)) item.endMonth=last;
+    i++; nFixed++;
+    upd["config/despesas_fixas/"+id]=item;
+    newFixed[id]=item;
+  });
+
+  if(!nCards && !nFixed){
+    showToast(skipped?"Tudo isso já existe no sistema.":"Nenhum lançamento encontrado no CSV.");
+    return;
+  }
+  if(!confirm("Importar "+nCards+" compra(s) de cartão e "+nFixed+" despesa(s) fixa(s)?"+(skipped?"\n"+skipped+" item(ns) já existente(s) serão ignorados.":""))) return;
+
+  try{
+    await ensureImmediateBackup("importação de CSV");
+    await update(ref(db),upd);
+    setSyncTime();
+    Object.assign(state.expenses,newCards);
+    Object.assign(state.fixed,newFixed);
+    state.pendingSave=false;
+    render();
+    clearSyncError();
+    showToast("Importação concluída.");
+  }catch(err){
+    setSyncError("Falha ao importar o CSV para o Firebase.");
+  }
+}
+
+/*
+  Backup em arquivo (JSON): cópia exata dos dados, lida direto do banco.
+  Diferente do CSV (que é um relatório), este arquivo guarda tudo como está salvo:
+  compras de cartão, despesas fixas, aleatórios, "pago" dos cartões e limites.
+  O PIN não entra no arquivo.
+*/
+const BCK_PATHS=["despesas_cartao","config/despesas_fixas","config/limites","aleatorios","cartao_pago","gastos_avulsos"];
+const bckCount=v=>v&&typeof v==="object"?Object.keys(v).length:0;
+const bckNotes=v=>v&&typeof v==="object"?Object.values(v).reduce((s,m)=>s+bckCount(m),0):0;
+
+async function downloadBackupFile(){
+  if(!state.authenticated){ showToast("Desbloqueie o app com o PIN primeiro."); return; }
+  try{
+    const data={};
+    for(const p of BCK_PATHS) data[p]=await safeGet(p);
+    const payload={app:"controle-gastos-mensais",format:1,createdAt:new Date().toISOString(),data};
+    const stamp=new Date().toISOString().slice(0,16).replace("T","-").replace(":","");
+    const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;
+    a.download="controle-gastos-bck-"+stamp+".json";
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    showToast("Backup salvo: "+bckCount(data["despesas_cartao"])+" compras, "+bckCount(data["config/despesas_fixas"])+" fixas, "+bckNotes(data["aleatorios"])+" aleatórios.");
+  }catch(err){
+    setSyncError("Não foi possível gerar o arquivo de backup.");
+  }
+}
+
+async function restoreBackupFile(file){
+  if(!state.authenticated){ showToast("Desbloqueie o app com o PIN primeiro."); return; }
+  let payload;
+  try{ payload=JSON.parse(await file.text()); }
+  catch(err){ alert("Arquivo inválido. Use um arquivo gerado por Baixar BCK."); return; }
+  if(!payload || payload.app!=="controle-gastos-mensais" || !payload.data){
+    alert("Este arquivo não é um backup deste sistema. Use um arquivo gerado por Baixar BCK.");
+    return;
+  }
+  const d=payload.data;
+  const when=payload.createdAt?new Date(payload.createdAt).toLocaleString("pt-BR"):"data desconhecida";
+  const msg="Restaurar o backup de "+when+"?\n\n"+
+    bckCount(d["despesas_cartao"])+" compras de cartão\n"+
+    bckCount(d["config/despesas_fixas"])+" despesas fixas\n"+
+    bckNotes(d["aleatorios"])+" aleatórios\n\n"+
+    "Isso SUBSTITUI os dados atuais pelos do arquivo. Uma cópia dos dados atuais será guardada no banco antes.";
+  if(!confirm(msg)) return;
+  try{
+    await createBackup("antes de restaurar backup");
+    const upd={};
+    BCK_PATHS.forEach(p=>{ upd[p]=d[p]??null; });
+    await update(ref(db),upd);
+    setSyncTime();
+    state.pendingSave=false;
+    clearSyncError();
+    showToast("Backup restaurado.");
+  }catch(err){
+    setSyncError("Falha ao restaurar o backup no Firebase.");
+  }
+}
+
 async function manualBackup(){
   try{
     await createBackup("manual");
@@ -1255,7 +1474,26 @@ async function manualBackup(){
 $("pinForm").addEventListener("submit",submitPin);
 $("resetPinBtn").addEventListener("click",resetPin);
 $("backupBtn").addEventListener("click",manualBackup);
+$("downloadBckBtn").addEventListener("click",downloadBackupFile);
+$("restoreBckBtn").addEventListener("click",()=>{
+  if(!state.authenticated){ showToast("Desbloqueie o app com o PIN primeiro."); return; }
+  $("restoreFile").value="";
+  $("restoreFile").click();
+});
+$("restoreFile").addEventListener("change",ev=>{
+  const f=ev.target.files && ev.target.files[0];
+  if(f) restoreBackupFile(f);
+});
 $("exportBtn").addEventListener("click",exportCSV);
+$("importBtn").addEventListener("click",()=>{
+  if(!state.authenticated){ showToast("Desbloqueie o app com o PIN primeiro."); return; }
+  $("importFile").value="";
+  $("importFile").click();
+});
+$("importFile").addEventListener("change",ev=>{
+  const f=ev.target.files && ev.target.files[0];
+  if(f) importCSV(f);
+});
 $("lockBtn").addEventListener("click",lock);
 
 $("editForm").addEventListener("submit",saveEdit);
