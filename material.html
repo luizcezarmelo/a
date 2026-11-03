@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lista de Material – Ortodontia 2027</title>
+<title>Lista de Material</title>
 <style>
   :root{
     --shell:#354a5f; --azul:#0a6ed1; --azul-esc:#0854a0; --fundo:#f7f7f7;
@@ -50,6 +50,10 @@
   .ic:hover{color:var(--azul)} .ic.del:hover{color:var(--err)}
   tr.feito td{opacity:.5}
   tr.feito .n{text-decoration:line-through}
+  .n{cursor:pointer}
+  .n:hover{color:var(--azul)}
+  .aviso{margin-left:8px;font-size:11px;font-weight:600;color:var(--ok)}
+  .aviso.falha{color:var(--err)}
   .vazio{text-align:center;color:var(--suave);padding:20px}
   .novo{display:flex;gap:8px;margin-top:12px}
   #print{display:none}
@@ -341,7 +345,38 @@ $("tbody").addEventListener("input", e => {
   else return;
   salvar(false);
 });
+async function copiar(texto, el) {
+  let ok = false;
+  try {
+    await navigator.clipboard.writeText(texto);
+    ok = true;
+  } catch (err) {
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = texto;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+    } catch (err2) { ok = false; }
+  }
+  const cel = el.closest("td");
+  cel.querySelectorAll(".aviso").forEach(a => a.remove());
+  const av = document.createElement("span");
+  av.className = "aviso" + (ok ? "" : " falha");
+  av.textContent = ok ? "Copiado" : "Não foi possível copiar";
+  el.insertAdjacentElement("afterend", av);
+  setTimeout(() => av.remove(), 1200);
+}
 $("tbody").addEventListener("click", e => {
+  const nomeEl = e.target.closest(".n");
+  if (nomeEl) {
+    const item = achar(nomeEl);
+    if (item) copiar(item.n, nomeEl);
+    return;
+  }
   const bt = e.target.closest(".ic");
   if (!bt) return;
   const it = achar(bt);
