@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lista de Material – Ortodontia 2027</title>
+<style>
+  :root{
+    --shell:#354a5f; --azul:#0a6ed1; --azul-esc:#0854a0; --fundo:#f7f7f7;
+    --borda:#d9d9d9; --texto:#32363a; --suave:#6a6d70; --ok:#107e3e; --err:#bb0000;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--fundo);color:var(--texto);font:14px/1.4 "72","72full",Arial,Helvetica,sans-serif}
+  .shell{background:var(--shell);color:#fff;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;position:sticky;top:0;z-index:5}
+  .shell h1{font-size:16px;font-weight:600;margin:0}
+  #status{font-size:11px;opacity:.85}
+  #status.ok{color:#a5e6bb} #status.err,#status.off{color:#ffb3b3}
+  .wrap{max-width:1200px;margin:0 auto;padding:16px}
+  .tabs{display:flex;gap:0;border-bottom:1px solid var(--borda)}
+  .tab{background:none;border:0;border-bottom:3px solid transparent;padding:10px 18px;font:inherit;color:var(--suave);cursor:pointer}
+  .tab.ativa{color:var(--azul);border-bottom-color:var(--azul);font-weight:600}
+  .card{background:#fff;border:1px solid var(--borda);border-top:0;padding:14px}
+  .barra{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+  .barra input[type=search]{flex:1;min-width:180px}
+  input[type=text],input[type=search],input[type=number]{font:inherit;padding:5px 8px;border:1px solid #89919a;border-radius:4px;background:#fff;color:var(--texto);width:100%}
+  input:focus{outline:2px solid var(--azul);outline-offset:-1px}
+  .seg{display:flex}
+  .seg button{font:inherit;background:#fff;border:1px solid var(--azul);color:var(--azul);padding:5px 12px;cursor:pointer}
+  .seg button:first-child{border-radius:4px 0 0 4px} .seg button:last-child{border-radius:0 4px 4px 0}
+  .seg button+button{margin-left:-1px}
+  .seg button.ativa{background:var(--azul);color:#fff}
+  .btn{font:inherit;background:var(--azul);color:#fff;border:1px solid var(--azul);border-radius:4px;padding:6px 14px;cursor:pointer}
+  .btn:hover{background:var(--azul-esc)}
+  .resumo{display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin-bottom:12px}
+  .prog{flex:1;min-width:200px}
+  .prog .trilho{height:8px;background:#e5e5e5;border-radius:4px;overflow:hidden}
+  .prog .fill{height:100%;background:var(--ok);width:0;transition:width .2s}
+  .prog small{color:var(--suave)}
+  .total{font-weight:600}
+  .rolar{overflow-x:auto}
+  table{width:100%;border-collapse:collapse}
+  th{background:#f2f2f2;text-align:left;font-weight:600;padding:8px;border-bottom:1px solid var(--borda);white-space:nowrap}
+  td{padding:6px 8px;border-bottom:1px solid #ececec;vertical-align:middle}
+  td.c{width:36px;text-align:center}
+  input.chk{width:18px;height:18px;cursor:pointer}
+  td.nome{min-width:220px}
+  .nt{display:block;font-size:12px;color:var(--suave)}
+  td.q{width:80px} td.p{width:110px} td.o{min-width:200px} td.ac{width:76px;white-space:nowrap}
+  .ic{background:none;border:0;cursor:pointer;font-size:15px;color:var(--suave);padding:2px 6px}
+  .ic:hover{color:var(--azul)} .ic.del:hover{color:var(--err)}
+  tr.feito td{opacity:.5}
+  tr.feito .n{text-decoration:line-through}
+  .vazio{text-align:center;color:var(--suave);padding:20px}
+  .novo{display:flex;gap:8px;margin-top:12px}
+  #print{display:none}
+  @media (max-width:700px){.card{padding:8px}}
+
+  @page{size:A4;margin:15mm}
+  @media print{
+    body{background:#fff}
+    #app{display:none}
+    #print{display:block;color:#000}
+    #print h1{font-size:16pt;margin:0 0 2mm}
+    #print .pd{font-size:9pt;color:#444;margin-bottom:6mm}
+    #print h2{font-size:12pt;margin:6mm 0 2mm;padding-bottom:1mm;border-bottom:1.5px solid #000;break-after:avoid}
+    #print table{font-size:10pt}
+    #print td{border-bottom:1px solid #bbb;padding:2mm;vertical-align:top}
+    #print tr{break-inside:avoid}
+    #print .bx{width:8mm;font-size:12pt}
+    #print .ob{width:42%;color:#333}
+    #print .qt{width:14mm;white-space:nowrap}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="shell"><h1>Ortodontia 2027 – Lista de Material</h1><span id="status">Carregando…</span></div>
+  <div class="wrap">
+    <div class="tabs" id="tabs"></div>
+    <div class="card">
+      <div class="barra">
+        <input type="search" id="busca" placeholder="Buscar item…">
+        <div class="seg" id="filtros">
+          <button data-f="todos" class="ativa">Todos</button>
+          <button data-f="falt">Faltantes</button>
+          <button data-f="comp">Comprados</button>
+        </div>
+        <button class="btn" id="btnImprimir">Imprimir faltantes</button>
+      </div>
+      <div class="resumo">
+        <div class="prog"><div class="trilho"><div class="fill" id="fill"></div></div><small id="progTxt"></small></div>
+        <div class="total" id="total"></div>
+      </div>
+      <div class="rolar">
+        <table>
+          <thead><tr><th></th><th>Item</th><th>Qtd</th><th>Preço (R$)</th><th>Observações</th><th></th></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <div class="novo">
+        <input type="text" id="novoNome" placeholder="Novo item…">
+        <button class="btn" id="btnAdd">Adicionar</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="print"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+import { getDatabase, ref, get, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBiikcagIm1p7wJG6DsHijkvdy1fpDBn8Y",
+  authDomain: "bd-teste-c931c.firebaseapp.com",
+  databaseURL: "https://bd-teste-c931c-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "bd-teste-c931c",
+  storageBucket: "bd-teste-c931c.firebasestorage.app",
+  messagingSenderId: "270308100761",
+  appId: "1:270308100761:web:ae34fde6d5ae86b67b0608"
+};
+const fbApp = initializeApp(firebaseConfig);
+const db = getDatabase(fbApp);
+const PATH = "listaOrtodontia2027";
+
+const TITULOS = {
+  jan: "Janeiro/2027 · Placas Oclusais",
+  fev: "Fevereiro/2027 · Aparelhos Ortodônticos"
+};
+const MESES = ["jan", "fev"];
+
+const SEED_JAN = [
+  ["Articulador semi-ajustável",""],["Modelos de estudo","Adquirir na escola"],["Lápis grafite",""],
+  ["Espátula Lecron",""],["Espátula Nº 7",""],["Cabo de bisturi e lâmina (10 ou 11)",""],["Espátula Nº 36",""],
+  ["Mesa de Camper",""],["Mufla Nº 6","A mesma que usou nas acrilizações"],["Cuba de borracha",""],
+  ["Espátula para gesso (metálica)",""],["Isolante","Coletivo"],["Pincel para isolante e vaselina","1 para cada"],
+  ["Pote Palatón",""],["Pote Dapen",""],["Escova de dente",""],["Espátula de gesso",""],
+  ["Brocas Maxcut e Minicut",""],["Mandril para lixa",""],["Broca esférica Nº 08 PM carbide",""],
+  ["Óculos de segurança",""],["Máscara",""],["Jaleco",""],["Motor de acabamento ou de chicote",""],
+  ["Gesso pedra",""],["Vaselina sólida",""],["Cera utilidades",""],
+  ["Resina acrílica incolor pó (termo ou micro-ondas)","Coletivo"],
+  ["Resina acrílica líquido (termo ou micro-ondas)","Coletivo"],
+  ["Lixa d'água 180, 400 e 1200","Preferência 3M"],["Papel carbono",""],
+  ["Gesso especial tipo IV","Coletivo"],["Silicone e catalisador","Coletivo"]
+];
+const SEED_FEV = [
+  ["Alicate 139","Indispensável"],["Alicate 074","Torre"],["Alicate 109","Dela Rose"],
+  ["Alicate 053","Meia Cana"],["Alicate 200","Tridente"],["Alicate corte grosso","Qualquer marca"],
+  ["3 parafusos expansores","Código 65.05.101. Dar preferência a esta referência; se faltar na loja, pode comprar um tamanho menor (7 ou 9)"],
+  ["01 disjuntor palatino de 9 mm","Código 65.05.011. Se faltar na loja, pode comprar o de 11 mm"],
+  ["Fio de aço inoxidável em rolo Morele 0,7 mm","Código 55.01070. Não comprar fios retos (varetas)"],
+  ["Fio de aço inoxidável em rolo Morele 0,8 mm","Código 55.01080. Não comprar fios retos (varetas)"],
+  ["Fio de aço inoxidável em rolo Morele 0,9 mm","Código 55.01090. Não comprar fios retos (varetas)"],
+  ["Fio de aço inoxidável em rolo Morele 1,0 mm","Código 55.01100. Não comprar fios retos (varetas)"],
+  ["01 AEB – Arco Extra Bucal","Código 50.10.002"],
+  ["Espátula Lecron",""],["Espátula 07 ou 31",""],["Tesoura comum",""],["Arco e serra de troquel",""],["Gesso comum",""],
+  ["01 fita Durex comum","Indispensável na primeira aula, para fixar exercícios de adestramento manual"],
+  ["Broca de tungstênio","A mesma que usou em prótese total"],
+  ["Pedra montada","Granulometria grossa e fina"],
+  ["Disco de Carburundum","Com o mandril"],
+  ["Pontas de borracha","Com o mandril"],
+  ["Feltro","Com o mandril"],
+  ["Lixa","Com o mandril"],
+  ["Barra para polimento em metal",""],
+  ["Pó abrasivo para polimento ou pasta de polimento",""],
+  ["Motor",""],
+  ["Monômero e polímero autopolimerizáveis","Incolor ou colorido translúcidos"],
+  ["Bisnaga",""],["Isolante líquido",""],
+  ["1 pincel fino e 1 grosso","De preferência macio"],
+  ["Maçarico para solda","Qualquer marca; testar no ato da compra, a chama deve ser fina e constante"],
+  ["Spray de gás para o maçarico (refil)",""],
+  ["Fio de solda prata","Código 35.30.10. Dar preferência ao fio em rolo, rende mais"],
+  ["Pasta para solda prata","Código 35.30.20"],
+  ["Cera utilidade","Preferência de cor branca, ou a mesma que usou em prótese total"],
+  ["01 lápis de cera pequeno (fino)","Indispensável"],
+  ["01 caneta de marcação permanente",""],
+  ["Fita de bandar","Código 40.90.002"],
+  ["Pote Dappen",""],
+  ["Alginato","Pode ser refil pequeno ou amostra grátis; se preferir, dividir um pacote grande em grupo"],
+  ["Articulador semi-ajustável",""],
+  ["Óculos de proteção","Obrigatório"],
+  ["Protetor de bancada","Obrigatório"],
+  ["Jaleco","Obrigatório"],
+  ["Máscara","Obrigatório"]
+];
+
+const state = { jan: [], fev: [] };
+let aba = "jan", filtro = "todos", busca = "";
+let carregado = false, podeSalvar = false, statusAtual = "load", timer = null;
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const brl = v => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const num = v => { if (v === "") return ""; const n = Number(v); return isNaN(n) ? "" : n; };
+const novoId = () => "i" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+function seed(arr, pre) {
+  return arr.map((x, i) => ({ id: pre + String(i + 1).padStart(3, "0"), n: x[0], nt: x[1], f: false, obs: "", q: 1, p: "" }));
+}
+
+/* ---------- Firebase ---------- */
+function setStatus(s) {
+  statusAtual = s;
+  const el = $("status");
+  const t = { load: "Carregando…", saving: "Salvando…", ok: "● Salvo", err: "● Erro ao salvar", off: "● Sem conexão" };
+  el.textContent = t[s];
+  el.className = s;
+}
+function serializar() {
+  const out = { v: 1 };
+  MESES.forEach(m => {
+    out[m] = {};
+    state[m].forEach((it, i) => {
+      out[m][it.id] = { n: it.n, nt: it.nt || "", f: it.f ? 1 : 0, obs: it.obs || "", q: it.q === "" ? "" : it.q, p: it.p === "" ? "" : it.p, o: i };
+    });
+  });
+  return out;
+}
+function desserializar(obj) {
+  return Object.entries(obj || {}).map(([id, x]) => ({
+    id, n: x.n || "", nt: x.nt || "", f: x.f === 1, obs: x.obs || "",
+    q: x.q === undefined ? 1 : x.q, p: x.p === undefined ? "" : x.p, o: x.o || 0
+  })).sort((a, b) => a.o - b.o);
+}
+function salvar(imediato) {
+  if (!podeSalvar) return;
+  setStatus("saving");
+  clearTimeout(timer);
+  timer = setTimeout(async () => {
+    try { await set(ref(db, PATH), serializar()); setStatus("ok"); }
+    catch (e) { console.error(e); setStatus("err"); }
+  }, imediato ? 0 : 400);
+}
+async function carregar() {
+  try {
+    const snap = await get(ref(db, PATH));
+    if (snap.exists()) {
+      const d = snap.val();
+      state.jan = desserializar(d.jan);
+      state.fev = desserializar(d.fev);
+      podeSalvar = true;
+      setStatus("ok");
+    } else {
+      state.jan = seed(SEED_JAN, "j");
+      state.fev = seed(SEED_FEV, "f");
+      podeSalvar = true;
+      salvar(true);
+    }
+  } catch (e) {
+    console.error(e);
+    state.jan = seed(SEED_JAN, "j");
+    state.fev = seed(SEED_FEV, "f");
+    podeSalvar = false;
+    setStatus("err");
+  }
+  carregado = true;
+  render();
+}
+onValue(ref(db, ".info/connected"), s => {
+  if (!carregado || !podeSalvar) return;
+  if (s.val() === true) { if (statusAtual === "off") setStatus("ok"); }
+  else setStatus("off");
+});
+
+/* ---------- Render ---------- */
+function linha(it) {
+  return `<tr class="${it.f ? "feito" : ""}" data-id="${esc(it.id)}">
+    <td class="c"><input type="checkbox" class="chk" ${it.f ? "checked" : ""}></td>
+    <td class="nome"><span class="n">${esc(it.n)}</span>${it.nt ? `<span class="nt">${esc(it.nt)}</span>` : ""}</td>
+    <td class="q"><input type="number" class="qtd" min="0" step="1" value="${esc(it.q)}"></td>
+    <td class="p"><input type="number" class="preco" min="0" step="0.01" placeholder="0,00" value="${esc(it.p)}"></td>
+    <td class="o"><input type="text" class="obs" placeholder="Observações…" value="${esc(it.obs)}"></td>
+    <td class="ac"><button class="ic ed" title="Editar">✎</button><button class="ic del" title="Excluir">✕</button></td>
+  </tr>`;
+}
+function atualizarResumo() {
+  MESES.forEach(m => {
+    const l = state[m];
+    const feitos = l.filter(x => x.f).length;
+    const b = document.querySelector(`.tab[data-m="${m}"]`);
+    if (b) b.textContent = `${TITULOS[m]} (${feitos}/${l.length})`;
+  });
+  const l = state[aba];
+  const feitos = l.filter(x => x.f).length;
+  const pct = l.length ? Math.round(feitos / l.length * 100) : 0;
+  $("fill").style.width = pct + "%";
+  $("progTxt").textContent = `${feitos} de ${l.length} itens comprados (${pct}%)`;
+  let tot = 0;
+  l.forEach(x => { if (!x.f && x.p !== "") tot += (x.q === "" ? 1 : x.q) * x.p; });
+  $("total").textContent = "Estimado para o que falta: " + brl(tot);
+}
+function render() {
+  const q = busca.trim().toLowerCase();
+  const vis = state[aba].filter(it => {
+    if (filtro === "falt" && it.f) return false;
+    if (filtro === "comp" && !it.f) return false;
+    if (q && !(it.n + " " + it.nt + " " + it.obs).toLowerCase().includes(q)) return false;
+    return true;
+  });
+  $("tbody").innerHTML = vis.length ? vis.map(linha).join("") : `<tr><td colspan="6" class="vazio">Nenhum item encontrado.</td></tr>`;
+  document.querySelectorAll(".tab").forEach(b => b.classList.toggle("ativa", b.dataset.m === aba));
+  atualizarResumo();
+}
+
+/* ---------- Eventos ---------- */
+$("tabs").innerHTML = MESES.map(m => `<button class="tab" data-m="${m}"></button>`).join("");
+$("tabs").addEventListener("click", e => {
+  const b = e.target.closest(".tab");
+  if (!b) return;
+  aba = b.dataset.m;
+  render();
+});
+$("busca").addEventListener("input", e => { busca = e.target.value; render(); });
+$("filtros").addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  filtro = b.dataset.f;
+  document.querySelectorAll("#filtros button").forEach(x => x.classList.toggle("ativa", x === b));
+  render();
+});
+function achar(el) {
+  const tr = el.closest("tr");
+  if (!tr || !tr.dataset.id) return null;
+  return state[aba].find(x => x.id === tr.dataset.id) || null;
+}
+$("tbody").addEventListener("change", e => {
+  if (!e.target.classList.contains("chk")) return;
+  const it = achar(e.target);
+  if (!it) return;
+  it.f = e.target.checked;
+  salvar(true);
+  render();
+});
+$("tbody").addEventListener("input", e => {
+  const it = achar(e.target);
+  if (!it) return;
+  const c = e.target.classList;
+  if (c.contains("obs")) it.obs = e.target.value;
+  else if (c.contains("qtd")) { it.q = num(e.target.value); atualizarResumo(); }
+  else if (c.contains("preco")) { it.p = num(e.target.value); atualizarResumo(); }
+  else return;
+  salvar(false);
+});
+$("tbody").addEventListener("click", e => {
+  const bt = e.target.closest(".ic");
+  if (!bt) return;
+  const it = achar(bt);
+  if (!it) return;
+  if (bt.classList.contains("del")) {
+    if (!confirm(`Excluir "${it.n}"?`)) return;
+    state[aba] = state[aba].filter(x => x.id !== it.id);
+    salvar(true);
+    render();
+  } else if (bt.classList.contains("ed")) {
+    const nome = prompt("Nome do item:", it.n);
+    if (nome === null || !nome.trim()) return;
+    const nota = prompt("Detalhe (opcional):", it.nt);
+    it.n = nome.trim();
+    if (nota !== null) it.nt = nota.trim();
+    salvar(true);
+    render();
+  }
+});
+function adicionar() {
+  const nome = $("novoNome").value.trim();
+  if (!nome) return;
+  state[aba].push({ id: novoId(), n: nome, nt: "", f: false, obs: "", q: 1, p: "" });
+  $("novoNome").value = "";
+  salvar(true);
+  render();
+}
+$("btnAdd").addEventListener("click", adicionar);
+$("novoNome").addEventListener("keydown", e => { if (e.key === "Enter") adicionar(); });
+
+$("btnImprimir").addEventListener("click", () => {
+  let h = `<h1>Ortodontia 2027 – Itens faltantes</h1><div class="pd">Emitido em ${new Date().toLocaleDateString("pt-BR")}</div>`;
+  MESES.forEach(m => {
+    const falt = state[m].filter(x => !x.f);
+    h += `<h2>${esc(TITULOS[m])} – ${falt.length} faltante(s)</h2>`;
+    if (!falt.length) { h += `<p>Nenhum item faltante.</p>`; return; }
+    h += `<table>` + falt.map(x => `<tr>
+      <td class="bx">☐</td>
+      <td>${esc(x.n)}${x.nt ? `<br><small>${esc(x.nt)}</small>` : ""}</td>
+      <td class="qt">${x.q !== "" && x.q !== 1 ? "Qtd: " + esc(x.q) : ""}</td>
+      <td class="ob">${esc(x.obs)}</td></tr>`).join("") + `</table>`;
+  });
+  $("print").innerHTML = h;
+  window.print();
+});
+
+render();
+carregar();
+</script>
+</body>
+</html>
